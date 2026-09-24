@@ -5,15 +5,27 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.example.gmaagent.GmaAgentApp
+import com.example.gmaagent.service.AgentBackgroundService
 
 /**
- * Listens for BOOT_COMPLETED to re-schedule the sync worker after device reboot.
+ * Listens for BOOT_COMPLETED and MY_PACKAGE_REPLACED to ensure the live foreground
+ * sync service and periodic sync watchdog start automatically when device turns on
+ * or when app is updated.
  */
 class BootReceiver : BroadcastReceiver() {
+
+    companion object {
+        private const val TAG = "BootReceiver"
+    }
+
     override fun onReceive(context: Context, intent: Intent?) {
-        if (intent?.action == Intent.ACTION_BOOT_COMPLETED) {
-            Log.i("BootReceiver", "Device booted — rescheduling sync worker")
-            (context.applicationContext as? GmaAgentApp)?.scheduleSyncWorker()
-        }
+        val action = intent?.action
+        Log.i(TAG, "Device boot/update event received: $action")
+
+        // 1. Start the live background foreground service
+        AgentBackgroundService.startService(context)
+
+        // 2. Re-schedule the periodic WorkManager watchdog
+        (context.applicationContext as? GmaAgentApp)?.scheduleSyncWorker()
     }
 }

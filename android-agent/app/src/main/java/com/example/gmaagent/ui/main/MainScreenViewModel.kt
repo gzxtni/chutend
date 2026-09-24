@@ -2,9 +2,13 @@ package com.example.gmaagent.ui.main
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
+import android.os.PowerManager
 import android.provider.Settings
+import android.util.Log
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -14,6 +18,7 @@ import com.example.gmaagent.network.ApiClient
 import com.example.gmaagent.network.DeviceRegisterRequest
 import com.example.gmaagent.network.DeviceSyncRequest
 import com.example.gmaagent.network.ServerConfig
+import com.example.gmaagent.service.AgentBackgroundService
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,6 +38,8 @@ data class AgentUiState(
     val isRegistered: Boolean = false,
     val isSyncing: Boolean = false,
     val isRegistering: Boolean = false,
+    val isLiveServiceActive: Boolean = true,
+    val isBatteryOptimizationIgnored: Boolean = false,
     val lastSyncTime: String = "Never",
     val lastSyncSmsCount: Int = 0,
     val lastSyncCallCount: Int = 0,
@@ -50,7 +57,7 @@ class MainScreenViewModel : ViewModel() {
     private val dateFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
 
     /**
-     * Initialize state from stored preferences.
+     * Initialize state from stored preferences and start background live sync.
      */
     fun initialize(context: Context) {
         val apiKey = AgentPreferences.getDeviceApiKey(context)
@@ -58,16 +65,21 @@ class MainScreenViewModel : ViewModel() {
 
         ServerConfig.deviceApiKey = apiKey
 
+        // Ensure live service is active immediately
+        AgentBackgroundService.startService(context)
+
         _uiState.update {
             it.copy(
                 serverUrl = ServerConfig.baseUrl,
                 deviceApiKey = apiKey,
                 isRegistered = registered,
                 permissionsGranted = checkPermissions(context),
+                isBatteryOptimizationIgnored = checkBatteryOptimizationIgnored(context),
+                isLiveServiceActive = AgentBackgroundService.isRunning,
             )
         }
 
-        addLog("Agent initialized")
+        addLog("Agent initialized — Live background sync started")
         if (registered) {
             addLog("Device registered — API key loaded")
             triggerManualSync(context)
@@ -76,18 +88,22 @@ class MainScreenViewModel : ViewModel() {
             registerDevice(context)
         }
 
-        // Start auto-polling for commands in the background
+        // Keep UI updated on background service and commands
         viewModelScope.launch {
             while (true) {
                 if (_uiState.value.isRegistered) {
                     pollCommands(context)
                 }
-                delay(10000) // Check for commands every 10 seconds
+                _uiState.update {
+                    it.copy(
+                        isLiveServiceActive = AgentBackgroundService.isRunning,
+                        isBatteryOptimizationIgnored = checkBatteryOptimizationIgnored(context),
+                    )
+                }
+                delay(10000)
             }
         }
     }
-
-
 
     /**
      * Register this device with the server.
@@ -130,6 +146,9 @@ class MainScreenViewModel : ViewModel() {
                 }
                 addLog("✅ Device registered — ID: $deviceId")
                 addLog("API key saved")
+
+                // Immediately start background live service with newly acquired key
+                AgentBackgroundService.startService(context)
                 triggerManualSync(context)
             } else {
                 _uiState.update {
@@ -239,16 +258,52 @@ class MainScreenViewModel : ViewModel() {
         }
     }
 
+    fun requestDisableBatteryOptimization(context: Context) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val powerManager = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
+            if (powerManager != null && !powerManager.isIgnoringBatteryOptimizations(context.packageName)) {
+                try {
+                    val intent = Intent(Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                        data = Uri.parse("package:${context.packageName}")
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                    }
+                    context.startActivity(intent)
+                } catch (e: Exception) {
+                    Log.e("MainScreenVM", "Could not launch battery optimization intent", e)
+                }
+            }
+        }
+    }
+
     fun onPermissionsResult(context: Context) {
-        _uiState.update { it.copy(permissionsGranted = checkPermissions(context)) }
+        _uiState.update {
+            it.copy(
+                permissionsGranted = checkPermissions(context),
+                isBatteryOptimizationIgnored = checkBatteryOptimizationIgnored(context),
+            )
+        }
+        // Start foreground service once permissions are granted
+        AgentBackgroundService.startService(context)
+    }
+
+    private fun checkBatteryOptimizationIgnored(context: Context): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val powerManager = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
+            powerManager?.isIgnoringBatteryOptimizations(context.packageName) ?: true
+        } else {
+            true
+        }
     }
 
     private fun checkPermissions(context: Context): Boolean {
-        val required = listOf(
+        val required = mutableListOf(
             Manifest.permission.READ_SMS,
             Manifest.permission.RECEIVE_SMS,
             Manifest.permission.READ_CALL_LOG,
         )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            required.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
         return required.all {
             ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
         }

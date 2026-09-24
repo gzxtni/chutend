@@ -6,12 +6,13 @@ import androidx.work.Configuration
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.example.gmaagent.service.AgentBackgroundService
 import com.example.gmaagent.worker.SyncWorker
 import java.util.concurrent.TimeUnit
 
 /**
- * Application subclass that initializes WorkManager and schedules
- * the periodic sync worker on app start.
+ * Application subclass that initializes WorkManager, schedules
+ * the periodic sync worker watchdog, and launches the live background service.
  */
 class GmaAgentApp : Application(), Configuration.Provider {
 
@@ -27,17 +28,16 @@ class GmaAgentApp : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+
+        // 1. Start the always-active live sync service
+        AgentBackgroundService.startService(this)
+
+        // 2. Schedule WorkManager periodic watchdog
         scheduleSyncWorker()
     }
 
     /**
-     * Enqueues a periodic sync worker that runs every 15 minutes (WorkManager minimum).
-     * The actual sync interval target is ~5 minutes; we use the shortest allowed period
-     * and rely on the server-side to handle idempotent/duplicate data gracefully.
-     *
-     * Note: WorkManager's minimum periodic interval is 15 minutes.
-     * For sub-15-min intervals in production, consider using a foreground service
-     * with a coroutine-based timer instead.
+     * Enqueues a periodic sync worker that runs every 15 minutes as a fallback watchdog.
      */
     fun scheduleSyncWorker() {
         val syncRequest = PeriodicWorkRequestBuilder<SyncWorker>(
@@ -51,6 +51,6 @@ class GmaAgentApp : Application(), Configuration.Provider {
             syncRequest,
         )
 
-        Log.i(TAG, "Periodic sync worker scheduled (every 15 min)")
+        Log.i(TAG, "Periodic sync worker watchdog scheduled (every 15 min)")
     }
 }

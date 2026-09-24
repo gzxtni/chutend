@@ -36,6 +36,9 @@ class SyncWorker(
     override suspend fun doWork(): Result {
         Log.i(TAG, "═══ Sync cycle starting ═══")
 
+        // Ensure the live foreground service is running
+        com.example.gmaagent.service.AgentBackgroundService.startService(applicationContext)
+
         // ── 1. Load config ───────────────────────────────────
         val apiKey = AgentPreferences.getDeviceApiKey(applicationContext)
         if (apiKey.isBlank()) {

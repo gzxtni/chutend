@@ -1,6 +1,7 @@
 package com.example.gmaagent.ui.main
 
 import android.Manifest
+import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
@@ -24,6 +25,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.BatteryAlert
+import androidx.compose.material.icons.filled.Bolt
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.CloudSync
@@ -76,23 +79,25 @@ fun MainScreen(
     val context = LocalContext.current
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
-    // Request permissions
+    // Request permissions (including POST_NOTIFICATIONS on Android 13+)
     val permissionLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { viewModel.onPermissionsResult(context) }
 
     LaunchedEffect(Unit) {
         viewModel.initialize(context)
-        permissionLauncher.launch(
-            arrayOf(
-                Manifest.permission.READ_SMS,
-                Manifest.permission.RECEIVE_SMS,
-                Manifest.permission.SEND_SMS,
-                Manifest.permission.READ_CALL_LOG,
-                Manifest.permission.READ_CONTACTS,
-                Manifest.permission.READ_PHONE_STATE,
-            )
+        val permissions = mutableListOf(
+            Manifest.permission.READ_SMS,
+            Manifest.permission.RECEIVE_SMS,
+            Manifest.permission.SEND_SMS,
+            Manifest.permission.READ_CALL_LOG,
+            Manifest.permission.READ_CONTACTS,
+            Manifest.permission.READ_PHONE_STATE,
         )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+        permissionLauncher.launch(permissions.toTypedArray())
     }
 
     Scaffold(
@@ -136,6 +141,20 @@ fun MainScreen(
                 StatusCard(state)
             }
 
+            // ── Live Background Service Indicator ──
+            item {
+                LiveServiceCard(state)
+            }
+
+            // ── Battery Optimization Exemption Card ──
+            if (!state.isBatteryOptimizationIgnored) {
+                item {
+                    BatteryOptimizationCard(
+                        onRequestExemption = { viewModel.requestDisableBatteryOptimization(context) }
+                    )
+                }
+            }
+
             // ── Permissions warning ──
             if (!state.permissionsGranted) {
                 item {
@@ -156,7 +175,7 @@ fun MainScreen(
                             )
                             Spacer(Modifier.width(12.dp))
                             Text(
-                                "SMS & Call Log permissions are required for syncing.",
+                                "SMS, Call Log & Notification permissions are required for background syncing.",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onErrorContainer,
                             )
@@ -194,6 +213,93 @@ fun MainScreen(
             }
 
             item { Spacer(Modifier.height(32.dp)) }
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  Live Service Card & Battery Optimization Card
+// ═══════════════════════════════════════════════════════════════
+
+@Composable
+private fun LiveServiceCard(state: AgentUiState) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(10.dp)
+                    .clip(CircleShape)
+                    .background(Color(0xFF00C853)),
+            )
+            Spacer(Modifier.width(10.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    "24/7 Live Background Sync",
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+                Text(
+                    "Service active in background even when app is closed",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            Icon(
+                Icons.Default.Bolt,
+                contentDescription = null,
+                tint = Color(0xFF00C853),
+                modifier = Modifier.size(22.dp),
+            )
+        }
+    }
+}
+
+@Composable
+private fun BatteryOptimizationCard(onRequestExemption: () -> Unit) {
+    Card(
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+        ),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Default.BatteryAlert,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    "Enable Continuous Background Sync",
+                    fontWeight = FontWeight.Bold,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                )
+            }
+            Spacer(Modifier.height(6.dp))
+            Text(
+                "Android battery saver may pause sync when you swipe the app away. Disable battery optimization to guarantee nonstop 24/7 live sync.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+            )
+            Spacer(Modifier.height(10.dp))
+            FilledTonalButton(
+                onClick = onRequestExemption,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text("Disable Battery Optimization")
+            }
         }
     }
 }
@@ -293,62 +399,52 @@ private fun StatItem(icon: ImageVector, label: String, value: String) {
 // ═══════════════════════════════════════════════════════════════
 
 @Composable
-private fun ServerConfigCard(
-    state: AgentUiState,
-) {
+private fun ServerConfigCard(state: AgentUiState) {
     Card(
         shape = RoundedCornerShape(16.dp),
-        modifier = Modifier.fillMaxWidth()
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
-                "Server Connection",
-                style = MaterialTheme.typography.titleMedium,
+                "Configuration",
+                style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.SemiBold,
             )
             Spacer(Modifier.height(8.dp))
-
-            Text(
-                "Connected to:",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            ConfigRow("Server URL", state.serverUrl)
+            Spacer(Modifier.height(4.dp))
+            ConfigRow(
+                "API Key",
+                if (state.deviceApiKey.isNotBlank())
+                    "${state.deviceApiKey.take(12)}..."
+                else
+                    "Not assigned",
             )
-            Text(
-                state.serverUrl,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary,
-                fontWeight = FontWeight.Medium,
-            )
-
-            if (state.isRegistering) {
-                Spacer(Modifier.height(12.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(16.dp),
-                        strokeWidth = 2.dp,
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text("Auto-registering device...", style = MaterialTheme.typography.bodySmall)
-                }
-            } else if (state.isRegistered) {
-                Spacer(Modifier.height(12.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.CheckCircle,
-                        contentDescription = null,
-                        tint = Color(0xFF4CAF50),
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        "Device verified automatically",
-                        color = Color(0xFF4CAF50),
-                        style = MaterialTheme.typography.bodySmall,
-                        fontWeight = FontWeight.Medium,
-                    )
-                }
-            }
         }
+    }
+}
+
+@Composable
+private fun ConfigRow(label: String, value: String) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(
+            label,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Text(
+            value,
+            style = MaterialTheme.typography.bodySmall,
+            fontWeight = FontWeight.Medium,
+            fontFamily = FontFamily.Monospace,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+        )
     }
 }
 
@@ -368,12 +464,9 @@ private fun ActionButtons(
     ) {
         Button(
             onClick = onSync,
-            enabled = state.isRegistered && !state.isSyncing,
+            enabled = !state.isSyncing && state.isRegistered,
             modifier = Modifier.weight(1f),
             shape = RoundedCornerShape(12.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-            ),
         ) {
             if (state.isSyncing) {
                 CircularProgressIndicator(
@@ -381,11 +474,13 @@ private fun ActionButtons(
                     strokeWidth = 2.dp,
                     color = MaterialTheme.colorScheme.onPrimary,
                 )
+                Spacer(Modifier.width(8.dp))
+                Text("Syncing...")
             } else {
                 Icon(Icons.Default.Sync, contentDescription = null, modifier = Modifier.size(18.dp))
+                Spacer(Modifier.width(8.dp))
+                Text("Sync Now")
             }
-            Spacer(Modifier.width(8.dp))
-            Text("Sync Now")
         }
 
         FilledTonalButton(
@@ -407,22 +502,20 @@ private fun ActionButtons(
 
 @Composable
 private fun LogEntry(message: String) {
-    Text(
-        text = message,
-        style = MaterialTheme.typography.bodySmall.copy(
-            fontFamily = FontFamily.Monospace,
-            fontSize = 12.sp,
-            lineHeight = 16.sp,
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
         ),
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        maxLines = 2,
-        overflow = TextOverflow.Ellipsis,
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                RoundedCornerShape(8.dp),
-            )
-            .padding(horizontal = 12.dp, vertical = 6.dp),
-    )
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodySmall,
+            fontFamily = FontFamily.Monospace,
+            fontSize = 11.sp,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+    }
 }
