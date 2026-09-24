@@ -4,7 +4,6 @@ import {
   BatteryCharging,
   BatteryLow,
   Wifi,
-  Radio,
   MapPin,
   HardDrive,
   Cpu,
@@ -12,9 +11,9 @@ import {
   FileText,
   MessageSquare,
   Sliders,
-  ExternalLink,
   Compass,
-  Clock
+  Clock,
+  MoreVertical
 } from 'lucide-react';
 import './DeviceCard.css';
 
@@ -34,17 +33,17 @@ function formatDate(dateStr) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
-function getBatteryComponent(level) {
+function getBatteryData(level) {
   if (level === null || level === undefined) {
-    return { icon: <Battery size={13} className="text-muted" />, text: '—%' };
+    return { percent: 100, text: '—%', color: 'var(--clr-green)' };
   }
   if (level <= 20) {
-    return { icon: <BatteryLow size={13} className="text-danger" />, text: `${level}%` };
+    return { percent: level, text: `${level}%`, color: 'var(--clr-red)' };
   }
-  if (level >= 90) {
-    return { icon: <BatteryCharging size={13} className="text-success" />, text: `${level}%` };
+  if (level <= 45) {
+    return { percent: level, text: `${level}%`, color: 'var(--clr-orange)' };
   }
-  return { icon: <Battery size={13} className="text-warning" />, text: `${level}%` };
+  return { percent: level, text: `${level}%`, color: 'var(--clr-green)' };
 }
 
 export default function DeviceCard({
@@ -74,158 +73,158 @@ export default function DeviceCard({
     }
   }
 
-  const batteryData = getBatteryComponent(device.battery_level);
+  const battery = getBatteryData(device.battery_level);
+
+  // 21st.dev color theme mapping
+  const colorClass = !device.is_active
+    ? 'red'
+    : isOnline
+    ? 'green'
+    : (device.battery_level !== null && device.battery_level <= 30)
+    ? 'orange'
+    : 'blue';
 
   return (
     <article
-      className={`device-card ${device.is_active ? '' : 'device-card--inactive'}`}
+      className={`device-card course-styled-card ${colorClass} ${device.is_active ? '' : 'device-card--inactive'}`}
       style={{ animationDelay: `${index * 40}ms` }}
       id={`device-card-${device.device_id}`}
     >
-      {/* Top Glow Status Bar */}
-      <div className={`card-glow ${isOnline ? 'card-glow--online' : device.is_active ? 'card-glow--active' : 'card-glow--inactive'}`} />
-
-      {/* Header */}
+      {/* Upper Card Header */}
       <div className="card-header">
-        <div className="device-avatar">
-          <Smartphone size={20} className="avatar-phone-icon" />
+        <div className="card-date-badge">
+          <Clock size={12} className="text-muted" />
+          <span>{formatDate(device.last_seen_at)}</span>
         </div>
-        <div className="device-info">
-          <h3 className="device-name">{device.device_name || device.device_id}</h3>
-          <p className="device-id font-mono">{device.device_id}</p>
+        <button
+          className="card-options-btn"
+          type="button"
+          onClick={onOpenControls}
+          title="Quick System Controls"
+          id={`quick-ctrl-${device.device_id}`}
+        >
+          <Sliders size={15} />
+        </button>
+      </div>
+
+      {/* Card Body */}
+      <div className="card-body">
+        <div className="device-brand-row">
+          <div className="device-avatar-bubble">
+            <Smartphone size={18} />
+          </div>
+          <div className="device-title-col">
+            <h3 className="device-title">{device.device_name || device.device_id}</h3>
+            <p className="device-serial font-mono">{device.device_id}</p>
+          </div>
         </div>
-        <div className={`status-badge ${isOnline ? 'status-badge--online' : device.is_active ? 'status-badge--active' : 'status-badge--inactive'}`}>
-          <span className="status-dot" />
+
+        {/* Battery Power Progress Bar (21st.dev style) */}
+        <div className="card-progress-box">
+          <div className="card-progress-labels">
+            <span>Battery Charge</span>
+            <span className="card-progress-val font-mono">{battery.text}</span>
+          </div>
+          <div className="card-progress-track">
+            <div
+              className="card-progress-fill"
+              style={{
+                width: `${Math.max(6, battery.percent)}%`,
+                backgroundColor: battery.color
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Telemetry Chips: Network & Geolocation */}
+        <div className="diagnostics-chips-row">
+          <div className="diag-mini-chip" title={`Network: ${device.network_type || 'Cellular'}`}>
+            <Wifi size={12} className="text-cyan" />
+            <span>{device.network_type || 'Cellular'}</span>
+          </div>
+
+          {hasLocation ? (
+            <button
+              type="button"
+              className="diag-mini-chip diag-mini-chip--gps"
+              onClick={() => onLocateOnMap && onLocateOnMap(device)}
+              title="Click to view on GPS Radar"
+            >
+              <Compass size={12} className="text-cyan" />
+              <span className="font-mono">{device.latitude.toFixed(2)}, {device.longitude.toFixed(2)}</span>
+            </button>
+          ) : (
+            <div className="diag-mini-chip opacity-60" title="GPS pending">
+              <MapPin size={12} className="text-muted" />
+              <span>No GPS</span>
+            </div>
+          )}
+
+          {device.storage_available_gb !== null && device.storage_available_gb !== undefined && (
+            <div className="diag-mini-chip" title="Storage Available">
+              <HardDrive size={12} className="text-muted" />
+              <span className="font-mono">{device.storage_available_gb.toFixed(0)} GB</span>
+            </div>
+          )}
+
+          {device.ram_total_gb !== null && device.ram_total_gb !== undefined && (
+            <div className="diag-mini-chip" title="Total RAM">
+              <Cpu size={12} className="text-muted" />
+              <span className="font-mono">{device.ram_total_gb.toFixed(0)} GB</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Card Dark Footer (21st.dev footer tray) */}
+      <div className="card-footer-tray">
+        <div className="card-actions-pills">
+          <button
+            className="action-pill-btn"
+            onClick={onFetchLogs}
+            id={`fetch-logs-${device.device_id}`}
+            title="Inspect SMS and call telemetry logs"
+          >
+            <FileText size={13} />
+            <span>Logs</span>
+          </button>
+
+          <button
+            className="action-pill-btn"
+            onClick={onSendSms}
+            disabled={!device.is_active}
+            id={`send-sms-${device.device_id}`}
+            title="Send SMS message through this handset"
+          >
+            <MessageSquare size={13} />
+            <span>SMS</span>
+          </button>
+
+          <button
+            className="action-pill-btn"
+            onClick={onOpenControls}
+            id={`controls-${device.device_id}`}
+            title="Remote system controls"
+          >
+            <Sliders size={13} />
+            <span>Controls</span>
+          </button>
+
+          <button
+            className="action-pill-btn"
+            onClick={onOpenApps}
+            id={`apps-${device.device_id}`}
+            title="Applications Inventory & Restart"
+          >
+            <Boxes size={13} />
+            <span>Apps {appsCount > 0 ? `(${appsCount})` : ''}</span>
+          </button>
+        </div>
+
+        <div className={`countdown-badge ${colorClass}`}>
+          <span className="status-ping-dot" />
           <span>{isOnline ? 'Online' : device.is_active ? 'Active' : 'Standby'}</span>
         </div>
-      </div>
-
-      {/* Device Hardware Diagnostics & Telemetry Bar */}
-      <div className="diagnostics-bar">
-        {/* Battery */}
-        <div className="diag-chip" title="Battery Level">
-          {batteryData.icon}
-          <span className="font-mono">{batteryData.text}</span>
-        </div>
-
-        {/* Network & IP */}
-        <div className="diag-chip diag-chip--net" title={`Network: ${device.network_type || 'Cellular'} | IP: ${device.ip_address || '—'}`}>
-          <Wifi size={13} className="text-cyan" />
-          <span>{device.network_type || 'Cellular'}</span>
-        </div>
-
-        {/* Geolocation */}
-        {hasLocation ? (
-          <button
-            type="button"
-            className="diag-chip diag-chip--gps"
-            onClick={() => onLocateOnMap && onLocateOnMap(device)}
-            title="Click to view on Live Radar Map"
-          >
-            <Compass size={13} className="text-cyan icon-spin-subtle" />
-            <span className="font-mono">{device.latitude.toFixed(2)}, {device.longitude.toFixed(2)}</span>
-          </button>
-        ) : (
-          <div className="diag-chip diag-chip--no-gps" title="GPS coordinates pending sync">
-            <MapPin size={13} className="text-muted" />
-            <span>No GPS Fix</span>
-          </div>
-        )}
-      </div>
-
-      {/* Hardware Specs & Secondary Telemetry */}
-      <div className="device-specs-grid">
-        {/* Storage */}
-        <div className="spec-item" title="Internal Storage">
-          <div className="spec-label-row">
-            <HardDrive size={11} className="text-muted" />
-            <span>STORAGE</span>
-          </div>
-          <span className="spec-value font-mono">
-            {device.storage_available_gb !== null && device.storage_available_gb !== undefined
-              ? `${device.storage_available_gb.toFixed(1)} GB Free`
-              : '— GB'}
-          </span>
-        </div>
-
-        {/* RAM */}
-        <div className="spec-item" title="Total RAM">
-          <div className="spec-label-row">
-            <Cpu size={11} className="text-muted" />
-            <span>RAM</span>
-          </div>
-          <span className="spec-value font-mono">
-            {device.ram_total_gb !== null && device.ram_total_gb !== undefined
-              ? `${device.ram_total_gb.toFixed(1)} GB Total`
-              : '— GB'}
-          </span>
-        </div>
-
-        {/* Installed Apps */}
-        <div className="spec-item" title="Reported Installed Apps">
-          <div className="spec-label-row">
-            <Boxes size={11} className="text-muted" />
-            <span>APPS INVENTORY</span>
-          </div>
-          <span className="spec-value">
-            {appsCount > 0 ? `${appsCount} packages` : 'Ready to scan'}
-          </span>
-        </div>
-
-        {/* Last Seen */}
-        <div className="spec-item" title="Last Heartbeat / Activity">
-          <div className="spec-label-row">
-            <Clock size={11} className="text-muted" />
-            <span>LAST ACTIVITY</span>
-          </div>
-          <span className="spec-value font-mono">
-            {formatDate(device.last_seen_at)}
-          </span>
-        </div>
-      </div>
-
-      {/* Action Buttons: Logs, SMS, Controls, Apps */}
-      <div className="card-actions-grid">
-        <button
-          className="btn btn-outline btn-sm card-btn"
-          onClick={onFetchLogs}
-          id={`fetch-logs-${device.device_id}`}
-          title="View SMS, call logs, and communication history"
-        >
-          <FileText size={13} className="btn-icon" />
-          <span>Intel & Logs</span>
-        </button>
-
-        <button
-          className="btn btn-accent btn-sm card-btn"
-          onClick={onSendSms}
-          disabled={!device.is_active}
-          id={`send-sms-${device.device_id}`}
-          title="Send SMS message through this device"
-        >
-          <MessageSquare size={13} className="btn-icon" />
-          <span>Send SMS</span>
-        </button>
-
-        <button
-          className="btn btn-outline btn-sm card-btn card-btn--controls"
-          onClick={onOpenControls}
-          id={`controls-${device.device_id}`}
-          title="Remote system controls: silent/vibrate, brightness, alarm"
-        >
-          <Sliders size={13} className="btn-icon text-cyan" />
-          <span>Controls</span>
-        </button>
-
-        <button
-          className="btn btn-outline btn-sm card-btn card-btn--apps"
-          onClick={onOpenApps}
-          id={`apps-${device.device_id}`}
-          title="View installed apps and remotely restart/launch"
-        >
-          <Boxes size={13} className="btn-icon" />
-          <span>Apps {appsCount > 0 ? `(${appsCount})` : ''}</span>
-        </button>
       </div>
     </article>
   );

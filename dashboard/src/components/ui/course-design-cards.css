@@ -1,0 +1,234 @@
+/* ═══════════════════════════════════════════════════════════════
+   Course Design Cards — 21st.dev Component Styles
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  --clr-blue: #1890ff;
+  --clr-green: #01c3a8;
+  --clr-orange: #ffb741;
+  --clr-red: #a63d2a;
+  --bg-dark: #232228;
+  --bg-footer: #151419;
+  --color-white: #fff;
+  --color-gray-light: #ddd;
+  --color-gray-medium: #363636;
+  --color-gray-dark: #292929;
+  --color-gray-very-dark: #222127;
+}
+
+.course-card {
+  position: relative;
+  background: var(--bg-dark);
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.course-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+}
+
+/* ── Card Header ─────────────────────────────────────────── */
+.course-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.25rem 0.5rem;
+}
+
+.course-card-date {
+  font-size: 0.75rem;
+  color: var(--color-gray-light);
+  opacity: 0.75;
+  font-weight: 500;
+}
+
+.course-card-options-btn {
+  background: transparent;
+  border: none;
+  color: var(--color-gray-light);
+  opacity: 0.6;
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: opacity 0.2s, background 0.2s;
+}
+
+.course-card-options-btn:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+/* ── Card Body ───────────────────────────────────────────── */
+.course-card-body {
+  padding: 0.75rem 1.25rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.course-card-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--color-white);
+  text-transform: capitalize;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.course-card-desc {
+  font-size: 0.8125rem;
+  color: var(--color-gray-light);
+  opacity: 0.7;
+  margin: 0 0 0.5rem;
+}
+
+/* ── Progress ────────────────────────────────────────────── */
+.course-progress {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.25rem;
+}
+
+.course-progress-labels {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-gray-light);
+}
+
+.course-progress-val {
+  font-family: var(--font-mono, monospace);
+  font-weight: 700;
+}
+
+.course-progress-bar-track {
+  width: 100%;
+  height: 6px;
+  background: var(--color-gray-medium);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.course-progress-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ── Card Footer ─────────────────────────────────────────── */
+.course-card-footer {
+  background: var(--bg-footer);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.course-avatar-group {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.course-avatar-group li {
+  margin-left: -8px;
+}
+
+.course-avatar-group li:first-child {
+  margin-left: 0;
+}
+
+.course-avatar-group img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--bg-footer);
+  display: block;
+}
+
+.btn-add {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--color-gray-dark);
+  border: 2px solid var(--bg-footer);
+  color: var(--color-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.2s;
+}
+
+.btn-add:hover {
+  background: var(--color-gray-medium);
+  transform: scale(1.05);
+}
+
+.btn-countdown {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+/* ── Color Variations ────────────────────────────────────── */
+.course-card.green .course-card-title {
+  color: #fff;
+}
+.course-card.green .course-progress-bar-fill {
+  background: var(--clr-green);
+}
+.course-card.green .btn-countdown {
+  background: rgba(1, 195, 168, 0.15);
+  color: var(--clr-green);
+  border: 1px solid rgba(1, 195, 168, 0.3);
+}
+
+.course-card.orange .course-progress-bar-fill {
+  background: var(--clr-orange);
+}
+.course-card.orange .btn-countdown {
+  background: rgba(255, 183, 65, 0.15);
+  color: var(--clr-orange);
+  border: 1px solid rgba(255, 183, 65, 0.3);
+}
+
+.course-card.red .course-progress-bar-fill {
+  background: #f87171;
+}
+.course-card.red .btn-countdown {
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.3);
+}
+
+.course-card.blue .course-progress-bar-fill {
+  background: var(--clr-blue);
+}
+.course-card.blue .btn-countdown {
+  background: rgba(24, 144, 255, 0.15);
+  color: var(--clr-blue);
+  border: 1px solid rgba(24, 144, 255, 0.3);
+}
