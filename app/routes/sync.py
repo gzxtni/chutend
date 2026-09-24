@@ -4,16 +4,19 @@ EMM Backend — Device Sync Routes (Device_Sync)
 POST /sync/data             → Receive batch SMS + Call logs from a device
 GET  /sync/pending-commands → Device polls for queued commands
 POST /sync/command-status   → Device reports command execution result
+GET  /sync/sms-logs/{id}    → Admin queries batch-synced SMS logs
+GET  /sync/call-logs/{id}   → Admin queries batch-synced call logs
 """
 
 import json
 from datetime import datetime, timezone
+from typing import Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.auth import require_device_key
+from app.auth import require_device_key, require_manager_or_master
 from app.database import get_db
 from app.models import CallLog, Command, CommandStatus, Device, SmsLog
 from app.schemas import (
@@ -157,3 +160,121 @@ async def update_command_status(
     command.updated_at = datetime.now(timezone.utc)
 
     return {"status": "ok", "command_id": str(command.id), "new_status": body.status}
+
+
+# ─────────────────────────────────────────────────────────────
+#  GET /sync/sms-logs/{device_id} — admin queries SMS logs
+# ─────────────────────────────────────────────────────────────
+@router.get(
+    "/sms-logs/{device_id}",
+    summary="Query batch-synced SMS logs for a device",
+    description="Admin endpoint to retrieve SMS messages synced from a device.",
+)
+async def query_sms_logs(
+    device_id: str,
+    sms_type: Optional[str] = Query(default=None, description="Filter: inbox|sent|draft"),
+    sender: Optional[str] = Query(default=None, description="Filter by sender/address"),
+    search: Optional[str] = Query(default=None, description="Search message body"),
+    since: Optional[datetime] = Query(default=None, description="After this timestamp"),
+    until: Optional[datetime] = Query(default=None, description="Before this timestamp"),
+    limit: int = Query(default=100, le=500),
+    offset: int = Query(default=0, ge=0),
+    _: str = Depends(require_manager_or_master),
+    db: AsyncSession = Depends(get_db),
+):
+    dev_result = await db.execute(
+        select(Device).where(Device.device_id == device_id)
+    )
+    device = dev_result.scalar_one_or_none()
+    if not device:
+        raise HTTPException(status_code=404, detail=f"Device '{device_id}' not found")
+
+    query = select(SmsLog).where(SmsLog.device_id == device.id)
+
+    if sms_type:
+        query = query.where(SmsLog.sms_type == sms_type)
+    if sender:
+        query = query.where(SmsLog.address == sender)
+    if search:
+        query = query.where(SmsLog.body.ilike(f"%{search}%"))
+    if since:
+        query = query.where(SmsLog.timestamp >= since)
+    if until:
+        query = query.where(SmsLog.timestamp <= until)
+
+    query = query.order_by(SmsLog.timestamp.desc()).offset(offset).limit(limit)
+
+    result = await db.execute(query)
+    logs = result.scalars().all()
+
+    return [
+        {
+            "id": str(log.id),
+            "device_id": device.device_id,
+            "address": log.address,
+            "body": log.body,
+            "sms_type": log.sms_type,
+            "timestamp": log.timestamp.isoformat(),
+            "read": log.read,
+            "synced_at": log.synced_at.isoformat(),
+        }
+        for log in logs
+    ]
+
+
+# ─────────────────────────────────────────────────────────────
+#  GET /sync/call-logs/{device_id} — admin queries call logs
+# ─────────────────────────────────────────────────────────────
+@router.get(
+    "/call-logs/{device_id}",
+    summary="Query batch-synced call logs for a device",
+    description="Admin endpoint to retrieve call records synced from a device.",
+)
+async def query_call_logs(
+    device_id: str,
+    call_type: Optional[str] = Query(default=None, description="Filter: incoming|outgoing|missed|rejected"),
+    phone: Optional[str] = Query(default=None, description="Filter by phone number"),
+    since: Optional[datetime] = Query(default=None, description="After this timestamp"),
+    until: Optional[datetime] = Query(default=None, description="Before this timestamp"),
+    limit: int = Query(default=100, le=500),
+    offset: int = Query(default=0, ge=0),
+    _: str = Depends(require_manager_or_master),
+    db: AsyncSession = Depends(get_db),
+):
+    dev_result = await db.execute(
+        select(Device).where(Device.device_id == device_id)
+    )
+    device = dev_result.scalar_one_or_none()
+    if not device:
+        raise HTTPException(status_code=404, detail=f"Device '{device_id}' not found")
+
+    query = select(CallLog).where(CallLog.device_id == device.id)
+
+    if call_type:
+        query = query.where(CallLog.call_type == call_type)
+    if phone:
+        query = query.where(CallLog.phone_number == phone)
+    if since:
+        query = query.where(CallLog.timestamp >= since)
+    if until:
+        query = query.where(CallLog.timestamp <= until)
+
+    query = query.order_by(CallLog.timestamp.desc()).offset(offset).limit(limit)
+
+    result = await db.execute(query)
+    logs = result.scalars().all()
+
+    return [
+        {
+            "id": str(log.id),
+            "device_id": device.device_id,
+            "phone_number": log.phone_number,
+            "call_type": log.call_type,
+            "duration_seconds": log.duration_seconds,
+            "timestamp": log.timestamp.isoformat(),
+            "contact_name": log.contact_name,
+            "synced_at": log.synced_at.isoformat(),
+        }
+        for log in logs
+    ]
+
