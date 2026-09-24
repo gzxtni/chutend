@@ -28,25 +28,46 @@ function getBatteryIcon(level) {
   return <Battery size={13} className="text-warning" />;
 }
 
-// CARTO Cloud Native Maps API & Basemap Credentials
+// Map Tile Layer Configurations (CARTO + Clean Tactical Dark + Satellite)
 const CARTO_API_BASE = import.meta.env.VITE_CARTO_API_BASE || 'https://gcp-asia-northeast1.api.carto.com';
-const CARTO_ACCESS_TOKEN = import.meta.env.VITE_CARTO_ACCESS_TOKEN || 'eyJhbGciOiJIUzI1NiJ9.eyJhIjoiYWNfdWsyb3QybXoiLCJqdGkiOiI3MTFhOTUzNSJ9.F1euDbDt_HSeLmIKvZaYj3yhLCb5_BjZKTbPRNdVX9s';
+const CARTO_KEY = import.meta.env.VITE_CARTO_BASEMAP_KEY || import.meta.env.VITE_CARTO_ACCESS_TOKEN || 'eyJhbGciOiJIUzI1NiJ9.eyJhIjoiYWNfdWsyb3QybXoiLCJqdGkiOiI3MTFhOTUzNSJ9.F1euDbDt_HSeLmIKvZaYj3yhLCb5_BjZKTbPRNdVX9s';
 
-const CARTO_STYLES = {
-  dark: {
-    id: 'dark',
-    name: 'Dark Matter',
-    url: `https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png?api_key=${CARTO_ACCESS_TOKEN}`,
+const MAP_STYLES = {
+  tactical: {
+    id: 'tactical',
+    name: 'Cyber Dark',
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a>',
+    className: 'leaflet-tile-tactical-dark',
+    maxZoom: 19,
+    subdomains: 'abc',
   },
-  voyager: {
-    id: 'voyager',
-    name: 'Voyager',
-    url: `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?api_key=${CARTO_ACCESS_TOKEN}`,
+  satellite: {
+    id: 'satellite',
+    name: 'Satellite',
+    url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attribution: '&copy; <a href="https://www.esri.com/" target="_blank" rel="noreferrer">Esri</a> &bull; Maxar, Earthstar Geographics',
+    className: '',
+    maxZoom: 19,
+    subdomains: '',
   },
-  positron: {
-    id: 'positron',
-    name: 'Positron',
-    url: `https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png?api_key=${CARTO_ACCESS_TOKEN}`,
+  carto_dark: {
+    id: 'carto_dark',
+    name: 'CARTO Dark',
+    url: `https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png?key=${CARTO_KEY}`,
+    attribution: '&copy; <a href="https://carto.com/" target="_blank" rel="noreferrer">CARTO</a> &bull; OpenStreetMap',
+    className: '',
+    maxZoom: 20,
+    subdomains: 'abcd',
+  },
+  carto_voyager: {
+    id: 'carto_voyager',
+    name: 'CARTO Voyager',
+    url: `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${CARTO_KEY}`,
+    attribution: '&copy; <a href="https://carto.com/" target="_blank" rel="noreferrer">CARTO</a> &bull; OpenStreetMap',
+    className: '',
+    maxZoom: 20,
+    subdomains: 'abcd',
   }
 };
 
@@ -64,7 +85,7 @@ export default function FleetMap({
   const mapInstanceRef = useRef(null);
   const tileLayerRef = useRef(null);
   const markersRef = useRef({});
-  const [mapTheme, setMapTheme] = useState('dark');
+  const [mapTheme, setMapTheme] = useState('tactical');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterActiveOnly, setFilterActiveOnly] = useState(false);
 
@@ -109,12 +130,13 @@ export default function FleetMap({
 
       L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-      // Authenticated CARTO Cloud Native raster tiles (Dark Matter by default)
-      const initialStyle = CARTO_STYLES[mapTheme] || CARTO_STYLES.dark;
+      // Default Clean Cyber Dark tiles (Zero Watermark)
+      const initialStyle = MAP_STYLES[mapTheme] || MAP_STYLES.tactical;
       const tileLayer = L.tileLayer(initialStyle.url, {
-        attribution: '&copy; <a href="https://carto.com/" target="_blank" rel="noreferrer">CARTO</a> &bull; &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a>',
-        maxZoom: 20,
-        subdomains: 'abcd',
+        attribution: initialStyle.attribution,
+        className: initialStyle.className,
+        maxZoom: initialStyle.maxZoom,
+        subdomains: initialStyle.subdomains || 'abc',
       }).addTo(map);
 
       tileLayerRef.current = tileLayer;
@@ -136,11 +158,12 @@ export default function FleetMap({
     if (tileLayerRef.current) {
       map.removeLayer(tileLayerRef.current);
     }
-    const style = CARTO_STYLES[mapTheme] || CARTO_STYLES.dark;
+    const style = MAP_STYLES[mapTheme] || MAP_STYLES.tactical;
     const newLayer = L.tileLayer(style.url, {
-      attribution: '&copy; <a href="https://carto.com/" target="_blank" rel="noreferrer">CARTO</a> &bull; &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a>',
-      maxZoom: 20,
-      subdomains: 'abcd',
+      attribution: style.attribution,
+      className: style.className,
+      maxZoom: style.maxZoom,
+      subdomains: style.subdomains || 'abc',
     }).addTo(map);
     tileLayerRef.current = newLayer;
   }, [mapTheme]);
@@ -324,25 +347,34 @@ export default function FleetMap({
           <span>Fit Fleet</span>
         </button>
 
-        <div className="hud-carto-badge" title={`CARTO Maps API: ${CARTO_API_BASE}`}>
-          <Layers size={13} className="text-cyan" />
-          <span>CARTO Maps</span>
-        </div>
-
         <div className="hud-theme-toggle">
           <button
-            className={`hud-theme-btn ${mapTheme === 'dark' ? 'active' : ''}`}
-            onClick={() => setMapTheme('dark')}
-            title="CARTO Dark Matter (Tactical)"
+            className={`hud-theme-btn ${mapTheme === 'tactical' ? 'active' : ''}`}
+            onClick={() => setMapTheme('tactical')}
+            title="Clean Cyber Dark (Zero Watermarks)"
           >
-            Dark
+            Cyber Dark
           </button>
           <button
-            className={`hud-theme-btn ${mapTheme === 'voyager' ? 'active' : ''}`}
-            onClick={() => setMapTheme('voyager')}
-            title="CARTO Voyager (Street View)"
+            className={`hud-theme-btn ${mapTheme === 'satellite' ? 'active' : ''}`}
+            onClick={() => setMapTheme('satellite')}
+            title="High-Res Satellite Imagery"
           >
-            Voyager
+            Satellite
+          </button>
+          <button
+            className={`hud-theme-btn ${mapTheme === 'carto_dark' ? 'active' : ''}`}
+            onClick={() => setMapTheme('carto_dark')}
+            title="CARTO Dark Matter"
+          >
+            CARTO Dark
+          </button>
+          <button
+            className={`hud-theme-btn ${mapTheme === 'carto_voyager' ? 'active' : ''}`}
+            onClick={() => setMapTheme('carto_voyager')}
+            title="CARTO Voyager"
+          >
+            CARTO Streets
           </button>
         </div>
       </div>

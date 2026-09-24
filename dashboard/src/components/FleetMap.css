@@ -630,3 +630,10 @@
 .text-danger { color: #f87171; }
 .text-muted { color: #94a3b8; }
 .font-mono { font-family: var(--font-mono); }
+
+/* ── Tactical Dark Tile Styling (Watermark-Free) ─────────── */
+.leaflet-tile-tactical-dark {
+  filter: invert(100%) hue-rotate(180deg) brightness(88%) contrast(95%) !important;
+  background: #080c14 !important;
+}
+
