@@ -362,20 +362,6 @@ export default function FleetMap({
           >
             Satellite
           </button>
-          <button
-            className={`hud-theme-btn ${mapTheme === 'carto_dark' ? 'active' : ''}`}
-            onClick={() => setMapTheme('carto_dark')}
-            title="CARTO Dark Matter"
-          >
-            CARTO Dark
-          </button>
-          <button
-            className={`hud-theme-btn ${mapTheme === 'carto_voyager' ? 'active' : ''}`}
-            onClick={() => setMapTheme('carto_voyager')}
-            title="CARTO Voyager"
-          >
-            CARTO Streets
-          </button>
         </div>
       </div>
 
