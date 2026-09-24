@@ -36,29 +36,86 @@ logger = logging.getLogger("emm")
 async def lifespan(app: FastAPI):
     """Create database tables on startup; dispose engine on shutdown."""
     logger.info("🚀 EMM Backend starting — creating database tables...")
+    from sqlalchemy import text
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-        # Safe column additions if table already exists in Supabase/PostgreSQL
-        from sqlalchemy import text
-        migration_statements = [
-            "ALTER TABLE devices ADD COLUMN IF NOT EXISTS battery_level INTEGER;",
-            "ALTER TABLE devices ADD COLUMN IF NOT EXISTS storage_available_gb FLOAT;",
-            "ALTER TABLE devices ADD COLUMN IF NOT EXISTS storage_total_gb FLOAT;",
-            "ALTER TABLE devices ADD COLUMN IF NOT EXISTS ram_total_gb FLOAT;",
-            "ALTER TABLE devices ADD COLUMN IF NOT EXISTS serial_number VARCHAR(255);",
-            "ALTER TABLE devices ADD COLUMN IF NOT EXISTS latitude FLOAT;",
-            "ALTER TABLE devices ADD COLUMN IF NOT EXISTS longitude FLOAT;",
-            "ALTER TABLE devices ADD COLUMN IF NOT EXISTS location_updated_at TIMESTAMP WITH TIME ZONE;",
-            "ALTER TABLE devices ADD COLUMN IF NOT EXISTS ip_address VARCHAR(100);",
-            "ALTER TABLE devices ADD COLUMN IF NOT EXISTS network_type VARCHAR(50);",
-            "ALTER TABLE devices ADD COLUMN IF NOT EXISTS installed_apps TEXT;",
-        ]
-        for stmt in migration_statements:
-            try:
-                await conn.execute(text(stmt))
-            except Exception as e:
-                logger.warning(f"Column migration notice: {e}")
-    logger.info("✅ Database tables and telemetry columns ready")
+
+    # Run PostgreSQL enum & column migrations with AUTOCOMMIT so errors don't abort transactions
+    enum_values = [
+        "SET_BRIGHTNESS",
+        "SET_RINGER_MODE",
+        "LAUNCH_APP",
+        "REFRESH_APPS",
+        "GET_LOCATION",
+        "SEND_SMS",
+        "LOCK_DEVICE",
+        "WIPE_DEVICE",
+        "RING_DEVICE",
+        "INSTALL_APP",
+        "UNINSTALL_APP",
+        "SET_POLICY",
+        "set_brightness",
+        "set_ringer_mode",
+        "launch_app",
+        "refresh_apps",
+        "get_location",
+        "send_sms",
+        "lock_device",
+        "wipe_device",
+        "ring_device",
+        "install_app",
+        "uninstall_app",
+        "set_policy",
+    ]
+
+    status_values = [
+        "PENDING", "SENT", "DELIVERED", "EXECUTED", "FAILED",
+        "pending", "sent", "delivered", "executed", "failed",
+    ]
+
+    column_migrations = [
+        "ALTER TABLE devices ADD COLUMN IF NOT EXISTS battery_level INTEGER;",
+        "ALTER TABLE devices ADD COLUMN IF NOT EXISTS storage_available_gb FLOAT;",
+        "ALTER TABLE devices ADD COLUMN IF NOT EXISTS storage_total_gb FLOAT;",
+        "ALTER TABLE devices ADD COLUMN IF NOT EXISTS ram_total_gb FLOAT;",
+        "ALTER TABLE devices ADD COLUMN IF NOT EXISTS serial_number VARCHAR(255);",
+        "ALTER TABLE devices ADD COLUMN IF NOT EXISTS latitude FLOAT;",
+        "ALTER TABLE devices ADD COLUMN IF NOT EXISTS longitude FLOAT;",
+        "ALTER TABLE devices ADD COLUMN IF NOT EXISTS location_updated_at TIMESTAMP WITH TIME ZONE;",
+        "ALTER TABLE devices ADD COLUMN IF NOT EXISTS ip_address VARCHAR(100);",
+        "ALTER TABLE devices ADD COLUMN IF NOT EXISTS network_type VARCHAR(50);",
+        "ALTER TABLE devices ADD COLUMN IF NOT EXISTS installed_apps TEXT;",
+    ]
+
+    try:
+        async with engine.connect() as conn:
+            autocommit_conn = await conn.execution_options(isolation_level="AUTOCOMMIT")
+
+            # 1. Update commandtype ENUM in PostgreSQL
+            for val in enum_values:
+                try:
+                    await autocommit_conn.execute(text(f"ALTER TYPE commandtype ADD VALUE IF NOT EXISTS '{val}';"))
+                except Exception as e:
+                    logger.debug(f"Enum commandtype '{val}' notice: {e}")
+
+            # 2. Update commandstatus ENUM in PostgreSQL
+            for val in status_values:
+                try:
+                    await autocommit_conn.execute(text(f"ALTER TYPE commandstatus ADD VALUE IF NOT EXISTS '{val}';"))
+                except Exception as e:
+                    logger.debug(f"Enum commandstatus '{val}' notice: {e}")
+
+            # 3. Add any missing columns to devices table
+            for stmt in column_migrations:
+                try:
+                    await autocommit_conn.execute(text(stmt))
+                except Exception as e:
+                    logger.warning(f"Column migration notice: {e}")
+    except Exception as e:
+        logger.warning(f"Database migration notice: {e}")
+
+    logger.info("✅ Database tables, enum types, and telemetry columns ready")
     yield
     logger.info("🛑 EMM Backend shutting down...")
     await engine.dispose()

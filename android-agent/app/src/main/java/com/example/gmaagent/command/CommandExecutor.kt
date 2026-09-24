@@ -42,7 +42,7 @@ object CommandExecutor {
         Log.i(TAG, "Executing command: ${command.command_type} (${command.command_id})")
 
         val result: Pair<Boolean, String> = try {
-            when (command.command_type) {
+            when (command.command_type.lowercase()) {
                 "send_sms" -> executeSendSms(context, command.payload)
                 "set_ringer_mode" -> executeSetRingerMode(context, command.payload)
                 "set_brightness" -> executeSetBrightness(context, command.payload)

@@ -241,7 +241,7 @@ class ExecuteCommandRequest(BaseModel):
     device_id: str = Field(..., description="Target device ANDROID_ID or IMEI")
     command_type: str = Field(
         ...,
-        pattern="^(send_sms|lock_device|wipe_device|ring_device|install_app|uninstall_app|set_policy|get_location|set_ringer_mode|set_brightness|launch_app|refresh_apps)$",
+        pattern="^(?i)(send_sms|lock_device|wipe_device|ring_device|install_app|uninstall_app|set_policy|get_location|set_ringer_mode|set_brightness|launch_app|refresh_apps)$",
     )
     payload: Optional[dict[str, Any]] = Field(default=None)
 

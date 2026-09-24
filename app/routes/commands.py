@@ -78,11 +78,12 @@ async def execute_command(
             detail=f"Device '{body.device_id}' is deactivated",
         )
 
-    serialized_payload = _validate_payload(body.command_type, body.payload)
+    cmd_type_str = body.command_type.lower()
+    serialized_payload = _validate_payload(cmd_type_str, body.payload)
 
     command = Command(
         device_id=device.id,
-        command_type=CommandType(body.command_type),
+        command_type=CommandType(cmd_type_str),
         payload=serialized_payload,
         status=CommandStatus.PENDING,
     )
@@ -92,8 +93,8 @@ async def execute_command(
     return CommandResponse(
         command_id=command.id,
         device_id=body.device_id,
-        command_type=body.command_type,
-        status=command.status.value,
+        command_type=cmd_type_str,
+        status=command.status.value if hasattr(command.status, "value") else str(command.status).lower(),
     )
 
 
@@ -128,8 +129,8 @@ async def list_device_commands(
     return [
         {
             "command_id": str(cmd.id),
-            "command_type": cmd.command_type.value,
-            "status": cmd.status.value,
+            "command_type": cmd.command_type.value if hasattr(cmd.command_type, "value") else str(cmd.command_type).lower(),
+            "status": cmd.status.value if hasattr(cmd.status, "value") else str(cmd.status).lower(),
             "payload": cmd.payload,
             "result": cmd.result,
             "created_at": cmd.created_at.isoformat(),

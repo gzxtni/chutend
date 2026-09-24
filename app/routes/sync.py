@@ -158,7 +158,7 @@ async def poll_pending_commands(
         response.append(
             PendingCommandResponse(
                 command_id=cmd.id,
-                command_type=cmd.command_type.value,
+                command_type=cmd.command_type.value if hasattr(cmd.command_type, "value") else str(cmd.command_type).lower(),
                 payload=cmd.payload,
                 created_at=cmd.created_at,
             )
