@@ -1,15 +1,16 @@
 /* ═══════════════════════════════════════════════════════════════
-   EMM Dashboard — Ultra-Premium White Header Styles
+   EMM Dashboard — Header (Velaris Living WebGL Glass Theme)
    ═══════════════════════════════════════════════════════════════ */
 
 .header {
   position: sticky;
   top: 0;
   z-index: 999;
-  background: rgba(255, 255, 255, 0.88);
-  backdrop-filter: blur(16px);
-  border-bottom: 1px solid var(--border-subtle);
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.03), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
+  background: rgba(10, 14, 23, 0.72);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
 }
 
 .header-inner {
@@ -26,7 +27,7 @@
 .header-left {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .header-logo {
@@ -39,16 +40,16 @@
   width: 40px;
   height: 40px;
   border-radius: var(--radius-md);
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  background: rgba(74, 222, 128, 0.12);
+  border: 1px solid rgba(74, 222, 128, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.08);
+  box-shadow: 0 0 16px rgba(74, 222, 128, 0.2);
 }
 
 .logo-shield {
-  color: #2563eb;
+  color: #4ade80;
 }
 
 .header-title-row {
@@ -61,7 +62,7 @@
   font-size: 1.05rem;
   font-weight: 800;
   letter-spacing: -0.02em;
-  color: #0f172a;
+  color: #f8fafc;
   line-height: 1.2;
 }
 
@@ -70,16 +71,16 @@
   font-size: 0.625rem;
   font-weight: 700;
   letter-spacing: 0.04em;
-  padding: 0.12rem 0.45rem;
-  background: #ecfdf5;
-  border: 1px solid #a7f3d0;
-  color: #059669;
+  padding: 0.15rem 0.5rem;
+  background: rgba(74, 222, 128, 0.15);
+  border: 1px solid rgba(74, 222, 128, 0.4);
+  color: #4ade80;
   border-radius: var(--radius-full);
 }
 
 .header-subtitle {
   font-size: 0.6875rem;
-  color: var(--text-muted);
+  color: #94a3b8;
   font-weight: 500;
   letter-spacing: 0.01em;
 }
@@ -88,8 +89,8 @@
 .header-nav-tabs {
   display: flex;
   align-items: center;
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
+  background: rgba(6, 9, 15, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-lg);
   padding: 0.25rem;
   gap: 0.25rem;
@@ -103,7 +104,7 @@
   border-radius: var(--radius-md);
   border: 1px solid transparent;
   background: transparent;
-  color: #64748b;
+  color: #94a3b8;
   font-size: 0.8125rem;
   font-weight: 600;
   cursor: pointer;
@@ -112,15 +113,15 @@
 }
 
 .nav-tab-btn:hover {
-  color: #0f172a;
-  background: rgba(255, 255, 255, 0.6);
+  color: #f8fafc;
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .nav-tab-btn--active {
-  background: #ffffff;
-  border-color: #e2e8f0;
-  color: #2563eb;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  background: rgba(74, 222, 128, 0.15);
+  border-color: rgba(74, 222, 128, 0.35);
+  color: #4ade80;
+  box-shadow: 0 0 12px rgba(74, 222, 128, 0.2);
 }
 
 .tab-badge {
@@ -128,19 +129,19 @@
   font-size: 0.625rem;
   font-weight: 700;
   padding: 0.1rem 0.4rem;
-  background: #e2e8f0;
+  background: rgba(255, 255, 255, 0.1);
   border-radius: var(--radius-full);
-  color: #475569;
+  color: #94a3b8;
 }
 
 .tab-badge--cyan {
-  background: #e0f2fe;
-  color: #0284c7;
-  border: 1px solid #bae6fd;
+  background: rgba(56, 189, 248, 0.18);
+  color: #38bdf8;
+  border: 1px solid rgba(56, 189, 248, 0.35);
 }
 
 .icon-pulse-cyan {
-  color: #0284c7;
+  color: #38bdf8;
   animation: pulse-ring 2s infinite;
 }
 
@@ -159,11 +160,10 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  background: #ffffff;
-  border: 1px solid var(--border-subtle);
+  background: rgba(10, 14, 23, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-lg);
   padding: 0.25rem 0.5rem;
-  box-shadow: var(--shadow-xs);
 }
 
 .stat-pill {
@@ -180,11 +180,11 @@
   font-family: var(--font-mono);
   font-weight: 700;
   font-size: 0.8125rem;
-  color: #0f172a;
+  color: #f8fafc;
 }
 
 .stat-pill-label {
-  color: var(--text-muted);
+  color: #64748b;
   font-size: 0.6875rem;
 }
 
@@ -196,12 +196,12 @@
 }
 
 .stat-dot--green {
-  background: #10b981;
-  box-shadow: 0 0 6px rgba(16, 185, 129, 0.4);
+  background: #4ade80;
+  box-shadow: 0 0 8px rgba(74, 222, 128, 0.5);
 }
 
 .stat-dot--red {
-  background: #f43f5e;
+  background: #f87171;
 }
 
 /* ── Right Action Controls ───────────────────────────────── */
@@ -214,11 +214,15 @@
 .refresh-btn {
   gap: 0.45rem;
   font-weight: 600;
+  background: rgba(10, 14, 23, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #f8fafc;
 }
 
 .refresh-btn:hover:not(:disabled) {
-  border-color: #2563eb;
-  color: #2563eb;
+  border-color: #4ade80;
+  color: #4ade80;
+  box-shadow: 0 0 12px rgba(74, 222, 128, 0.2);
 }
 
 .spin-icon {
@@ -235,23 +239,23 @@
   align-items: center;
   gap: 0.65rem;
   padding: 0.3rem 0.5rem 0.3rem 0.4rem;
-  background: #ffffff;
-  border: 1px solid var(--border-subtle);
+  background: rgba(10, 14, 23, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-xs);
 }
 
 .manager-avatar {
   width: 28px;
   height: 28px;
   border-radius: var(--radius-sm);
-  background: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   font-size: 0.75rem;
+  box-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
 }
 
 .manager-info {
@@ -263,12 +267,12 @@
 .manager-name {
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #f8fafc;
 }
 
 .manager-role {
   font-size: 0.625rem;
-  color: #2563eb;
+  color: #4ade80;
   text-transform: uppercase;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -277,7 +281,7 @@
 .logout-btn {
   background: transparent;
   border: none;
-  color: var(--text-muted);
+  color: #64748b;
   cursor: pointer;
   padding: 0.3rem;
   border-radius: var(--radius-xs);
@@ -288,8 +292,8 @@
 }
 
 .logout-btn:hover {
-  color: var(--accent-red);
-  background: #fff1f2;
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.12);
 }
 
 /* Responsive */

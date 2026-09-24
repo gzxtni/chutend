@@ -9,6 +9,7 @@ import SystemControlsModal from './components/SystemControlsModal';
 import AppManagementModal from './components/AppManagementModal';
 import Toast from './components/Toast';
 import LoginPage from './components/LoginPage';
+import Velaris from '@/components/ui/velaris';
 import {
   listDevices,
   isAuthenticated,
@@ -118,6 +119,9 @@ export default function App() {
   if (!authed) {
     return (
       <div className="app">
+        <div className="fixed-velaris-bg">
+          <Velaris height="100vh" speed={1.5} grain={0.25} />
+        </div>
         <LoginPage onLoginSuccess={handleLoginSuccess} />
         <div className="toast-container">
           {toasts.map(t => (
@@ -140,6 +144,9 @@ export default function App() {
 
   return (
     <div className="app">
+      <div className="fixed-velaris-bg">
+        <Velaris height="100vh" speed={1.5} grain={0.25} />
+      </div>
       <Header
         totalDevices={devices.length}
         activeCount={activeDevices.length}

@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   EMM Dashboard — SmsModal (Premium White Styles)
+   EMM Dashboard — SmsModal (Velaris Dark Glass Theme)
    ═══════════════════════════════════════════════════════════════ */
 
 .sms-modal {
@@ -9,10 +9,12 @@
   transform: translate(-50%, -50%);
   width: 480px;
   max-width: 90vw;
-  background: #ffffff;
-  border: 1px solid var(--border-subtle);
+  background: rgba(10, 14, 23, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: var(--radius-xl);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9), 0 0 35px rgba(74, 222, 128, 0.15);
   z-index: 1050;
   padding: 1.5rem;
   animation: fadeIn 0.2s ease-out;
@@ -24,7 +26,7 @@
   gap: 0.85rem;
   margin-bottom: 1.25rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   position: relative;
 }
 
@@ -32,22 +34,24 @@
   width: 40px;
   height: 40px;
   border-radius: var(--radius-md);
-  background: #eff6ff;
-  border: 1px solid #bfdbfe;
+  background: rgba(74, 222, 128, 0.14);
+  border: 1px solid rgba(74, 222, 128, 0.35);
   display: flex;
   align-items: center;
   justify-content: center;
+  color: #4ade80;
+  box-shadow: 0 0 12px rgba(74, 222, 128, 0.2);
 }
 
 .sms-modal-title {
   font-size: 1rem;
   font-weight: 700;
-  color: #0f172a;
+  color: #f8fafc;
 }
 
 .sms-modal-subtitle {
   font-size: 0.75rem;
-  color: var(--text-muted);
+  color: #94a3b8;
 }
 
 .sms-modal-header .modal-close-btn {
@@ -64,9 +68,10 @@
 
 .char-count {
   font-size: 0.6875rem;
-  color: var(--text-muted);
+  color: #64748b;
   text-align: right;
   margin-top: 0.2rem;
+  font-family: var(--font-mono);
 }
 
 .sms-result {
@@ -79,15 +84,15 @@
 }
 
 .sms-result--success {
-  background: #ecfdf5;
-  border: 1px solid #a7f3d0;
-  color: #059669;
+  background: rgba(74, 222, 128, 0.15);
+  border: 1px solid rgba(74, 222, 128, 0.4);
+  color: #4ade80;
 }
 
 .sms-result--error {
-  background: #fff1f2;
-  border: 1px solid #fecdd3;
-  color: #e11d48;
+  background: rgba(248, 113, 113, 0.15);
+  border: 1px solid rgba(248, 113, 113, 0.4);
+  color: #f87171;
 }
 
 .result-title {

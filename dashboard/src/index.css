@@ -1,56 +1,51 @@
 /* ═══════════════════════════════════════════════════════════════
-   EMM Dashboard — Ultra-Premium Pristine White Design System
-   (Linear / Stripe / Vercel Light Aesthetic)
+   EMM Dashboard — Velaris Living WebGL Shader Glass Design System
+   (21st.dev / Aceternity Living Gradient Theme)
    ═══════════════════════════════════════════════════════════════ */
 
 @import 'leaflet/dist/leaflet.css';
 
 :root {
-  /* ── Premium Light Color Palette ────────────────────────── */
-  --bg-primary: #f8fafc;
-  --bg-secondary: #ffffff;
-  --bg-tertiary: #f1f5f9;
-  --bg-card: #ffffff;
-  --bg-card-hover: #ffffff;
-  --bg-elevated: #ffffff;
-  --bg-input: #ffffff;
+  /* ── Living Shader Dark Glassmorphism ───────────────────── */
+  --bg-primary: transparent;
+  --bg-secondary: rgba(12, 16, 26, 0.75);
+  --bg-tertiary: rgba(18, 24, 38, 0.75);
+  --bg-card: rgba(10, 14, 23, 0.68);
+  --bg-card-hover: rgba(16, 22, 36, 0.85);
+  --bg-elevated: rgba(15, 20, 32, 0.82);
+  --bg-input: rgba(6, 9, 15, 0.7);
 
-  /* ── Crisp Clean Borders ────────────────────────────────── */
-  --border-subtle: #e2e8f0;
-  --border-medium: #cbd5e1;
-  --border-active: #2563eb;
-  --border-glow-blue: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  /* ── Cyber Glass Borders ────────────────────────────────── */
+  --border-subtle: rgba(255, 255, 255, 0.09);
+  --border-medium: rgba(255, 255, 255, 0.16);
+  --border-active: rgba(52, 211, 153, 0.5);
+  --border-glow-green: 0 0 20px rgba(74, 222, 128, 0.25);
 
-  /* ── Typography & Text (Deep Contrast) ──────────────────── */
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
-  --text-inverse: #ffffff;
+  /* ── Typography & Text (Ultra-Crisp White on Shader) ────── */
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-muted: #64748b;
+  --text-inverse: #000000;
 
-  /* ── Refined Modern Accents ─────────────────────────────── */
-  --accent-blue: #2563eb;
-  --accent-blue-dim: rgba(37, 99, 235, 0.08);
-  --accent-cyan: #0284c7;
-  --accent-cyan-dim: rgba(2, 132, 199, 0.08);
-  --accent-green: #059669;
-  --accent-green-dim: rgba(5, 150, 105, 0.08);
-  --accent-purple: #7c3aed;
-  --accent-purple-dim: rgba(124, 58, 237, 0.08);
-  --accent-red: #e11d48;
-  --accent-red-dim: rgba(225, 29, 72, 0.08);
-  --accent-amber: #d97706;
-  --accent-amber-dim: rgba(217, 119, 6, 0.08);
+  /* ── Velaris Emerald & Cyan Accents ─────────────────────── */
+  --accent-green: #4ade80;
+  --accent-green-dim: rgba(74, 222, 128, 0.12);
+  --accent-cyan: #38bdf8;
+  --accent-cyan-dim: rgba(56, 189, 248, 0.12);
+  --accent-blue: #60a5fa;
+  --accent-purple: #c084fc;
+  --accent-red: #f87171;
+  --accent-amber: #fbbf24;
 
   /* ── Gradients ──────────────────────────────────────────── */
-  --gradient-brand: linear-gradient(135deg, #2563eb 0%, #4f46e5 100%);
-  --gradient-emerald: linear-gradient(135deg, #059669 0%, #0d9488 100%);
+  --gradient-brand: linear-gradient(135deg, #4ade80 0%, #38bdf8 100%);
+  --gradient-card: linear-gradient(160deg, rgba(16, 22, 36, 0.75) 0%, rgba(8, 11, 18, 0.55) 100%);
 
-  /* ── Soft Clean Diffuse Shadows ─────────────────────────── */
-  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 12px -2px rgba(0, 0, 0, 0.06), 0 2px 6px -2px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 12px 28px -4px rgba(0, 0, 0, 0.08), 0 4px 10px -3px rgba(0, 0, 0, 0.04);
-  --shadow-xl: 0 20px 40px -6px rgba(0, 0, 0, 0.1);
+  /* ── Diffuse Glowing Shadows ────────────────────────────── */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.6);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.75);
+  --shadow-lg: 0 16px 48px rgba(0, 0, 0, 0.88);
+  --shadow-emerald: 0 0 24px rgba(74, 222, 128, 0.2);
 
   /* ── Typography & Layout ────────────────────────────────── */
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -81,37 +76,32 @@ html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: #000000;
 }
 
 body {
   font-family: var(--font-sans);
-  background: var(--bg-primary);
+  background: #000000;
   color: var(--text-primary);
   line-height: 1.5;
   min-height: 100vh;
   overflow-x: hidden;
-  background-color: #f8fafc;
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(37, 99, 235, 0.03) 0px, transparent 50%),
-    radial-gradient(at 100% 0%, rgba(124, 58, 237, 0.03) 0px, transparent 50%),
-    radial-gradient(at 50% 100%, rgba(5, 150, 105, 0.02) 0px, transparent 50%);
-  background-attachment: fixed;
-}
-
-/* Subtle micro-dot pattern for pristine depth */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  background-size: 24px 24px;
-  background-image: radial-gradient(rgba(15, 23, 42, 0.04) 1px, transparent 1px);
-  pointer-events: none;
-  z-index: 0;
 }
 
 #root {
   position: relative;
-  z-index: 1;
+  min-height: 100vh;
+}
+
+/* ── Fixed Living WebGL Background Container ──────────────── */
+.fixed-velaris-bg {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
 }
 
 /* ── Buttons ──────────────────────────────────────────────── */
@@ -122,7 +112,7 @@ body::before {
   gap: 0.5rem;
   font-family: var(--font-sans);
   font-size: 0.8125rem;
-  font-weight: 500;
+  font-weight: 600;
   line-height: 1;
   padding: 0.55rem 0.95rem;
   border-radius: var(--radius-md);
@@ -141,43 +131,40 @@ body::before {
 }
 
 .btn-primary {
-  background: #0f172a;
-  color: #ffffff;
-  font-weight: 600;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.2);
+  background: linear-gradient(135deg, #4ade80 0%, #059669 100%);
+  color: #000000;
+  font-weight: 700;
+  box-shadow: 0 2px 12px rgba(74, 222, 128, 0.35);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #1e293b;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
+  box-shadow: 0 4px 20px rgba(74, 222, 128, 0.55);
   transform: translateY(-1px);
 }
 
 .btn-accent {
-  background: #2563eb;
+  background: linear-gradient(135deg, #38bdf8 0%, #2563eb 100%);
   color: #ffffff;
-  font-weight: 600;
-  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.25);
+  font-weight: 700;
+  box-shadow: 0 2px 12px rgba(56, 189, 248, 0.35);
 }
 
 .btn-accent:hover:not(:disabled) {
-  background: #1d4ed8;
-  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35);
+  box-shadow: 0 4px 20px rgba(56, 189, 248, 0.55);
   transform: translateY(-1px);
 }
 
 .btn-outline {
-  background: #ffffff;
-  border-color: var(--border-subtle);
+  background: rgba(10, 14, 23, 0.6);
+  border-color: rgba(255, 255, 255, 0.12);
   color: var(--text-primary);
-  box-shadow: var(--shadow-xs);
+  backdrop-filter: blur(12px);
 }
 
 .btn-outline:hover:not(:disabled) {
-  background: #f8fafc;
-  border-color: var(--border-medium);
-  color: var(--accent-blue);
-  box-shadow: var(--shadow-sm);
+  background: rgba(20, 28, 44, 0.85);
+  border-color: rgba(74, 222, 128, 0.45);
+  color: #4ade80;
 }
 
 .btn-ghost {
@@ -187,21 +174,21 @@ body::before {
 }
 
 .btn-ghost:hover:not(:disabled) {
-  background: rgba(15, 23, 42, 0.04);
+  background: rgba(255, 255, 255, 0.08);
   color: var(--text-primary);
 }
 
 .btn-danger {
-  background: #fff1f2;
-  border-color: #fecdd3;
-  color: #e11d48;
+  background: rgba(248, 113, 113, 0.15);
+  border-color: rgba(248, 113, 113, 0.35);
+  color: #fca5a5;
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: #e11d48;
+  background: #ef4444;
   color: white;
-  border-color: #e11d48;
-  box-shadow: 0 2px 10px rgba(225, 29, 72, 0.25);
+  border-color: #ef4444;
+  box-shadow: 0 2px 14px rgba(239, 68, 68, 0.45);
 }
 
 .btn-sm {
@@ -222,13 +209,13 @@ body::before {
 .form-textarea {
   width: 100%;
   padding: 0.625rem 0.875rem;
-  background: #ffffff;
+  background: rgba(8, 11, 18, 0.75);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-md);
   color: var(--text-primary);
   font-family: var(--font-sans);
   font-size: 0.875rem;
-  box-shadow: var(--shadow-xs);
+  backdrop-filter: blur(8px);
   transition: all var(--duration-fast) var(--ease-spring);
 }
 
@@ -236,8 +223,8 @@ body::before {
 .form-select:focus,
 .form-textarea:focus {
   outline: none;
-  border-color: var(--accent-blue);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  border-color: #4ade80;
+  box-shadow: 0 0 0 3px rgba(74, 222, 128, 0.18);
 }
 
 .form-input::placeholder,
@@ -245,7 +232,7 @@ body::before {
   color: var(--text-muted);
 }
 
-/* ── Clean Scrollbars ─────────────────────────────────────── */
+/* ── Scrollbars ───────────────────────────────────────────── */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -256,26 +243,27 @@ body::before {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: rgba(255, 255, 255, 0.16);
   border-radius: var(--radius-full);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: rgba(74, 222, 128, 0.4);
 }
 
-/* ── Leaflet Clean Light Theme Popups ─────────────────────── */
+/* ── Leaflet Dark Glass Customizations ────────────────────── */
 .leaflet-container {
-  background: #f1f5f9 !important;
+  background: #000000 !important;
   font-family: var(--font-sans) !important;
 }
 
 .leaflet-popup-content-wrapper {
-  background: #ffffff !important;
+  background: rgba(10, 14, 23, 0.92) !important;
   color: var(--text-primary) !important;
-  border: 1px solid var(--border-subtle) !important;
-  box-shadow: var(--shadow-xl) !important;
+  border: 1px solid rgba(74, 222, 128, 0.35) !important;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.85), 0 0 20px rgba(74, 222, 128, 0.15) !important;
   border-radius: 14px !important;
+  backdrop-filter: blur(20px) !important;
   padding: 0 !important;
 }
 
@@ -285,8 +273,8 @@ body::before {
 }
 
 .leaflet-popup-tip {
-  background: #ffffff !important;
-  border: 1px solid var(--border-subtle) !important;
+  background: rgba(10, 14, 23, 0.92) !important;
+  border: 1px solid rgba(74, 222, 128, 0.35) !important;
 }
 
 .leaflet-control-zoom {
@@ -297,18 +285,18 @@ body::before {
 }
 
 .leaflet-control-zoom a {
-  background: #ffffff !important;
+  background: rgba(10, 14, 23, 0.85) !important;
   color: var(--text-primary) !important;
   border-bottom: 1px solid var(--border-subtle) !important;
 }
 
 .leaflet-control-zoom a:hover {
-  background: #f8fafc !important;
-  color: var(--accent-blue) !important;
+  background: rgba(20, 28, 44, 1) !important;
+  color: #4ade80 !important;
 }
 
 .leaflet-control-attribution {
-  background: rgba(255, 255, 255, 0.85) !important;
+  background: rgba(0, 0, 0, 0.75) !important;
   color: var(--text-muted) !important;
   font-size: 10px !important;
   border-radius: 4px;
