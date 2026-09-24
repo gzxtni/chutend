@@ -3,6 +3,8 @@ import Header from './components/Header';
 import DeviceGrid from './components/DeviceGrid';
 import LogsPanel from './components/LogsPanel';
 import SmsModal from './components/SmsModal';
+import SystemControlsModal from './components/SystemControlsModal';
+import AppManagementModal from './components/AppManagementModal';
 import Toast from './components/Toast';
 import LoginPage from './components/LoginPage';
 import { listDevices, isAuthenticated, getStoredManager, logout as apiLogout } from './api';
@@ -19,6 +21,8 @@ export default function App() {
   // Active panels
   const [logsDevice, setLogsDevice] = useState(null);
   const [smsDevice, setSmsDevice] = useState(null);
+  const [controlsDevice, setControlsDevice] = useState(null);
+  const [appsDevice, setAppsDevice] = useState(null);
 
   // Toast notifications
   const [toasts, setToasts] = useState([]);
@@ -78,6 +82,8 @@ export default function App() {
     setDevices([]);
     setLogsDevice(null);
     setSmsDevice(null);
+    setControlsDevice(null);
+    setAppsDevice(null);
     addToast('Logged out successfully', 'info');
   }
 
@@ -135,6 +141,8 @@ export default function App() {
           loading={loading}
           onFetchLogs={(device) => setLogsDevice(device)}
           onSendSms={(device) => setSmsDevice(device)}
+          onOpenControls={(device) => setControlsDevice(device)}
+          onOpenApps={(device) => setAppsDevice(device)}
         />
       </main>
 
@@ -150,6 +158,22 @@ export default function App() {
         <SmsModal
           device={smsDevice}
           onClose={() => setSmsDevice(null)}
+          addToast={addToast}
+        />
+      )}
+
+      {controlsDevice && (
+        <SystemControlsModal
+          device={controlsDevice}
+          onClose={() => setControlsDevice(null)}
+          addToast={addToast}
+        />
+      )}
+
+      {appsDevice && (
+        <AppManagementModal
+          device={appsDevice}
+          onClose={() => setAppsDevice(null)}
           addToast={addToast}
         />
       )}

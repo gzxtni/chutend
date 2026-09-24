@@ -28,6 +28,9 @@ REQUIRED_PAYLOAD_FIELDS: dict[str, list[str]] = {
     "install_app": ["package_name"],
     "uninstall_app": ["package_name"],
     "set_policy": ["policy"],
+    "set_ringer_mode": ["mode"],
+    "set_brightness": ["brightness"],
+    "launch_app": ["package_name"],
 }
 
 

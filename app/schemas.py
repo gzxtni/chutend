@@ -36,19 +36,59 @@ class DeviceRegisterResponse(BaseModel):
 
 
 class DeviceInfoResponse(BaseModel):
-    """Public device info."""
+    """Public device info with diagnostics, geolocation, and network telemetry."""
     id: uuid.UUID
     device_id: str
-    device_name: Optional[str]
-    model: Optional[str]
-    manufacturer: Optional[str]
-    os_version: Optional[str]
+    device_name: Optional[str] = None
+    model: Optional[str] = None
+    manufacturer: Optional[str] = None
+    os_version: Optional[str] = None
     is_active: bool
-    last_seen_at: Optional[datetime]
+    last_seen_at: Optional[datetime] = None
     registered_at: datetime
+
+    # Diagnostics & Hardware
+    battery_level: Optional[int] = None
+    storage_available_gb: Optional[float] = None
+    storage_total_gb: Optional[float] = None
+    ram_total_gb: Optional[float] = None
+    serial_number: Optional[str] = None
+
+    # Geolocation
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    location_updated_at: Optional[datetime] = None
+
+    # Network Intelligence
+    ip_address: Optional[str] = None
+    network_type: Optional[str] = None
+
+    # App Management
+    installed_apps: Optional[str] = None
 
     class Config:
         from_attributes = True
+
+
+class AppItem(BaseModel):
+    name: str
+    package: str
+    version: Optional[str] = None
+    is_system: Optional[bool] = False
+
+
+class DeviceTelemetryPayload(BaseModel):
+    """Device sends periodic diagnostics, GPS location, and network intel."""
+    battery_level: Optional[int] = Field(None, ge=0, le=100)
+    storage_available_gb: Optional[float] = None
+    storage_total_gb: Optional[float] = None
+    ram_total_gb: Optional[float] = None
+    serial_number: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    ip_address: Optional[str] = None
+    network_type: Optional[str] = None
+    installed_apps: Optional[list[AppItem]] = None
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -201,7 +241,7 @@ class ExecuteCommandRequest(BaseModel):
     device_id: str = Field(..., description="Target device ANDROID_ID or IMEI")
     command_type: str = Field(
         ...,
-        pattern="^(send_sms|lock_device|wipe_device|ring_device|install_app|uninstall_app|set_policy|get_location)$",
+        pattern="^(send_sms|lock_device|wipe_device|ring_device|install_app|uninstall_app|set_policy|get_location|set_ringer_mode|set_brightness|launch_app|refresh_apps)$",
     )
     payload: Optional[dict[str, Any]] = Field(default=None)
 

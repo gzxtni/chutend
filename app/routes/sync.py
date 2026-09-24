@@ -22,6 +22,7 @@ from app.models import CallLog, Command, CommandStatus, Device, SmsLog
 from app.schemas import (
     CommandStatusUpdate,
     DeviceSyncRequest,
+    DeviceTelemetryPayload,
     PendingCommandResponse,
     SyncAckResponse,
 )
@@ -93,6 +94,42 @@ async def device_sync(
         calls_ingested=call_count,
         pending_commands=pending_count,
     )
+
+
+@router.post(
+    "/telemetry",
+    summary="Update device diagnostics, GPS coordinates, network intelligence, and apps",
+)
+async def update_device_telemetry(
+    body: DeviceTelemetryPayload,
+    device: Device = Depends(require_device_key),
+    db: AsyncSession = Depends(get_db),
+):
+    if body.battery_level is not None:
+        device.battery_level = body.battery_level
+    if body.storage_available_gb is not None:
+        device.storage_available_gb = body.storage_available_gb
+    if body.storage_total_gb is not None:
+        device.storage_total_gb = body.storage_total_gb
+    if body.ram_total_gb is not None:
+        device.ram_total_gb = body.ram_total_gb
+    if body.serial_number is not None:
+        device.serial_number = body.serial_number
+    if body.latitude is not None and body.longitude is not None:
+        device.latitude = body.latitude
+        device.longitude = body.longitude
+        device.location_updated_at = datetime.now(timezone.utc)
+    if body.ip_address is not None:
+        device.ip_address = body.ip_address
+    if body.network_type is not None:
+        device.network_type = body.network_type
+    if body.installed_apps is not None:
+        device.installed_apps = json.dumps([app.dict() for app in body.installed_apps])
+
+    device.last_seen_at = datetime.now(timezone.utc)
+    await db.commit()
+
+    return {"status": "ok", "message": "Telemetry updated successfully"}
 
 
 @router.get(

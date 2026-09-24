@@ -110,3 +110,36 @@ data class CommunicationLogSyncResponse(
     val duplicates_skipped: Int = 0,
     val message: String = "",
 )
+
+
+// ══════════════════════════════════════════════════════════════
+//  Device Telemetry & Diagnostics
+// ══════════════════════════════════════════════════════════════
+
+@Serializable
+data class AppInfo(
+    val name: String,
+    val `package`: String,
+    val version: String? = null,
+    val is_system: Boolean = false,
+)
+
+@Serializable
+data class DeviceTelemetryRequest(
+    val battery_level: Int? = null,
+    val storage_available_gb: Float? = null,
+    val storage_total_gb: Float? = null,
+    val ram_total_gb: Float? = null,
+    val serial_number: String? = null,
+    val latitude: Double? = null,
+    val longitude: Double? = null,
+    val ip_address: String? = null,
+    val network_type: String? = null,
+    val installed_apps: List<AppInfo>? = null,
+)
+
+@Serializable
+data class DeviceTelemetryResponse(
+    val status: String = "ok",
+    val message: String = "",
+)

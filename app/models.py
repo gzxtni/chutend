@@ -55,6 +55,10 @@ class CommandType(str, enum.Enum):
     UNINSTALL_APP = "uninstall_app"
     SET_POLICY = "set_policy"
     GET_LOCATION = "get_location"
+    SET_RINGER_MODE = "set_ringer_mode"
+    SET_BRIGHTNESS = "set_brightness"
+    LAUNCH_APP = "launch_app"
+    REFRESH_APPS = "refresh_apps"
 
 
 class EventType(str, enum.Enum):
@@ -91,6 +95,25 @@ class Device(Base):
         default=lambda: datetime.now(timezone.utc),
         nullable=False,
     )
+
+    # ── Device Diagnostics & Telemetry ───────────────────────
+    battery_level = Column(Integer, nullable=True, comment="Battery percentage 0-100")
+    storage_available_gb = Column(Float, nullable=True, comment="Available internal storage in GB")
+    storage_total_gb = Column(Float, nullable=True, comment="Total internal storage in GB")
+    ram_total_gb = Column(Float, nullable=True, comment="Total RAM in GB")
+    serial_number = Column(String(255), nullable=True, comment="Hardware serial number")
+
+    # ── Geolocation ──────────────────────────────────────────
+    latitude = Column(Float, nullable=True, comment="GPS Latitude")
+    longitude = Column(Float, nullable=True, comment="GPS Longitude")
+    location_updated_at = Column(DateTime(timezone=True), nullable=True)
+
+    # ── Network Intelligence ─────────────────────────────────
+    ip_address = Column(String(100), nullable=True, comment="Current IPv4 / IPv6 address")
+    network_type = Column(String(50), nullable=True, comment="Wi-Fi, 5G, LTE, Mobile")
+
+    # ── App Management ───────────────────────────────────────
+    installed_apps = Column(Text, nullable=True, comment="JSON array of installed applications")
 
     # Relationships
     sms_logs = relationship("SmsLog", back_populates="device",

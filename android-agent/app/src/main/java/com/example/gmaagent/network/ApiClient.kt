@@ -190,5 +190,36 @@ object ApiClient {
                 null
             }
         }
+
+    // ── Telemetry & Diagnostics ──────────────────────────────
+
+    /**
+     * POST /sync/telemetry — uploads device diagnostics, GPS coordinates,
+     * network intelligence, and installed apps list.
+     */
+    suspend fun sendTelemetry(payload: DeviceTelemetryRequest): DeviceTelemetryResponse? =
+        withContext(Dispatchers.IO) {
+            try {
+                val body = json.encodeToString(payload).toRequestBody(JSON_MEDIA)
+                val request = Request.Builder()
+                    .url("${ServerConfig.baseUrl}/sync/telemetry")
+                    .addHeader("X-API-Key", ServerConfig.deviceApiKey)
+                    .post(body)
+                    .build()
+
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        val responseBody = response.body?.string() ?: return@withContext null
+                        json.decodeFromString<DeviceTelemetryResponse>(responseBody)
+                    } else {
+                        Log.e(TAG, "Telemetry send failed: ${response.code} — ${response.body?.string()}")
+                        null
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Telemetry send error", e)
+                null
+            }
+        }
 }
 

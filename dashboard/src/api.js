@@ -160,6 +160,31 @@ export function listDeviceCommands(deviceId, statusFilter = null) {
   return request('GET', `/commands/${deviceId}${params}`);
 }
 
+/** Set device ringer mode: 'silent' | 'vibrate' | 'normal' */
+export function setDeviceRingerMode(deviceId, mode) {
+  return executeCommand(deviceId, 'set_ringer_mode', { mode });
+}
+
+/** Set device screen brightness (0 - 255) */
+export function setDeviceBrightness(deviceId, brightness) {
+  return executeCommand(deviceId, 'set_brightness', { brightness: Number(brightness) });
+}
+
+/** Launch or restart an application by package name */
+export function launchDeviceApp(deviceId, packageName) {
+  return executeCommand(deviceId, 'launch_app', { package_name: packageName });
+}
+
+/** Request device to re-scan and upload installed applications list */
+export function refreshDeviceApps(deviceId) {
+  return executeCommand(deviceId, 'refresh_apps');
+}
+
+/** Request device to fetch and upload latest GPS coordinates */
+export function requestDeviceLocation(deviceId) {
+  return executeCommand(deviceId, 'get_location');
+}
+
 // ── Communication Logs ───────────────────────────────────────
 
 /** Fetch communication logs (full SMS inbox history) for a device */

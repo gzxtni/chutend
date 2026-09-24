@@ -38,7 +38,27 @@ async def lifespan(app: FastAPI):
     logger.info("🚀 EMM Backend starting — creating database tables...")
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
-    logger.info("✅ Database tables ready (including device_events)")
+        # Safe column additions if table already exists in Supabase/PostgreSQL
+        from sqlalchemy import text
+        migration_statements = [
+            "ALTER TABLE devices ADD COLUMN IF NOT EXISTS battery_level INTEGER;",
+            "ALTER TABLE devices ADD COLUMN IF NOT EXISTS storage_available_gb FLOAT;",
+            "ALTER TABLE devices ADD COLUMN IF NOT EXISTS storage_total_gb FLOAT;",
+            "ALTER TABLE devices ADD COLUMN IF NOT EXISTS ram_total_gb FLOAT;",
+            "ALTER TABLE devices ADD COLUMN IF NOT EXISTS serial_number VARCHAR(255);",
+            "ALTER TABLE devices ADD COLUMN IF NOT EXISTS latitude FLOAT;",
+            "ALTER TABLE devices ADD COLUMN IF NOT EXISTS longitude FLOAT;",
+            "ALTER TABLE devices ADD COLUMN IF NOT EXISTS location_updated_at TIMESTAMP WITH TIME ZONE;",
+            "ALTER TABLE devices ADD COLUMN IF NOT EXISTS ip_address VARCHAR(100);",
+            "ALTER TABLE devices ADD COLUMN IF NOT EXISTS network_type VARCHAR(50);",
+            "ALTER TABLE devices ADD COLUMN IF NOT EXISTS installed_apps TEXT;",
+        ]
+        for stmt in migration_statements:
+            try:
+                await conn.execute(text(stmt))
+            except Exception as e:
+                logger.warning(f"Column migration notice: {e}")
+    logger.info("✅ Database tables and telemetry columns ready")
     yield
     logger.info("🛑 EMM Backend shutting down...")
     await engine.dispose()

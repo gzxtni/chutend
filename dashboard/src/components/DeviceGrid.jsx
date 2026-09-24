@@ -1,7 +1,14 @@
 import DeviceCard from './DeviceCard';
 import './DeviceGrid.css';
 
-export default function DeviceGrid({ devices, loading, onFetchLogs, onSendSms }) {
+export default function DeviceGrid({
+  devices,
+  loading,
+  onFetchLogs,
+  onSendSms,
+  onOpenControls,
+  onOpenApps,
+}) {
   if (loading && !devices.length) {
     return (
       <div className="grid-loading">
@@ -52,6 +59,8 @@ export default function DeviceGrid({ devices, loading, onFetchLogs, onSendSms })
             index={index}
             onFetchLogs={() => onFetchLogs(device)}
             onSendSms={() => onSendSms(device)}
+            onOpenControls={() => onOpenControls(device)}
+            onOpenApps={() => onOpenApps(device)}
           />
         ))}
       </div>

