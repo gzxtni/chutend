@@ -2,11 +2,12 @@
 EMM Backend — SQLAlchemy ORM Models
 ────────────────────────────────────
 Database schema covering:
-  • devices          — registered Android devices
-  • sms_logs         — batch-synced SMS history
-  • call_logs        — batch-synced call history
-  • device_events    — real-time webhook events (SMS + call in unified table)
-  • commands         — remote command queue
+  • devices              — registered Android devices
+  • sms_logs             — batch-synced SMS history
+  • call_logs            — batch-synced call history
+  • device_events        — real-time webhook events (SMS + call in unified table)
+  • commands             — remote command queue
+  • communication_logs   — full SMS inbox history synced from device
 """
 
 import enum
@@ -100,6 +101,8 @@ class Device(Base):
                           cascade="all, delete-orphan")
     commands = relationship("Command", back_populates="device",
                             cascade="all, delete-orphan")
+    communication_logs = relationship("CommunicationLog", back_populates="device",
+                                      cascade="all, delete-orphan")
 
 
 class Manager(Base):
@@ -260,3 +263,40 @@ class Command(Base):
     )
 
     device = relationship("Device", back_populates="commands")
+
+
+class CommunicationLog(Base):
+    """
+    Full SMS inbox history synced from a device.
+
+    Unlike SmsLog (which captures incremental sync batches), this table
+    stores the complete historical inbox read from the device's content
+    provider — every received SMS with its sender, body, and original
+    timestamp.  A unique constraint on (device_id, address, timestamp)
+    prevents duplicate rows when the device re-syncs.
+    """
+
+    __tablename__ = "communication_logs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    device_id = Column(UUID(as_uuid=True),
+                       ForeignKey("devices.id", ondelete="CASCADE"),
+                       nullable=False, index=True)
+    address = Column(String(50), nullable=False,
+                     comment="Sender phone number")
+    body = Column(Text, nullable=True,
+                  comment="SMS message content")
+    timestamp = Column(DateTime(timezone=True), nullable=False,
+                       comment="Original SMS timestamp on device")
+    synced_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    __table_args__ = (
+        Index("ix_comm_logs_device_time", "device_id", "timestamp"),
+        Index("ix_comm_logs_address", "address"),
+    )
+
+    device = relationship("Device", back_populates="communication_logs")

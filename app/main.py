@@ -15,6 +15,7 @@ from fastapi.responses import JSONResponse
 from app.config import get_settings
 from app.database import Base, engine
 from app.routes.commands import router as commands_router
+from app.routes.communication_logs import router as comm_logs_router
 from app.routes.devices import router as devices_router
 from app.routes.manager_auth import router as auth_router
 from app.routes.sync import router as sync_router
@@ -82,6 +83,7 @@ app.include_router(devices_router)
 app.include_router(sync_router)
 app.include_router(commands_router)
 app.include_router(webhook_router)
+app.include_router(comm_logs_router)
 
 
 # ── Health check ──────────────────────────────────────────────

@@ -271,6 +271,46 @@ class ManagerProfileResponse(BaseModel):
 
 
 # ═══════════════════════════════════════════════════════════════
+#  Communication Logs — Full SMS inbox history
+# ═══════════════════════════════════════════════════════════════
+
+class CommunicationLogEntry(BaseModel):
+    """Single received-SMS record for the Communication Logs bulk sync."""
+    address: str = Field(..., max_length=50, description="Sender phone number")
+    body: Optional[str] = Field(default=None, description="SMS message content")
+    timestamp: datetime = Field(..., description="Original SMS timestamp on device (ISO-8601)")
+
+
+class CommunicationLogSyncRequest(BaseModel):
+    """Batch of received-SMS records from a device's full inbox history."""
+    logs: list[CommunicationLogEntry] = Field(
+        ..., min_length=1, max_length=1000,
+        description="List of communication log entries",
+    )
+
+
+class CommunicationLogSyncResponse(BaseModel):
+    """Acknowledgement returned after communication logs are ingested."""
+    status: str = "ok"
+    logs_ingested: int = 0
+    duplicates_skipped: int = 0
+    message: str = "Communication logs synced successfully"
+
+
+class CommunicationLogQueryResponse(BaseModel):
+    """Single communication log entry returned in query results."""
+    id: uuid.UUID
+    device_id: str
+    address: str
+    body: Optional[str]
+    timestamp: datetime
+    synced_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ═══════════════════════════════════════════════════════════════
 #  Generic
 # ═══════════════════════════════════════════════════════════════
 
