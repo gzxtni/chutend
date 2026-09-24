@@ -119,6 +119,54 @@
   color: #4ade80;
 }
 
+.hud-carto-badge {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  color: #38bdf8;
+  padding: 0.3rem 0.6rem;
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.35);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.15);
+}
+
+.hud-theme-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  background: rgba(6, 9, 15, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-md);
+  padding: 0.2rem;
+}
+
+.hud-theme-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: #94a3b8;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  padding: 0.25rem 0.55rem;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.hud-theme-btn:hover {
+  color: #f8fafc;
+}
+
+.hud-theme-btn.active {
+  background: rgba(74, 222, 128, 0.15);
+  border-color: rgba(74, 222, 128, 0.4);
+  color: #4ade80;
+  box-shadow: 0 0 10px rgba(74, 222, 128, 0.2);
+}
+
 /* ── Floating Sidebar ────────────────────────────────────── */
 .fleet-map-sidebar {
   position: absolute;

@@ -28,6 +28,28 @@ function getBatteryIcon(level) {
   return <Battery size={13} className="text-warning" />;
 }
 
+// CARTO Cloud Native Maps API & Basemap Credentials
+const CARTO_API_BASE = import.meta.env.VITE_CARTO_API_BASE || 'https://gcp-asia-northeast1.api.carto.com';
+const CARTO_ACCESS_TOKEN = import.meta.env.VITE_CARTO_ACCESS_TOKEN || 'eyJhbGciOiJIUzI1NiJ9.eyJhIjoiYWNfdWsyb3QybXoiLCJqdGkiOiI3MTFhOTUzNSJ9.F1euDbDt_HSeLmIKvZaYj3yhLCb5_BjZKTbPRNdVX9s';
+
+const CARTO_STYLES = {
+  dark: {
+    id: 'dark',
+    name: 'Dark Matter',
+    url: `https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png?api_key=${CARTO_ACCESS_TOKEN}`,
+  },
+  voyager: {
+    id: 'voyager',
+    name: 'Voyager',
+    url: `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?api_key=${CARTO_ACCESS_TOKEN}`,
+  },
+  positron: {
+    id: 'positron',
+    name: 'Positron',
+    url: `https://{s}.basemaps.cartocdn.com/rastertiles/light_all/{z}/{x}/{y}{r}.png?api_key=${CARTO_ACCESS_TOKEN}`,
+  }
+};
+
 export default function FleetMap({
   devices,
   selectedDevice,
@@ -40,7 +62,9 @@ export default function FleetMap({
 }) {
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
+  const tileLayerRef = useRef(null);
   const markersRef = useRef({});
+  const [mapTheme, setMapTheme] = useState('dark');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterActiveOnly, setFilterActiveOnly] = useState(false);
 
@@ -85,13 +109,15 @@ export default function FleetMap({
 
       L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-      // CartoDB Voyager clean light tiles
-      L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        attribution: '&copy; <a href="https://carto.com/">CARTO</a> &bull; OpenStreetMap',
-        maxZoom: 19,
+      // Authenticated CARTO Cloud Native raster tiles (Dark Matter by default)
+      const initialStyle = CARTO_STYLES[mapTheme] || CARTO_STYLES.dark;
+      const tileLayer = L.tileLayer(initialStyle.url, {
+        attribution: '&copy; <a href="https://carto.com/" target="_blank" rel="noreferrer">CARTO</a> &bull; &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a>',
+        maxZoom: 20,
         subdomains: 'abcd',
       }).addTo(map);
 
+      tileLayerRef.current = tileLayer;
       mapInstanceRef.current = map;
     }
 
@@ -102,6 +128,22 @@ export default function FleetMap({
       }
     };
   }, []);
+
+  // Update tileLayer when theme changes
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+    if (tileLayerRef.current) {
+      map.removeLayer(tileLayerRef.current);
+    }
+    const style = CARTO_STYLES[mapTheme] || CARTO_STYLES.dark;
+    const newLayer = L.tileLayer(style.url, {
+      attribution: '&copy; <a href="https://carto.com/" target="_blank" rel="noreferrer">CARTO</a> &bull; &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a>',
+      maxZoom: 20,
+      subdomains: 'abcd',
+    }).addTo(map);
+    tileLayerRef.current = newLayer;
+  }, [mapTheme]);
 
   // Update Markers on map
   useEffect(() => {
@@ -281,6 +323,28 @@ export default function FleetMap({
           <Crosshair size={14} />
           <span>Fit Fleet</span>
         </button>
+
+        <div className="hud-carto-badge" title={`CARTO Maps API: ${CARTO_API_BASE}`}>
+          <Layers size={13} className="text-cyan" />
+          <span>CARTO Maps</span>
+        </div>
+
+        <div className="hud-theme-toggle">
+          <button
+            className={`hud-theme-btn ${mapTheme === 'dark' ? 'active' : ''}`}
+            onClick={() => setMapTheme('dark')}
+            title="CARTO Dark Matter (Tactical)"
+          >
+            Dark
+          </button>
+          <button
+            className={`hud-theme-btn ${mapTheme === 'voyager' ? 'active' : ''}`}
+            onClick={() => setMapTheme('voyager')}
+            title="CARTO Voyager (Street View)"
+          >
+            Voyager
+          </button>
+        </div>
       </div>
 
       {/* Floating Collapsible Device Drawer */}
