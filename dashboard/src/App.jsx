@@ -1,13 +1,21 @@
 import { useState, useEffect, useCallback } from 'react';
 import Header from './components/Header';
 import DeviceGrid from './components/DeviceGrid';
+import FleetMap from './components/FleetMap';
+import FleetBentoStats from './components/FleetBentoStats';
 import LogsPanel from './components/LogsPanel';
 import SmsModal from './components/SmsModal';
 import SystemControlsModal from './components/SystemControlsModal';
 import AppManagementModal from './components/AppManagementModal';
 import Toast from './components/Toast';
 import LoginPage from './components/LoginPage';
-import { listDevices, isAuthenticated, getStoredManager, logout as apiLogout } from './api';
+import {
+  listDevices,
+  isAuthenticated,
+  getStoredManager,
+  logout as apiLogout,
+  requestDeviceLocation
+} from './api';
 import './App.css';
 
 export default function App() {
@@ -18,7 +26,11 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Active panels
+  // View state: 'grid' (Fleet Matrix) | 'map' (Live GPS Radar)
+  const [viewMode, setViewMode] = useState('grid');
+  const [selectedMapDevice, setSelectedMapDevice] = useState(null);
+
+  // Active modal panels
   const [logsDevice, setLogsDevice] = useState(null);
   const [smsDevice, setSmsDevice] = useState(null);
   const [controlsDevice, setControlsDevice] = useState(null);
@@ -72,7 +84,7 @@ export default function App() {
   function handleLoginSuccess(managerProfile) {
     setAuthed(true);
     setManager(managerProfile);
-    addToast(`Welcome back, ${managerProfile.display_name || managerProfile.username}!`, 'success');
+    addToast(`Authenticated as ${managerProfile.display_name || managerProfile.username}`, 'success');
   }
 
   function handleLogout() {
@@ -84,7 +96,22 @@ export default function App() {
     setSmsDevice(null);
     setControlsDevice(null);
     setAppsDevice(null);
-    addToast('Logged out successfully', 'info');
+    addToast('Logged out of console', 'info');
+  }
+
+  // Jump from device card straight to Live Radar map centered on that device
+  function handleLocateOnMap(device) {
+    setSelectedMapDevice(device);
+    setViewMode('map');
+  }
+
+  async function handleRequestLocation(deviceId) {
+    try {
+      await requestDeviceLocation(deviceId);
+      addToast(`GPS acquisition dispatched to device ${deviceId}`, 'success');
+    } catch (err) {
+      addToast(`Failed to ping location: ${err.message}`, 'error');
+    }
   }
 
   // ── Not authenticated → show login ──────────────────────
@@ -106,9 +133,10 @@ export default function App() {
     );
   }
 
-  // ── Authenticated → show dashboard ──────────────────────
+  // ── Authenticated → show console ────────────────────────
   const activeDevices = devices.filter(d => d.is_active);
   const inactiveDevices = devices.filter(d => !d.is_active);
+  const gpsCount = devices.filter(d => d.latitude !== null && d.latitude !== undefined).length;
 
   return (
     <div className="app">
@@ -116,34 +144,57 @@ export default function App() {
         totalDevices={devices.length}
         activeCount={activeDevices.length}
         inactiveCount={inactiveDevices.length}
+        gpsCount={gpsCount}
         onRefresh={fetchDevices}
         loading={loading}
         manager={manager}
         onLogout={handleLogout}
+        viewMode={viewMode}
+        onViewModeChange={setViewMode}
       />
 
-      <main className="app-main">
+      <main className={`app-main ${viewMode === 'map' ? 'app-main--map' : ''}`}>
         {error && !devices.length && (
           <div className="error-banner">
-            <span className="error-icon">⚠</span>
             <div>
-              <h3>Connection Error</h3>
+              <h3>Network Communication Error</h3>
               <p>{error}</p>
             </div>
             <button className="btn btn-ghost" onClick={fetchDevices}>
-              Retry
+              Retry Connection
             </button>
           </div>
         )}
 
-        <DeviceGrid
-          devices={devices}
-          loading={loading}
-          onFetchLogs={(device) => setLogsDevice(device)}
-          onSendSms={(device) => setSmsDevice(device)}
-          onOpenControls={(device) => setControlsDevice(device)}
-          onOpenApps={(device) => setAppsDevice(device)}
-        />
+        {viewMode === 'map' ? (
+          <FleetMap
+            devices={devices}
+            selectedDevice={selectedMapDevice}
+            onOpenControls={(device) => setControlsDevice(device)}
+            onSendSms={(device) => setSmsDevice(device)}
+            onOpenApps={(device) => setAppsDevice(device)}
+            onFetchLogs={(device) => setLogsDevice(device)}
+            onRequestLocation={handleRequestLocation}
+            onSelectDevice={setSelectedMapDevice}
+          />
+        ) : (
+          <>
+            <FleetBentoStats
+              devices={devices}
+              onSwitchToMap={() => setViewMode('map')}
+            />
+            <DeviceGrid
+              devices={devices}
+              loading={loading}
+              onFetchLogs={(device) => setLogsDevice(device)}
+              onSendSms={(device) => setSmsDevice(device)}
+              onOpenControls={(device) => setControlsDevice(device)}
+              onOpenApps={(device) => setAppsDevice(device)}
+              onLocateOnMap={handleLocateOnMap}
+              onSwitchToMap={() => setViewMode('map')}
+            />
+          </>
+        )}
       </main>
 
       {logsDevice && (

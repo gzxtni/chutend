@@ -1,4 +1,18 @@
 import { useState } from 'react';
+import {
+  Sliders,
+  Volume2,
+  VolumeX,
+  Vibrate,
+  Bell,
+  Sun,
+  BellRing,
+  Navigation,
+  X,
+  Check,
+  Send,
+  Radio
+} from 'lucide-react';
 import { setDeviceRingerMode, setDeviceBrightness, executeCommand, requestDeviceLocation } from '../api';
 import './SystemControlsModal.css';
 
@@ -63,25 +77,27 @@ export default function SystemControlsModal({ device, onClose, addToast }) {
         <div className="modal-header">
           <div className="modal-title-group">
             <div className="modal-icon-badge">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-                <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="2" />
-                <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
+              <Sliders size={20} className="text-cyan" />
             </div>
             <div>
               <h3>Remote System Controls</h3>
-              <p className="modal-subtitle">{device.device_name || device.device_id}</p>
+              <p className="modal-subtitle font-mono">{device.device_name || device.device_id}</p>
             </div>
           </div>
-          <button className="modal-close-btn" onClick={onClose}>✕</button>
+          <button className="modal-close-btn" onClick={onClose}>
+            <X size={16} />
+          </button>
         </div>
 
         <div className="controls-body">
           {/* Section: Audio & Ringer Mode */}
           <div className="control-group">
             <div className="control-group-header">
-              <span className="control-title">🔊 Ringer / Audio Profile</span>
-              <span className="control-hint">Toggle device between sound profiles</span>
+              <div className="control-title-with-icon">
+                <Volume2 size={16} className="text-cyan" />
+                <span className="control-title">Ringer & Audio Profile</span>
+              </div>
+              <span className="control-hint">Toggle device audio states</span>
             </div>
             <div className="ringer-buttons">
               <button
@@ -89,7 +105,7 @@ export default function SystemControlsModal({ device, onClose, addToast }) {
                 onClick={() => handleRingerMode('silent')}
                 disabled={ringerLoading}
               >
-                <span className="ringer-emoji">🔕</span>
+                <VolumeX size={16} />
                 <span className="ringer-label">Silent</span>
               </button>
               <button
@@ -97,7 +113,7 @@ export default function SystemControlsModal({ device, onClose, addToast }) {
                 onClick={() => handleRingerMode('vibrate')}
                 disabled={ringerLoading}
               >
-                <span className="ringer-emoji">📳</span>
+                <Vibrate size={16} />
                 <span className="ringer-label">Vibrate</span>
               </button>
               <button
@@ -105,7 +121,7 @@ export default function SystemControlsModal({ device, onClose, addToast }) {
                 onClick={() => handleRingerMode('normal')}
                 disabled={ringerLoading}
               >
-                <span className="ringer-emoji">🔔</span>
+                <Bell size={16} />
                 <span className="ringer-label">Normal</span>
               </button>
             </div>
@@ -114,23 +130,25 @@ export default function SystemControlsModal({ device, onClose, addToast }) {
           {/* Section: Screen Brightness */}
           <div className="control-group">
             <div className="control-group-header">
-              <span className="control-title">☀️ Screen Brightness</span>
-              <span className="control-value-badge">{Math.round((brightness / 255) * 100)}%</span>
+              <div className="control-title-with-icon">
+                <Sun size={16} className="text-warning" />
+                <span className="control-title">Screen Brightness</span>
+              </div>
+              <span className="control-value-badge font-mono">{Math.round((brightness / 255) * 100)}%</span>
             </div>
             <div className="brightness-slider-container">
               <input
                 type="range"
-                min="5"
+                min="0"
                 max="255"
                 value={brightness}
                 onChange={e => setBrightness(Number(e.target.value))}
-                className="brightness-range"
+                className="brightness-range-slider"
               />
-              <div className="preset-buttons">
-                <button type="button" className="btn btn-xs btn-ghost" onClick={() => setBrightness(64)}>25%</button>
-                <button type="button" className="btn btn-xs btn-ghost" onClick={() => setBrightness(128)}>50%</button>
-                <button type="button" className="btn btn-xs btn-ghost" onClick={() => setBrightness(192)}>75%</button>
-                <button type="button" className="btn btn-xs btn-ghost" onClick={() => setBrightness(255)}>100%</button>
+              <div className="slider-ticks">
+                <span>0%</span>
+                <span>50%</span>
+                <span>100%</span>
               </div>
             </div>
             <button
@@ -138,44 +156,57 @@ export default function SystemControlsModal({ device, onClose, addToast }) {
               onClick={handleApplyBrightness}
               disabled={brightnessLoading}
             >
-              {brightnessLoading ? 'Applying...' : 'Apply Brightness'}
+              <Check size={14} />
+              <span>{brightnessLoading ? 'Applying...' : 'Apply Brightness Level'}</span>
             </button>
           </div>
 
-          {/* Section: Quick Actions (Ring Alarm & GPS) */}
+          {/* Section: Device Actions (Alarm & GPS Refresh) */}
           <div className="control-group">
             <div className="control-group-header">
-              <span className="control-title">⚡ Quick Remote Actions</span>
+              <div className="control-title-with-icon">
+                <Radio size={16} className="text-purple" />
+                <span className="control-title">Remote Diagnostics & Actions</span>
+              </div>
             </div>
-            <div className="quick-actions-grid">
-              <button
-                className="btn btn-outline quick-action-btn"
-                onClick={handleRingDevice}
-                disabled={ringLoading}
-              >
-                <span>🚨</span>
-                <div>
-                  <strong>Ring Device Alarm</strong>
-                  <small>Play ringtone at full volume</small>
+            <div className="system-action-cards">
+              <div className="action-card">
+                <div className="action-info">
+                  <div className="action-title-row">
+                    <BellRing size={16} className="text-danger" />
+                    <strong>Emergency Siren Alarm</strong>
+                  </div>
+                  <p>Plays high-priority sound alarm on device to locate or alert.</p>
                 </div>
-              </button>
-              <button
-                className="btn btn-outline quick-action-btn"
-                onClick={handleRequestLocation}
-                disabled={locLoading}
-              >
-                <span>📍</span>
-                <div>
-                  <strong>Ping GPS Location</strong>
-                  <small>Request immediate coordinates</small>
+                <button
+                  className="btn btn-outline btn-sm action-trigger-btn btn-danger-ghost"
+                  onClick={handleRingDevice}
+                  disabled={ringLoading}
+                >
+                  <BellRing size={13} />
+                  <span>{ringLoading ? 'Triggering...' : 'Sound Alarm'}</span>
+                </button>
+              </div>
+
+              <div className="action-card">
+                <div className="action-info">
+                  <div className="action-title-row">
+                    <Navigation size={16} className="text-cyan" />
+                    <strong>Poll GPS Geolocation</strong>
+                  </div>
+                  <p>Forces background service to immediately acquire and push GPS coordinates.</p>
                 </div>
-              </button>
+                <button
+                  className="btn btn-outline btn-sm action-trigger-btn"
+                  onClick={handleRequestLocation}
+                  disabled={locLoading}
+                >
+                  <Navigation size={13} />
+                  <span>{locLoading ? 'Requesting...' : 'Request Location'}</span>
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-
-        <div className="modal-footer">
-          <button className="btn btn-ghost" onClick={onClose}>Close</button>
         </div>
       </div>
     </div>

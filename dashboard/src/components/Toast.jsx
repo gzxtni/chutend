@@ -1,32 +1,32 @@
-import { useEffect, useState } from 'react';
+import {
+  CheckCircle2,
+  AlertTriangle,
+  XCircle,
+  Info,
+  X
+} from 'lucide-react';
 import './Toast.css';
 
 export default function Toast({ message, type = 'info', onDismiss }) {
-  const [exiting, setExiting] = useState(false);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setExiting(true);
-      setTimeout(onDismiss, 300);
-    }, 3700);
-    return () => clearTimeout(timer);
-  }, [onDismiss]);
-
-  const icons = {
-    success: '✓',
-    error: '✕',
-    info: 'ℹ',
-    warning: '⚠',
-  };
+  function renderIcon() {
+    switch (type) {
+      case 'success':
+        return <CheckCircle2 size={16} className="toast-icon text-success" />;
+      case 'warning':
+        return <AlertTriangle size={16} className="toast-icon text-warning" />;
+      case 'error':
+        return <XCircle size={16} className="toast-icon text-danger" />;
+      default:
+        return <Info size={16} className="toast-icon text-cyan" />;
+    }
+  }
 
   return (
-    <div className={`toast toast--${type} ${exiting ? 'toast--exiting' : ''}`}>
-      <span className="toast-icon">{icons[type]}</span>
+    <div className={`toast toast--${type}`} role="alert">
+      {renderIcon()}
       <span className="toast-message">{message}</span>
-      <button className="toast-dismiss" onClick={() => { setExiting(true); setTimeout(onDismiss, 300); }}>
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-          <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-        </svg>
+      <button className="toast-dismiss" onClick={onDismiss} aria-label="Dismiss">
+        <X size={14} />
       </button>
     </div>
   );

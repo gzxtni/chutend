@@ -179,6 +179,7 @@ export function launchDeviceApp(deviceId, packageName) {
 export function refreshDeviceApps(deviceId) {
   return executeCommand(deviceId, 'refresh_apps');
 }
+export const requestInstalledApps = refreshDeviceApps;
 
 /** Request device to fetch and upload latest GPS coordinates */
 export function requestDeviceLocation(deviceId) {

@@ -1,4 +1,13 @@
 import { useState } from 'react';
+import {
+  MessageSquare,
+  Send,
+  Phone,
+  CheckCircle2,
+  XCircle,
+  X,
+  RefreshCw
+} from 'lucide-react';
 import { executeCommand } from '../api';
 import './SmsModal.css';
 
@@ -38,71 +47,71 @@ export default function SmsModal({ device, onClose, addToast }) {
       <div className="sms-modal" id="sms-modal">
         <div className="sms-modal-header">
           <div className="sms-modal-icon">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5Z" stroke="currentColor" strokeWidth="1.5" />
-            </svg>
+            <MessageSquare size={20} className="text-cyan" />
           </div>
           <div>
-            <h2 className="sms-modal-title">Send Remote SMS</h2>
+            <h2 className="sms-modal-title">Remote SMS Commander</h2>
             <p className="sms-modal-subtitle">
-              via <strong>{device.device_name || device.device_id}</strong>
+              Dispatching through <span className="font-mono">{device.device_name || device.device_id}</span>
             </p>
           </div>
           <button className="modal-close-btn" onClick={onClose} id="close-sms-modal-btn">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
+            <X size={16} />
           </button>
         </div>
 
         <form onSubmit={handleSend} className="sms-form">
           <div className="form-group">
-            <label htmlFor="sms-phone" className="form-label">Recipient Phone Number</label>
+            <label htmlFor="sms-phone" className="form-label">
+              <Phone size={13} className="text-muted" />
+              <span>Target Recipient Phone Number</span>
+            </label>
             <input
               id="sms-phone"
               type="tel"
-              className="form-input"
-              placeholder="+1 (234) 567-8900"
+              className="form-input font-mono"
+              placeholder="+1234567890"
               value={phoneNumber}
               onChange={e => setPhoneNumber(e.target.value)}
-              autoFocus
+              disabled={sending}
               required
+              autoFocus
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="sms-message" className="form-label">Message</label>
+            <label htmlFor="sms-body" className="form-label">
+              <MessageSquare size={13} className="text-muted" />
+              <span>Message Content</span>
+            </label>
             <textarea
-              id="sms-message"
+              id="sms-body"
               className="form-textarea"
-              placeholder="Type your SMS message here..."
+              rows={4}
+              placeholder="Enter message text to transmit from device..."
               value={message}
               onChange={e => setMessage(e.target.value)}
-              rows={4}
-              maxLength={1600}
+              disabled={sending}
               required
             />
-            <span className="char-count">{message.length} / 1600</span>
+            <div className="char-count font-mono">{message.length} chars</div>
           </div>
 
           {result && (
             <div className={`sms-result ${result.success ? 'sms-result--success' : 'sms-result--error'}`}>
               {result.success ? (
                 <>
-                  <span className="result-icon">✓</span>
+                  <CheckCircle2 size={16} className="text-success" />
                   <div>
-                    <p className="result-title">Command Queued Successfully</p>
-                    <p className="result-detail">
-                      ID: <code>{result.data.command_id}</code>
-                    </p>
-                    <p className="result-detail">
-                      Status: <strong>{result.data.status}</strong>
+                    <p className="result-title">Command Queued in Pipeline</p>
+                    <p className="result-detail font-mono">
+                      CMD ID: {result.data.command_id}
                     </p>
                   </div>
                 </>
               ) : (
                 <>
-                  <span className="result-icon">✕</span>
+                  <XCircle size={16} className="text-danger" />
                   <div>
                     <p className="result-title">Failed to Queue Command</p>
                     <p className="result-detail">{result.error}</p>
@@ -124,16 +133,13 @@ export default function SmsModal({ device, onClose, addToast }) {
             >
               {sending ? (
                 <>
-                  <span className="spinner" />
-                  Sending...
+                  <RefreshCw size={13} className="spin-icon" />
+                  <span>Transmitting...</span>
                 </>
               ) : (
                 <>
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
-                    <path d="M22 2L11 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                    <path d="M22 2L15 22l-4-9-9-4 20-7Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-                  </svg>
-                  Send SMS Command
+                  <Send size={13} />
+                  <span>Send SMS Command</span>
                 </>
               )}
             </button>

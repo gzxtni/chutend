@@ -1,61 +1,110 @@
+import {
+  Shield,
+  LayoutGrid,
+  Radio,
+  RefreshCw,
+  LogOut,
+  Smartphone,
+  MapPin,
+  CheckCircle2,
+  XCircle
+} from 'lucide-react';
 import './Header.css';
 
-export default function Header({ totalDevices, activeCount, inactiveCount, onRefresh, loading, manager, onLogout }) {
+export default function Header({
+  totalDevices,
+  activeCount,
+  inactiveCount,
+  gpsCount = 0,
+  onRefresh,
+  loading,
+  manager,
+  onLogout,
+  viewMode = 'grid',
+  onViewModeChange
+}) {
   return (
-    <header className="header">
+    <header className="header" id="app-header">
       <div className="header-inner">
+        {/* Brand & System Status */}
         <div className="header-left">
           <div className="header-logo">
             <div className="logo-icon">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                <rect x="3" y="1" width="18" height="22" rx="3" stroke="currentColor" strokeWidth="1.5" />
-                <rect x="7" y="5" width="10" height="12" rx="1" fill="currentColor" opacity="0.2" />
-                <circle cx="12" cy="20" r="1" fill="currentColor" />
-              </svg>
+              <Shield size={22} className="logo-shield" />
             </div>
             <div>
-              <h1 className="header-title">EMM Dashboard</h1>
-              <p className="header-subtitle">Enterprise Mobile Management</p>
+              <div className="header-title-row">
+                <h1 className="header-title">EMM COMMAND</h1>
+                <span className="system-pill">v2.1 SECURE</span>
+              </div>
+              <p className="header-subtitle">Enterprise Mobile & Fleet Intelligence</p>
             </div>
           </div>
         </div>
 
+        {/* View Mode Switcher Segmented Control */}
+        <div className="header-nav-tabs">
+          <button
+            className={`nav-tab-btn ${viewMode === 'grid' ? 'nav-tab-btn--active' : ''}`}
+            onClick={() => onViewModeChange('grid')}
+            id="nav-tab-grid"
+          >
+            <LayoutGrid size={15} />
+            <span>Fleet Matrix</span>
+            <span className="tab-badge">{totalDevices}</span>
+          </button>
+
+          <button
+            className={`nav-tab-btn ${viewMode === 'map' ? 'nav-tab-btn--active' : ''}`}
+            onClick={() => onViewModeChange('map')}
+            id="nav-tab-map"
+          >
+            <Radio size={15} className={gpsCount > 0 ? 'icon-pulse-cyan' : ''} />
+            <span>Live GPS Radar</span>
+            <span className="tab-badge tab-badge--cyan">{gpsCount} Fix</span>
+          </button>
+        </div>
+
+        {/* Telemetry Stat Pills */}
         <div className="header-center">
           <div className="stat-pills">
-            <div className="stat-pill stat-pill--total">
+            <div className="stat-pill stat-pill--total" title="Total enrolled devices">
+              <Smartphone size={13} className="text-muted" />
               <span className="stat-pill-value">{totalDevices}</span>
               <span className="stat-pill-label">Total</span>
             </div>
-            <div className="stat-pill stat-pill--active">
+
+            <div className="stat-pill stat-pill--active" title="Active devices connected recently">
               <span className="stat-dot stat-dot--green" />
               <span className="stat-pill-value">{activeCount}</span>
-              <span className="stat-pill-label">Active</span>
+              <span className="stat-pill-label">Online</span>
             </div>
-            <div className="stat-pill stat-pill--inactive">
+
+            <div className="stat-pill stat-pill--gps" title="Devices with active GPS coordinates">
+              <MapPin size={13} className="text-cyan" />
+              <span className="stat-pill-value text-cyan">{gpsCount}</span>
+              <span className="stat-pill-label">GPS Fix</span>
+            </div>
+
+            <div className="stat-pill stat-pill--inactive" title="Offline or inactive devices">
               <span className="stat-dot stat-dot--red" />
               <span className="stat-pill-value">{inactiveCount}</span>
-              <span className="stat-pill-label">Inactive</span>
+              <span className="stat-pill-label">Standby</span>
             </div>
           </div>
         </div>
 
+        {/* Action Controls & Manager Profile */}
         <div className="header-right">
           <button
-            className="btn btn-ghost btn-sm refresh-btn"
+            className="btn btn-outline btn-sm refresh-btn"
             onClick={onRefresh}
             disabled={loading}
-            title="Refresh devices"
+            title="Refresh fleet telemetry"
             id="refresh-devices-btn"
           >
-            {loading ? (
-              <span className="spinner" />
-            ) : (
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M14 8A6 6 0 1 1 8 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                <path d="M8 0L10 2L8 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-            )}
-            Refresh
+            <RefreshCw size={14} className={loading ? 'spin-icon' : ''} />
+            <span>{loading ? 'Syncing...' : 'Sync Fleet'}</span>
           </button>
 
           {manager && (
@@ -70,14 +119,10 @@ export default function Header({ totalDevices, activeCount, inactiveCount, onRef
               <button
                 className="logout-btn"
                 onClick={onLogout}
-                title="Sign out"
+                title="Sign out of console"
                 id="logout-btn"
               >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                  <path d="M16 17l5-5-5-5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                  <line x1="21" y1="12" x2="9" y2="12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-                </svg>
+                <LogOut size={15} />
               </button>
             </div>
           )}

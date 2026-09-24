@@ -10,10 +10,16 @@
 
 .app-main {
   flex: 1;
-  max-width: 1400px;
+  max-width: 1720px;
   width: 100%;
   margin: 0 auto;
-  padding: 24px 32px 60px;
+  padding: 24px 28px 60px;
+}
+
+.app-main--map {
+  max-width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
 }
 
 /* ── Error Banner ─────────────────────────────────────────── */

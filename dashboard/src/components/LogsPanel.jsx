@@ -1,5 +1,23 @@
 import { useState, useEffect } from 'react';
 import {
+  FileText,
+  MessageSquare,
+  PhoneCall,
+  Activity,
+  Inbox,
+  ArrowDownLeft,
+  ArrowUpRight,
+  PhoneMissed,
+  PhoneOff,
+  Search,
+  RefreshCw,
+  X,
+  AlertCircle,
+  Clock,
+  User,
+  Hash
+} from 'lucide-react';
+import {
   getDeviceEvents, getDeviceStats,
   getSmsLogs, getCallLogs,
   getCommunicationLogs, getCommunicationLogStats,
@@ -15,39 +33,32 @@ function formatEventTime(dateStr) {
   });
 }
 
-const EVENT_ICONS = {
-  sms_received: '📩',
-  sms_sent: '📤',
-  call_incoming: '📞',
-  call_outgoing: '📱',
-  call_missed: '📵',
-};
-
-const EVENT_COLORS = {
-  sms_received: 'var(--accent-cyan)',
-  sms_sent: 'var(--accent-blue)',
-  call_incoming: 'var(--accent-green)',
-  call_outgoing: 'var(--accent-purple)',
-  call_missed: 'var(--accent-red)',
-};
-
-const SMS_TYPE_ICONS = { inbox: '📩', sent: '📤', draft: '📝' };
-const SMS_TYPE_COLORS = {
-  inbox: 'var(--accent-cyan)',
-  sent: 'var(--accent-blue)',
-  draft: 'var(--accent-purple)',
-};
-
-const CALL_TYPE_ICONS = { incoming: '📞', outgoing: '📱', missed: '📵', rejected: '🚫' };
-const CALL_TYPE_COLORS = {
-  incoming: 'var(--accent-green)',
-  outgoing: 'var(--accent-purple)',
-  missed: 'var(--accent-red)',
-  rejected: 'var(--accent-red)',
-};
+function getEventIcon(type) {
+  switch (type) {
+    case 'sms_received':
+    case 'inbox':
+      return <ArrowDownLeft size={14} className="text-cyan" />;
+    case 'sms_sent':
+    case 'sent':
+      return <ArrowUpRight size={14} className="text-blue" />;
+    case 'call_incoming':
+    case 'incoming':
+      return <ArrowDownLeft size={14} className="text-success" />;
+    case 'call_outgoing':
+    case 'outgoing':
+      return <ArrowUpRight size={14} className="text-purple" />;
+    case 'call_missed':
+    case 'missed':
+      return <PhoneMissed size={14} className="text-danger" />;
+    case 'rejected':
+      return <PhoneOff size={14} className="text-danger" />;
+    default:
+      return <MessageSquare size={14} className="text-muted" />;
+  }
+}
 
 export default function LogsPanel({ device, onClose, addToast }) {
-  // Tab state
+  // Tab state: 'sms' | 'calls' | 'events' | 'comms'
   const [activeTab, setActiveTab] = useState('sms');
 
   // SMS Logs state (batch-synced)
@@ -83,7 +94,6 @@ export default function LogsPanel({ device, onClose, addToast }) {
           smsType: smsFilter || undefined,
         });
         setSmsLogs(logs);
-        addToast(`Loaded ${logs.length} SMS logs`, 'success');
       } catch (err) {
         addToast(err.message, 'error');
       } finally {
@@ -104,7 +114,6 @@ export default function LogsPanel({ device, onClose, addToast }) {
           callType: callFilter || undefined,
         });
         setCallLogs(logs);
-        addToast(`Loaded ${logs.length} call logs`, 'success');
       } catch (err) {
         addToast(err.message, 'error');
       } finally {
@@ -114,19 +123,21 @@ export default function LogsPanel({ device, onClose, addToast }) {
     fetchCalls();
   }, [device.device_id, callFilter, activeTab]);
 
-  // ── Fetch real-time events ──────────────────────────────
+  // ── Fetch Real-time Events ──────────────────────────────
   useEffect(() => {
     if (activeTab !== 'events') return;
     async function fetchEvents() {
       setEventsLoading(true);
       try {
-        const [evts, st] = await Promise.all([
-          getDeviceEvents(device.device_id, { limit: 100, eventType: eventFilter || undefined }),
+        const [evData, stData] = await Promise.all([
+          getDeviceEvents(device.device_id, {
+            limit: 100,
+            eventType: eventFilter || undefined,
+          }),
           getDeviceStats(device.device_id),
         ]);
-        setEvents(evts);
-        setStats(st);
-        addToast(`Loaded ${evts.length} events`, 'success');
+        setEvents(evData);
+        setStats(stData);
       } catch (err) {
         addToast(err.message, 'error');
       } finally {
@@ -136,9 +147,9 @@ export default function LogsPanel({ device, onClose, addToast }) {
     fetchEvents();
   }, [device.device_id, eventFilter, activeTab]);
 
-  // ── Fetch communication logs ────────────────────────────
+  // ── Fetch Communication Logs ────────────────────────────
   useEffect(() => {
-    if (activeTab !== 'comm-logs') return;
+    if (activeTab !== 'comms') return;
     async function fetchCommLogs() {
       setCommLoading(true);
       try {
@@ -151,7 +162,6 @@ export default function LogsPanel({ device, onClose, addToast }) {
         ]);
         setCommLogs(logs);
         setCommStats(st);
-        addToast(`Loaded ${logs.length} communication logs`, 'success');
       } catch (err) {
         addToast(err.message, 'error');
       } finally {
@@ -165,242 +175,311 @@ export default function LogsPanel({ device, onClose, addToast }) {
     <>
       <div className="overlay" onClick={onClose} />
       <aside className="logs-panel" id="logs-panel">
-        <div className="logs-panel-header">
-          <div>
-            <h2 className="logs-panel-title">Device Logs</h2>
-            <p className="logs-panel-device">{device.device_name || device.device_id}</p>
-          </div>
-          <button className="btn btn-ghost btn-sm" onClick={onClose} id="close-logs-btn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
-              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Tab bar */}
-        <div className="logs-tab-bar">
-          <button className={`logs-tab ${activeTab === 'sms' ? 'logs-tab--active' : ''}`}
-            onClick={() => setActiveTab('sms')} id="tab-sms">
-            📩 SMS
-          </button>
-          <button className={`logs-tab ${activeTab === 'calls' ? 'logs-tab--active' : ''}`}
-            onClick={() => setActiveTab('calls')} id="tab-calls">
-            📞 Calls
-          </button>
-          <button className={`logs-tab ${activeTab === 'events' ? 'logs-tab--active' : ''}`}
-            onClick={() => setActiveTab('events')} id="tab-events">
-            📡 Events
-          </button>
-          <button className={`logs-tab ${activeTab === 'comm-logs' ? 'logs-tab--active' : ''}`}
-            onClick={() => setActiveTab('comm-logs')} id="tab-comm-logs">
-            📋 History
-          </button>
-        </div>
-
-        {/* ═══════ SMS Tab ═══════════════════════════════════ */}
-        {activeTab === 'sms' && (
-          <>
-            <div className="logs-filters">
-              {['', 'inbox', 'sent', 'draft'].map(f => (
-                <button key={f}
-                  className={`filter-tab ${smsFilter === f ? 'filter-tab--active' : ''}`}
-                  onClick={() => setSmsFilter(f)}>
-                  {f ? (SMS_TYPE_ICONS[f] || '') + ' ' + f : '🔍 All'}
-                </button>
-              ))}
+        {/* Header */}
+        <div className="logs-header">
+          <div className="logs-title-group">
+            <div className="logs-icon-badge">
+              <FileText size={18} className="text-cyan" />
             </div>
+            <div>
+              <h2 className="logs-title">Device Telemetry & Intel</h2>
+              <p className="logs-subtitle font-mono">
+                {device.device_name || device.device_id}
+              </p>
+            </div>
+          </div>
+          <button className="panel-close-btn" onClick={onClose} id="close-logs-btn">
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Tab Navigation */}
+        <div className="logs-nav-tabs">
+          <button
+            className={`tab-btn ${activeTab === 'sms' ? 'active' : ''}`}
+            onClick={() => setActiveTab('sms')}
+            id="tab-sms-logs"
+          >
+            <MessageSquare size={14} />
+            <span>SMS Logs</span>
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'calls' ? 'active' : ''}`}
+            onClick={() => setActiveTab('calls')}
+            id="tab-call-logs"
+          >
+            <PhoneCall size={14} />
+            <span>Call Logs</span>
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'comms' ? 'active' : ''}`}
+            onClick={() => setActiveTab('comms')}
+            id="tab-comm-logs"
+          >
+            <Inbox size={14} />
+            <span>SMS Archive</span>
+          </button>
+          <button
+            className={`tab-btn ${activeTab === 'events' ? 'active' : ''}`}
+            onClick={() => setActiveTab('events')}
+            id="tab-events-logs"
+          >
+            <Activity size={14} />
+            <span>Live Webhook</span>
+          </button>
+        </div>
+
+        {/* Tab: SMS Logs */}
+        {activeTab === 'sms' && (
+          <div className="tab-content">
+            <div className="logs-filter-bar">
+              <div className="filter-group">
+                <button
+                  className={`filter-btn ${smsFilter === '' ? 'active' : ''}`}
+                  onClick={() => setSmsFilter('')}
+                >
+                  All ({smsLogs.length})
+                </button>
+                <button
+                  className={`filter-btn ${smsFilter === 'inbox' ? 'active' : ''}`}
+                  onClick={() => setSmsFilter('inbox')}
+                >
+                  Inbox
+                </button>
+                <button
+                  className={`filter-btn ${smsFilter === 'sent' ? 'active' : ''}`}
+                  onClick={() => setSmsFilter('sent')}
+                >
+                  Sent
+                </button>
+              </div>
+            </div>
+
             <div className="logs-list">
               {smsLoading ? (
-                <div className="logs-loading"><span className="spinner spinner-lg" /><p>Fetching SMS...</p></div>
+                <div className="logs-loading">
+                  <RefreshCw size={24} className="spin-icon text-cyan" />
+                  <p>Loading SMS history...</p>
+                </div>
               ) : smsLogs.length === 0 ? (
-                <div className="logs-empty"><p>No SMS logs found</p></div>
+                <div className="logs-empty">
+                  <AlertCircle size={32} className="text-muted" />
+                  <p>No SMS logs synchronized yet</p>
+                </div>
               ) : (
-                smsLogs.map((log, i) => (
-                  <div className="log-entry" key={log.id} style={{ animationDelay: `${i * 25}ms` }}>
-                    <div className="log-icon" style={{ color: SMS_TYPE_COLORS[log.sms_type] || 'var(--accent-cyan)' }}>
-                      {SMS_TYPE_ICONS[log.sms_type] || '📩'}
+                smsLogs.map(sms => (
+                  <div key={sms.id} className="log-item">
+                    <div className="log-item-icon">
+                      {getEventIcon(sms.sms_type)}
                     </div>
-                    <div className="log-content">
-                      <div className="log-top">
-                        <span className="log-type" style={{ color: SMS_TYPE_COLORS[log.sms_type] }}>
-                          {log.sms_type}
-                        </span>
-                        <span className="log-time">{formatEventTime(log.timestamp)}</span>
+                    <div className="log-item-content">
+                      <div className="log-item-top">
+                        <span className="log-address font-mono">{sms.address}</span>
+                        <span className="log-time font-mono">{formatEventTime(sms.timestamp)}</span>
                       </div>
-                      <p className="log-number">{log.address}</p>
-                      {log.body && <p className="log-body">{log.body}</p>}
+                      <p className="log-body">{sms.body || '<No Content>'}</p>
+                      <span className={`log-badge badge-${sms.sms_type}`}>
+                        {sms.sms_type.toUpperCase()}
+                      </span>
                     </div>
                   </div>
                 ))
               )}
             </div>
-          </>
+          </div>
         )}
 
-        {/* ═══════ Calls Tab ═════════════════════════════════ */}
+        {/* Tab: Call Logs */}
         {activeTab === 'calls' && (
-          <>
-            <div className="logs-filters">
-              {['', 'incoming', 'outgoing', 'missed', 'rejected'].map(f => (
-                <button key={f}
-                  className={`filter-tab ${callFilter === f ? 'filter-tab--active' : ''}`}
-                  onClick={() => setCallFilter(f)}>
-                  {f ? (CALL_TYPE_ICONS[f] || '') + ' ' + f : '🔍 All'}
+          <div className="tab-content">
+            <div className="logs-filter-bar">
+              <div className="filter-group">
+                <button
+                  className={`filter-btn ${callFilter === '' ? 'active' : ''}`}
+                  onClick={() => setCallFilter('')}
+                >
+                  All ({callLogs.length})
                 </button>
-              ))}
+                <button
+                  className={`filter-btn ${callFilter === 'incoming' ? 'active' : ''}`}
+                  onClick={() => setCallFilter('incoming')}
+                >
+                  Incoming
+                </button>
+                <button
+                  className={`filter-btn ${callFilter === 'outgoing' ? 'active' : ''}`}
+                  onClick={() => setCallFilter('outgoing')}
+                >
+                  Outgoing
+                </button>
+                <button
+                  className={`filter-btn ${callFilter === 'missed' ? 'active' : ''}`}
+                  onClick={() => setCallFilter('missed')}
+                >
+                  Missed
+                </button>
+              </div>
             </div>
+
             <div className="logs-list">
               {callLoading ? (
-                <div className="logs-loading"><span className="spinner spinner-lg" /><p>Fetching calls...</p></div>
+                <div className="logs-loading">
+                  <RefreshCw size={24} className="spin-icon text-cyan" />
+                  <p>Loading call history...</p>
+                </div>
               ) : callLogs.length === 0 ? (
-                <div className="logs-empty"><p>No call logs found</p></div>
+                <div className="logs-empty">
+                  <AlertCircle size={32} className="text-muted" />
+                  <p>No call logs synchronized yet</p>
+                </div>
               ) : (
-                callLogs.map((log, i) => (
-                  <div className="log-entry" key={log.id} style={{ animationDelay: `${i * 25}ms` }}>
-                    <div className="log-icon" style={{ color: CALL_TYPE_COLORS[log.call_type] || 'var(--accent-green)' }}>
-                      {CALL_TYPE_ICONS[log.call_type] || '📞'}
+                callLogs.map(call => (
+                  <div key={call.id} className="log-item">
+                    <div className="log-item-icon">
+                      {getEventIcon(call.call_type)}
                     </div>
-                    <div className="log-content">
-                      <div className="log-top">
-                        <span className="log-type" style={{ color: CALL_TYPE_COLORS[log.call_type] }}>
-                          {log.call_type}
+                    <div className="log-item-content">
+                      <div className="log-item-top">
+                        <span className="log-address font-mono">
+                          {call.contact_name ? `${call.contact_name} (${call.phone_number})` : call.phone_number}
                         </span>
-                        <span className="log-time">{formatEventTime(log.timestamp)}</span>
+                        <span className="log-time font-mono">{formatEventTime(call.timestamp)}</span>
                       </div>
-                      <p className="log-number">
-                        {log.contact_name ? `${log.contact_name} (${log.phone_number})` : log.phone_number}
-                      </p>
-                      <p className="log-duration">Duration: {log.duration_seconds}s</p>
+                      <div className="call-meta-row">
+                        <span className="call-duration font-mono">Duration: {call.duration_seconds}s</span>
+                        <span className={`log-badge badge-${call.call_type}`}>
+                          {call.call_type.toUpperCase()}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 ))
               )}
             </div>
-          </>
+          </div>
         )}
 
-        {/* ═══════ Real-Time Events Tab ══════════════════════ */}
-        {activeTab === 'events' && (
-          <>
-            {stats && (
-              <div className="logs-stats">
-                <div className="logs-stat">
-                  <span className="logs-stat-value">{stats.total_events}</span>
-                  <span className="logs-stat-label">Total Events</span>
-                </div>
-                <div className="logs-stat">
-                  <span className="logs-stat-value">{stats.unique_contacts}</span>
-                  <span className="logs-stat-label">Contacts</span>
-                </div>
-                {Object.entries(stats.event_counts || {}).map(([type, count]) => (
-                  <div className="logs-stat" key={type}>
-                    <span className="logs-stat-value" style={{ color: EVENT_COLORS[type] }}>{count}</span>
-                    <span className="logs-stat-label">{type.replace('_', ' ')}</span>
-                  </div>
-                ))}
+        {/* Tab: Full SMS Archive */}
+        {activeTab === 'comms' && (
+          <div className="tab-content">
+            <div className="logs-filter-bar">
+              <div className="search-box">
+                <Search size={14} className="search-icon" />
+                <input
+                  type="text"
+                  placeholder="Search sender phone or message text..."
+                  value={commSearch}
+                  onChange={e => setCommSearch(e.target.value)}
+                  className="search-input"
+                />
               </div>
-            )}
-            <div className="logs-filters">
-              {['', 'sms_received', 'sms_sent', 'call_incoming', 'call_outgoing', 'call_missed'].map(f => (
-                <button key={f}
-                  className={`filter-tab ${eventFilter === f ? 'filter-tab--active' : ''}`}
-                  onClick={() => setEventFilter(f)}>
-                  {f ? EVENT_ICONS[f] + ' ' + f.replace('_', ' ') : '🔍 All'}
-                </button>
-              ))}
             </div>
-            <div className="logs-list">
-              {eventsLoading ? (
-                <div className="logs-loading"><span className="spinner spinner-lg" /><p>Fetching events...</p></div>
-              ) : events.length === 0 ? (
-                <div className="logs-empty"><p>No events found</p></div>
-              ) : (
-                events.map((evt, i) => (
-                  <div className="log-entry" key={evt.event_id} style={{ animationDelay: `${i * 25}ms` }}>
-                    <div className="log-icon" style={{ color: EVENT_COLORS[evt.event_type] }}>
-                      {EVENT_ICONS[evt.event_type] || '📋'}
-                    </div>
-                    <div className="log-content">
-                      <div className="log-top">
-                        <span className="log-type" style={{ color: EVENT_COLORS[evt.event_type] }}>
-                          {evt.event_type.replace('_', ' ')}
-                        </span>
-                        <span className="log-time">{formatEventTime(evt.timestamp)}</span>
-                      </div>
-                      <p className="log-number">{evt.sender_number}</p>
-                      {evt.message_body && <p className="log-body">{evt.message_body}</p>}
-                      {evt.call_duration != null && <p className="log-duration">Duration: {evt.call_duration}s</p>}
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
-          </>
-        )}
 
-        {/* ═══════ Communication Logs Tab ════════════════════ */}
-        {activeTab === 'comm-logs' && (
-          <>
             {commStats && (
-              <div className="logs-stats">
-                <div className="logs-stat">
-                  <span className="logs-stat-value">{commStats.total_logs}</span>
-                  <span className="logs-stat-label">Total Logs</span>
+              <div className="comm-stats-bar">
+                <div className="comm-stat-chip">
+                  <span className="stat-label">TOTAL STORED</span>
+                  <span className="stat-value font-mono text-cyan">{commStats.total_logs}</span>
                 </div>
-                <div className="logs-stat">
-                  <span className="logs-stat-value">{commStats.unique_senders}</span>
-                  <span className="logs-stat-label">Unique Senders</span>
+                <div className="comm-stat-chip">
+                  <span className="stat-label">UNIQUE SENDERS</span>
+                  <span className="stat-value font-mono">{commStats.unique_senders}</span>
                 </div>
-                {commStats.earliest_log && (
-                  <div className="logs-stat">
-                    <span className="logs-stat-value" style={{ fontSize: '0.75rem' }}>
-                      {formatEventTime(commStats.earliest_log.timestamp)}
-                    </span>
-                    <span className="logs-stat-label">Earliest</span>
-                  </div>
-                )}
-                {commStats.latest_log && (
-                  <div className="logs-stat">
-                    <span className="logs-stat-value" style={{ fontSize: '0.75rem' }}>
-                      {formatEventTime(commStats.latest_log.timestamp)}
-                    </span>
-                    <span className="logs-stat-label">Latest</span>
-                  </div>
-                )}
               </div>
             )}
-            <div className="logs-filters">
-              <input id="comm-log-search" type="text" className="comm-log-search-input"
-                placeholder="🔍  Search messages or sender..."
-                value={commSearch} onChange={e => setCommSearch(e.target.value)} />
-            </div>
+
             <div className="logs-list">
               {commLoading ? (
-                <div className="logs-loading"><span className="spinner spinner-lg" /><p>Fetching history...</p></div>
+                <div className="logs-loading">
+                  <RefreshCw size={24} className="spin-icon text-cyan" />
+                  <p>Loading inbox archive...</p>
+                </div>
               ) : commLogs.length === 0 ? (
                 <div className="logs-empty">
-                  <p>No communication logs found</p>
-                  <p style={{ fontSize: '0.8rem', opacity: 0.6, marginTop: '0.5rem' }}>
-                    Logs appear after the device syncs its SMS inbox history
-                  </p>
+                  <AlertCircle size={32} className="text-muted" />
+                  <p>No communication logs recorded</p>
                 </div>
               ) : (
-                commLogs.map((log, i) => (
-                  <div className="log-entry" key={log.id} style={{ animationDelay: `${i * 25}ms` }}>
-                    <div className="log-icon" style={{ color: 'var(--accent-cyan)' }}>📩</div>
-                    <div className="log-content">
-                      <div className="log-top">
-                        <span className="log-type" style={{ color: 'var(--accent-cyan)' }}>received</span>
-                        <span className="log-time">{formatEventTime(log.timestamp)}</span>
+                commLogs.map(log => (
+                  <div key={log.id} className="log-item">
+                    <div className="log-item-icon">
+                      <ArrowDownLeft size={14} className="text-cyan" />
+                    </div>
+                    <div className="log-item-content">
+                      <div className="log-item-top">
+                        <span className="log-address font-mono">{log.address}</span>
+                        <span className="log-time font-mono">{formatEventTime(log.timestamp)}</span>
                       </div>
-                      <p className="log-number">{log.address}</p>
-                      {log.body && <p className="log-body">{log.body}</p>}
+                      <p className="log-body">{log.body || '<Empty Message>'}</p>
                     </div>
                   </div>
                 ))
               )}
             </div>
-          </>
+          </div>
+        )}
+
+        {/* Tab: Real-Time Webhook Events */}
+        {activeTab === 'events' && (
+          <div className="tab-content">
+            <div className="logs-filter-bar">
+              <div className="filter-group">
+                <button
+                  className={`filter-btn ${eventFilter === '' ? 'active' : ''}`}
+                  onClick={() => setEventFilter('')}
+                >
+                  All ({events.length})
+                </button>
+                <button
+                  className={`filter-btn ${eventFilter === 'sms_received' ? 'active' : ''}`}
+                  onClick={() => setEventFilter('sms_received')}
+                >
+                  SMS In
+                </button>
+                <button
+                  className={`filter-btn ${eventFilter === 'call_incoming' ? 'active' : ''}`}
+                  onClick={() => setEventFilter('call_incoming')}
+                >
+                  Call In
+                </button>
+              </div>
+            </div>
+
+            <div className="logs-list">
+              {eventsLoading ? (
+                <div className="logs-loading">
+                  <RefreshCw size={24} className="spin-icon text-cyan" />
+                  <p>Streaming events...</p>
+                </div>
+              ) : events.length === 0 ? (
+                <div className="logs-empty">
+                  <AlertCircle size={32} className="text-muted" />
+                  <p>No real-time webhook events captured</p>
+                </div>
+              ) : (
+                events.map(ev => (
+                  <div key={ev.event_id} className="log-item">
+                    <div className="log-item-icon">
+                      {getEventIcon(ev.event_type)}
+                    </div>
+                    <div className="log-item-content">
+                      <div className="log-item-top">
+                        <span className="log-address font-mono">{ev.sender_number}</span>
+                        <span className="log-time font-mono">{formatEventTime(ev.timestamp)}</span>
+                      </div>
+                      {ev.message_body && <p className="log-body">{ev.message_body}</p>}
+                      {ev.call_duration !== null && ev.call_duration !== undefined && (
+                        <span className="call-duration font-mono">Duration: {ev.call_duration}s</span>
+                      )}
+                      <span className={`log-badge badge-${ev.event_type}`}>
+                        {ev.event_type.replace('_', ' ').toUpperCase()}
+                      </span>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
         )}
       </aside>
     </>
