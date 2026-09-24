@@ -49,10 +49,14 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -186,7 +190,11 @@ fun MainScreen(
 
             // ── Server config ──
             item {
-                ServerConfigCard(state = state)
+                ServerConfigCard(
+                    state = state,
+                    onUpdateServerUrl = { newUrl -> viewModel.updateServerUrl(context, newUrl) },
+                    onReRegister = { viewModel.reRegisterDevice(context) },
+                )
             }
 
             // ── Action buttons ──
@@ -399,7 +407,14 @@ private fun StatItem(icon: ImageVector, label: String, value: String) {
 // ═══════════════════════════════════════════════════════════════
 
 @Composable
-private fun ServerConfigCard(state: AgentUiState) {
+private fun ServerConfigCard(
+    state: AgentUiState,
+    onUpdateServerUrl: (String) -> Unit,
+    onReRegister: () -> Unit,
+) {
+    var isEditing by remember { mutableStateOf(false) }
+    var inputUrl by remember(state.serverUrl) { mutableStateOf(state.serverUrl) }
+
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
@@ -407,21 +422,83 @@ private fun ServerConfigCard(state: AgentUiState) {
         ),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(
-                "Configuration",
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    "Server Connection",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                TextButton(onClick = { isEditing = !isEditing }) {
+                    Text(if (isEditing) "Cancel" else "Change URL")
+                }
+            }
+
             Spacer(Modifier.height(8.dp))
-            ConfigRow("Server URL", state.serverUrl)
-            Spacer(Modifier.height(4.dp))
+
+            if (isEditing) {
+                OutlinedTextField(
+                    value = inputUrl,
+                    onValueChange = { inputUrl = it },
+                    label = { Text("Server Backend URL") },
+                    placeholder = { Text("https://chutend-production.up.railway.app") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    FilledTonalButton(
+                        onClick = {
+                            inputUrl = "https://chutend-production.up.railway.app"
+                            onUpdateServerUrl("https://chutend-production.up.railway.app")
+                            isEditing = false
+                        },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text("Reset Default", style = MaterialTheme.typography.labelSmall)
+                    }
+                    Button(
+                        onClick = {
+                            onUpdateServerUrl(inputUrl)
+                            isEditing = false
+                        },
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Text("Save & Connect", style = MaterialTheme.typography.labelSmall)
+                    }
+                }
+                Spacer(Modifier.height(12.dp))
+            } else {
+                ConfigRow("Server URL", state.serverUrl)
+            }
+
+            Spacer(Modifier.height(6.dp))
             ConfigRow(
-                "API Key",
+                "Device API Key",
                 if (state.deviceApiKey.isNotBlank())
                     "${state.deviceApiKey.take(12)}..."
                 else
                     "Not assigned",
             )
+
+            if (!state.isRegistered || state.deviceApiKey.isBlank()) {
+                Spacer(Modifier.height(10.dp))
+                Button(
+                    onClick = onReRegister,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                    ),
+                ) {
+                    Text("Register with Server Now")
+                }
+            }
         }
     }
 }

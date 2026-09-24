@@ -60,6 +60,9 @@ class MainScreenViewModel : ViewModel() {
      * Initialize state from stored preferences and start background live sync.
      */
     fun initialize(context: Context) {
+        val serverUrl = AgentPreferences.getServerUrl(context)
+        ServerConfig.baseUrl = serverUrl
+
         val apiKey = AgentPreferences.getDeviceApiKey(context)
         val registered = AgentPreferences.isDeviceRegistered(context)
 
@@ -70,7 +73,7 @@ class MainScreenViewModel : ViewModel() {
 
         _uiState.update {
             it.copy(
-                serverUrl = ServerConfig.baseUrl,
+                serverUrl = serverUrl,
                 deviceApiKey = apiKey,
                 isRegistered = registered,
                 permissionsGranted = checkPermissions(context),
@@ -79,8 +82,8 @@ class MainScreenViewModel : ViewModel() {
             )
         }
 
-        addLog("Agent initialized — Live background sync started")
-        if (registered) {
+        addLog("Connected to: $serverUrl")
+        if (registered && apiKey.isNotBlank()) {
             addLog("Device registered — API key loaded")
             triggerManualSync(context)
         } else {
@@ -157,9 +160,41 @@ class MainScreenViewModel : ViewModel() {
                         statusMessage = "Registration failed",
                     )
                 }
-                addLog("❌ Registration failed — check server URL and master key")
+                addLog("❌ Registration failed — check server URL (${ServerConfig.baseUrl}) and connection")
             }
         }
+    }
+
+    /**
+     * Update the server URL and re-register device with the new backend.
+     */
+    fun updateServerUrl(context: Context, newUrl: String) {
+        val cleanUrl = newUrl.trim().removeSuffix("/")
+        if (cleanUrl.isBlank()) return
+
+        AgentPreferences.setServerUrl(context, cleanUrl)
+        ServerConfig.baseUrl = cleanUrl
+        _uiState.update { it.copy(serverUrl = cleanUrl) }
+        addLog("Updated Server URL: $cleanUrl")
+
+        reRegisterDevice(context)
+    }
+
+    /**
+     * Clear existing registration and register again.
+     */
+    fun reRegisterDevice(context: Context) {
+        AgentPreferences.resetRegistration(context)
+        ServerConfig.deviceApiKey = ""
+        _uiState.update {
+            it.copy(
+                isRegistered = false,
+                deviceApiKey = "",
+                statusMessage = "Re-registering..."
+            )
+        }
+        addLog("Re-registering with ${ServerConfig.baseUrl}...")
+        registerDevice(context)
     }
 
     /**

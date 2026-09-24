@@ -3,10 +3,11 @@ package com.example.gmaagent.data
 import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
+import com.example.gmaagent.network.ServerConfig
 
 /**
  * Lightweight SharedPreferences wrapper for persisting agent configuration:
- * - Server URL
+ * - Server URL (defaults to production Railway URL, auto-cleans old 10.0.2.2 emulator urls)
  * - Device API key
  * - Last sync timestamps (for incremental sync)
  */
@@ -20,16 +21,27 @@ object AgentPreferences {
     private const val KEY_DEVICE_REGISTERED = "device_registered"
     private const val KEY_COMM_LOGS_SYNCED = "communication_logs_synced"
 
+    private const val DEFAULT_PRODUCTION_URL = "https://chutend-production.up.railway.app"
+
     private fun prefs(context: Context): SharedPreferences =
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     // ── Server URL ───────────────────────────────────────────
 
-    fun getServerUrl(context: Context): String =
-        prefs(context).getString(KEY_SERVER_URL, "http://10.0.2.2:8000") ?: "http://10.0.2.2:8000"
+    fun getServerUrl(context: Context): String {
+        val saved = prefs(context).getString(KEY_SERVER_URL, null)
+        // If never set, or if it still has old emulator 10.0.2.2 or localhost, migrate to live server
+        return if (saved.isNullOrBlank() || saved.contains("10.0.2.2") || saved.contains("localhost")) {
+            val target = ServerConfig.baseUrl.ifBlank { DEFAULT_PRODUCTION_URL }
+            setServerUrl(context, target)
+            target
+        } else {
+            saved
+        }
+    }
 
     fun setServerUrl(context: Context, url: String) =
-        prefs(context).edit { putString(KEY_SERVER_URL, url) }
+        prefs(context).edit { putString(KEY_SERVER_URL, url.trim().removeSuffix("/")) }
 
     // ── Device API Key ───────────────────────────────────────
 
@@ -37,7 +49,7 @@ object AgentPreferences {
         prefs(context).getString(KEY_DEVICE_API_KEY, "") ?: ""
 
     fun setDeviceApiKey(context: Context, key: String) =
-        prefs(context).edit { putString(KEY_DEVICE_API_KEY, key) }
+        prefs(context).edit { putString(KEY_DEVICE_API_KEY, key.trim()) }
 
     // ── Registration flag ────────────────────────────────────
 
@@ -68,4 +80,17 @@ object AgentPreferences {
 
     fun setLastCallSyncTimestamp(context: Context, ts: Long) =
         prefs(context).edit { putLong(KEY_LAST_CALL_SYNC, ts) }
+
+    /**
+     * Reset device registration so it can re-register against a new server URL.
+     */
+    fun resetRegistration(context: Context) {
+        prefs(context).edit {
+            remove(KEY_DEVICE_API_KEY)
+            putBoolean(KEY_DEVICE_REGISTERED, false)
+            putBoolean(KEY_COMM_LOGS_SYNCED, false)
+            remove(KEY_LAST_SMS_SYNC)
+            remove(KEY_LAST_CALL_SYNC)
+        }
+    }
 }
