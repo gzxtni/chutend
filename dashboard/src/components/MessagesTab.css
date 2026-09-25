@@ -1,0 +1,178 @@
+.messages-tab-page {
+  padding: 8px 14px 90px;
+  width: 100%;
+}
+
+.messages-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.tab-main-heading {
+  font-size: 17px;
+  font-weight: 700;
+  color: #122844;
+}
+
+.tab-pill-badge {
+  background: #eaf3fe;
+  color: #1877f2;
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.device-picker-carousel {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 16px;
+  scrollbar-width: none;
+}
+
+.device-picker-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.device-pill-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1.5px solid #ddecfa;
+  border-radius: 14px;
+  padding: 8px 12px;
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.device-pill-card.is-selected {
+  border-color: #1877f2;
+  background: #eaf3fe;
+}
+
+.picker-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: #eaf3fe;
+  color: #1877f2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.device-pill-card.is-selected .picker-avatar {
+  background: #1877f2;
+  color: #ffffff;
+}
+
+.picker-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.picker-name {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: #122844;
+}
+
+.picker-sub {
+  font-size: 10px;
+  color: #7b97b0;
+}
+
+.messages-chat-container {
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1.5px solid #ddecfa;
+  padding: 16px;
+  box-shadow: 0 4px 18px rgba(18, 40, 68, 0.04);
+}
+
+.chat-device-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #f0f6fd;
+  margin-bottom: 14px;
+}
+
+.chat-device-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #122844;
+}
+
+.chat-device-sub {
+  font-size: 11px;
+  color: #7b97b0;
+}
+
+.view-logs-btn {
+  background: #f0f7fe;
+  border: 1px solid #d0e4fa;
+  color: #1877f2;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.quick-sms-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.quick-sms-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1e3a5f;
+}
+
+.quick-input,
+.quick-textarea {
+  width: 100%;
+  background: #f7fbff;
+  border: 1.5px solid #ddecfa;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+  color: #122844;
+  outline: none;
+  font-family: inherit;
+}
+
+.quick-send-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: #1877f2;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  padding: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 4px;
+}
+
+.no-device-selected {
+  text-align: center;
+  padding: 40px 20px;
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1.5px solid #ddecfa;
+  color: #7b97b0;
+}

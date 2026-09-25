@@ -1,0 +1,140 @@
+.data-tab-page {
+  padding: 8px 14px 90px;
+  width: 100%;
+}
+
+.data-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.data-stats-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.data-stat-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 14px 12px;
+  border: 1.5px solid #ddecfa;
+  box-shadow: 0 2px 10px rgba(18, 40, 68, 0.03);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stat-card-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.bg-green-dim {
+  background: #e8f9ee;
+}
+
+.bg-amber-dim {
+  background: #fef3c7;
+}
+
+.text-amber {
+  color: #d97706;
+}
+
+.stat-card-val {
+  font-size: 16px;
+  font-weight: 800;
+  color: #122844;
+  line-height: 1.2;
+}
+
+.stat-card-lbl {
+  font-size: 10.5px;
+  color: #7b97b0;
+}
+
+.data-devices-container {
+  background: #ffffff;
+  border-radius: 20px;
+  border: 1.5px solid #ddecfa;
+  padding: 16px;
+  box-shadow: 0 4px 18px rgba(18, 40, 68, 0.04);
+}
+
+.data-section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #122844;
+  margin-bottom: 14px;
+}
+
+.data-device-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.data-device-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  background: #f7fbff;
+  border: 1px solid #e1effd;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.data-device-item:hover {
+  background: #f0f7fe;
+  border-color: #1877f2;
+}
+
+.data-device-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.data-index-pill {
+  font-size: 11px;
+  font-weight: 700;
+  color: #1877f2;
+  background: #e0effe;
+  padding: 3px 7px;
+  border-radius: 6px;
+}
+
+.data-device-name {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #122844;
+}
+
+.data-device-id {
+  font-size: 11px;
+  color: #7b97b0;
+}
+
+.data-inspect-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #eaf3fe;
+  color: #1877f2;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+}

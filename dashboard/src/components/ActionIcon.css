@@ -1,0 +1,33 @@
+.action-icon-circle {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), filter 0.2s ease;
+}
+
+.action-ring-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.action-icon-inner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-item-btn:hover .action-icon-circle {
+  transform: translateY(-2px) scale(1.04);
+}
+
+.action-item-btn:active .action-icon-circle {
+  transform: scale(0.96);
+}

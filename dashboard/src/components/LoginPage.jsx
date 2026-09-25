@@ -1,14 +1,5 @@
 import { useState } from 'react';
-import {
-  Shield,
-  Lock,
-  User,
-  ArrowRight,
-  Eye,
-  EyeOff,
-  AlertCircle,
-  RefreshCw
-} from 'lucide-react';
+import { Lock, User, ArrowRight, Eye, EyeOff, AlertCircle, RefreshCw } from 'lucide-react';
 import { login } from '../api';
 import './LoginPage.css';
 
@@ -38,15 +29,19 @@ export default function LoginPage({ onLoginSuccess }) {
 
   return (
     <div className="login-page">
-      <div className="login-orb login-orb--1" />
-      <div className="login-orb login-orb--2" />
-
       <div className="login-card">
         <div className="login-header">
-          <div className="login-logo">
-            <Shield size={28} className="text-cyan" />
+          <div className="login-avatar-wrap">
+            <img
+              src="/avatar.jpg"
+              alt="Narayan Admin"
+              className="login-avatar-img"
+              onError={(e) => {
+                e.target.src = 'https://api.dicebear.com/7.x/bottts/svg?seed=sheikh';
+              }}
+            />
           </div>
-          <h1 className="login-title">EMM COMMAND CONSOLE</h1>
+          <h1 className="login-title">NARAYAN ADMIN</h1>
           <p className="login-subtitle">Enterprise Device Fleet Authentication</p>
         </div>
 
@@ -58,76 +53,60 @@ export default function LoginPage({ onLoginSuccess }) {
             </div>
           )}
 
-          <div className="form-group">
-            <label htmlFor="login-username" className="form-label">
-              <User size={13} className="text-muted" />
-              <span>Manager Username</span>
-            </label>
-            <input
-              id="login-username"
-              type="text"
-              className="form-input"
-              placeholder="e.g. admin or manager"
-              value={username}
-              onChange={e => setUsername(e.target.value)}
-              disabled={loading}
-              autoComplete="username"
-              required
-              autoFocus
-            />
+          <div className="login-field">
+            <label className="login-label">Manager Username</label>
+            <div className="login-input-wrap">
+              <User size={16} className="login-input-icon" />
+              <input
+                type="text"
+                placeholder="Enter username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="login-input"
+                autoComplete="username"
+                required
+              />
+            </div>
           </div>
 
-          <div className="form-group">
-            <label htmlFor="login-password" className="form-label">
-              <Lock size={13} className="text-muted" />
-              <span>Security Key / Password</span>
-            </label>
-            <div className="password-input-wrapper">
+          <div className="login-field">
+            <label className="login-label">Password / PIN</label>
+            <div className="login-input-wrap">
+              <Lock size={16} className="login-input-icon" />
               <input
-                id="login-password"
                 type={showPassword ? 'text' : 'password'}
-                className="form-input"
-                placeholder="••••••••••••"
+                placeholder="Enter password"
                 value={password}
-                onChange={e => setPassword(e.target.value)}
-                disabled={loading}
+                onChange={(e) => setPassword(e.target.value)}
+                className="login-input"
                 autoComplete="current-password"
                 required
               />
               <button
                 type="button"
-                className="password-toggle-btn"
-                onClick={() => setShowPassword(p => !p)}
-                tabIndex={-1}
+                className="login-input-eye"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label="Toggle password visibility"
               >
-                {showPassword ? <EyeOff size={15} /> : <Eye size={15} />}
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
           </div>
 
-          <button
-            type="submit"
-            className="btn btn-primary btn-lg login-submit-btn"
-            disabled={loading || !username.trim() || !password.trim()}
-            id="login-btn"
-          >
+          <button type="submit" className="login-btn" disabled={loading}>
             {loading ? (
               <>
-                <RefreshCw size={15} className="spin-icon" />
+                <RefreshCw size={16} className="animate-spin" />
                 <span>Authenticating...</span>
               </>
             ) : (
               <>
                 <span>Access Console</span>
-                <ArrowRight size={15} />
+                <ArrowRight size={16} />
               </>
             )}
           </button>
         </form>
-
-        <div className="login-footer">
-          <p>Restricted to authorized fleet operators.</p>
-        </div>
       </div>
     </div>
   );

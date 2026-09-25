@@ -1,187 +1,100 @@
 /* ═══════════════════════════════════════════════════════════════
-   App — Layout & Utilities
+   EMM Mobile Dashboard — App.css Layout Styles
    ═══════════════════════════════════════════════════════════════ */
 
 .app {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  background: var(--bg-app);
 }
 
-.app-main {
+.app-main-content {
   flex: 1;
-  max-width: 1720px;
   width: 100%;
-  margin: 0 auto;
-  padding: 24px 28px 60px;
+  display: flex;
+  flex-direction: column;
 }
 
-.app-main--map {
-  max-width: 100% !important;
-  padding: 0 !important;
-  margin: 0 !important;
+/* Radar Map Full Overlay */
+.mobile-radar-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
 }
 
-/* ── Error Banner ─────────────────────────────────────────── */
-.error-banner {
+.radar-overlay-header {
+  height: 56px;
+  background: #ffffff;
+  border-bottom: 1.5px solid #ddecfa;
   display: flex;
   align-items: center;
-  gap: 16px;
-  padding: 16px 20px;
-  background: var(--accent-red-dim);
-  border: 1px solid rgba(248, 113, 113, 0.25);
-  border-radius: var(--radius-lg);
-  margin-bottom: 24px;
-  animation: fadeIn var(--duration-normal) var(--ease-out);
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 510;
 }
 
-.error-banner .error-icon {
-  font-size: 1.5rem;
+.radar-header-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #122844;
+}
+
+.radar-close-btn {
+  background: #eaf3fe;
+  color: #1877f2;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.radar-map-view-body {
+  flex: 1;
+  position: relative;
+}
+
+/* Error Banner */
+.error-banner {
+  margin: 12px 14px;
+  padding: 12px 14px;
+  background: #fee2e2;
+  border: 1px solid #fca5a5;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .error-banner h3 {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--accent-red);
+  font-size: 13px;
+  font-weight: 700;
+  color: #dc2626;
 }
 
 .error-banner p {
-  font-size: 0.8125rem;
-  color: var(--text-secondary);
-  margin-top: 2px;
+  font-size: 11px;
+  color: #7f1d1d;
 }
 
-/* ── Buttons ──────────────────────────────────────────────── */
-.btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  padding: 10px 18px;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  border-radius: var(--radius-md);
-  transition: all var(--duration-normal) var(--ease-out);
-  white-space: nowrap;
-  position: relative;
-  overflow: hidden;
-}
-
-.btn::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 100%);
-  pointer-events: none;
-}
-
-.btn-primary {
-  background: var(--accent-blue);
-  color: var(--text-inverse);
-  box-shadow: var(--shadow-sm), 0 0 12px rgba(96, 165, 250, 0.15);
-}
-
-.btn-primary:hover {
-  background: #7cb8fc;
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md), 0 0 20px rgba(96, 165, 250, 0.25);
-}
-
-.btn-primary:active {
-  transform: translateY(0);
-}
-
-.btn-accent {
-  background: linear-gradient(135deg, #a78bfa, #818cf8);
-  color: white;
-  box-shadow: var(--shadow-sm), 0 0 12px rgba(167, 139, 250, 0.15);
-}
-
-.btn-accent:hover {
-  background: linear-gradient(135deg, #b89dfc, #929bfa);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md), 0 0 20px rgba(167, 139, 250, 0.3);
-}
-
-.btn-danger {
-  background: var(--accent-red);
-  color: white;
-}
-
-.btn-danger:hover {
-  background: #fb8e8e;
-  transform: translateY(-1px);
-}
-
-.btn-ghost {
-  background: transparent;
-  color: var(--text-secondary);
-  border: 1px solid var(--border-subtle);
-}
-
-.btn-ghost:hover {
-  background: rgba(255, 255, 255, 0.04);
-  color: var(--text-primary);
-  border-color: var(--border-active);
-}
-
-.btn-sm {
+.btn-retry {
+  background: #ef4444;
+  color: #ffffff;
+  border: none;
   padding: 6px 12px;
-  font-size: 0.75rem;
-  border-radius: var(--radius-sm);
-}
-
-.btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none !important;
-}
-
-/* ── Spinner ──────────────────────────────────────────────── */
-.spinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid transparent;
-  border-top-color: currentColor;
-  border-radius: 50%;
-  animation: spin 0.6s linear infinite;
-}
-
-.spinner-lg {
-  width: 32px;
-  height: 32px;
-  border-width: 3px;
-}
-
-/* ── Toast Container ──────────────────────────────────────── */
-.toast-container {
-  position: fixed;
-  bottom: 24px;
-  right: 24px;
-  display: flex;
-  flex-direction: column-reverse;
-  gap: 10px;
-  z-index: 9999;
-  pointer-events: none;
-}
-
-.toast-container > * {
-  pointer-events: auto;
-}
-
-/* ── Overlay / Backdrop ───────────────────────────────────── */
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(6px);
-  z-index: 100;
-  animation: fadeIn var(--duration-fast) ease-out;
-}
-
-/* ── Responsive ───────────────────────────────────────────── */
-@media (max-width: 768px) {
-  .app-main {
-    padding: 16px;
-  }
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
 }

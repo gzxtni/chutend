@@ -1,0 +1,102 @@
+/* ═══════════════════════════════════════════════════════════════
+   Minimal Floating Pill Navigation Bar
+   ═══════════════════════════════════════════════════════════════ */
+
+.minimal-bottom-wrapper {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  pointer-events: none;
+  padding-bottom: 6px;
+}
+
+.minimal-bottom-nav-container {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  pointer-events: auto;
+  margin-bottom: 6px;
+}
+
+/* Floating Capsule Bar */
+.minimal-capsule-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  padding: 6px 10px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+.capsule-tab-btn {
+  background: transparent;
+  border: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #9ca3af;
+  transition: all 0.15s ease;
+  position: relative;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.capsule-tab-btn:hover {
+  color: #4b5563;
+}
+
+.capsule-tab-btn.active {
+  color: #00d2b4;
+  background: #f0fdf9;
+}
+
+.capsule-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Floating Circular Button (+) */
+.minimal-fab-btn {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #00d2b4;
+  color: #ffffff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+  box-shadow: 0 4px 14px rgba(0, 210, 180, 0.35);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.minimal-fab-btn:hover {
+  background: #00bfa3;
+  transform: scale(1.04);
+}
+
+.minimal-fab-btn:active {
+  transform: scale(0.94);
+}
+
+/* iOS Home Indicator Bar */
+.ios-home-indicator {
+  width: 134px;
+  height: 5px;
+  background: #111827;
+  border-radius: 999px;
+  opacity: 0.85;
+}
