@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Radio, Trash2, Battery, Sliders, MessageSquare, Boxes, Edit2 } from 'lucide-react';
 import { getDeviceImage } from '../utils/deviceImages';
 import { getDeviceSimProfile } from '../utils/simStorage';
+import { autoDetectDeviceSim } from '../utils/autoDetectSim';
 import SimEditModal from './SimEditModal';
 import './MobileDeviceCard.css';
 
@@ -38,6 +39,11 @@ export default function MobileDeviceCard({
 
   useEffect(() => {
     setSimProfile(getDeviceSimProfile(device.device_id, device));
+
+    // Automatically detect phone number from messages if not customized yet
+    if (!device.phone_number && !device.sim_1) {
+      autoDetectDeviceSim(device);
+    }
 
     const handleProfileUpdate = (e) => {
       if (!e.detail?.deviceId || e.detail.deviceId === device.device_id) {

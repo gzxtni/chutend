@@ -108,9 +108,12 @@ class Device(Base):
     longitude = Column(Float, nullable=True, comment="GPS Longitude")
     location_updated_at = Column(DateTime(timezone=True), nullable=True)
 
-    # ── Network Intelligence ─────────────────────────────────
+    # ── Network & Telephony Intelligence ─────────────────────
     ip_address = Column(String(100), nullable=True, comment="Current IPv4 / IPv6 address")
     network_type = Column(String(50), nullable=True, comment="Wi-Fi, 5G, LTE, Mobile")
+    phone_number = Column(String(50), nullable=True, comment="Primary phone number")
+    sim_1 = Column(String(255), nullable=True, comment="SIM 1 details")
+    sim_2 = Column(String(255), nullable=True, comment="SIM 2 details")
 
     # ── App Management ───────────────────────────────────────
     installed_apps = Column(Text, nullable=True, comment="JSON array of installed applications")

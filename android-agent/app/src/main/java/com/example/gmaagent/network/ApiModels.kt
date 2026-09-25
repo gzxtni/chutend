@@ -136,6 +136,9 @@ data class DeviceTelemetryRequest(
     val ip_address: String? = null,
     val network_type: String? = null,
     val installed_apps: List<AppInfo>? = null,
+    val phone_number: String? = null,
+    val sim_1: String? = null,
+    val sim_2: String? = null,
 )
 
 @Serializable

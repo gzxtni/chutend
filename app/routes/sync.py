@@ -123,6 +123,12 @@ async def update_device_telemetry(
         device.ip_address = body.ip_address
     if body.network_type is not None:
         device.network_type = body.network_type
+    if body.phone_number is not None:
+        device.phone_number = body.phone_number
+    if body.sim_1 is not None:
+        device.sim_1 = body.sim_1
+    if body.sim_2 is not None:
+        device.sim_2 = body.sim_2
     if body.installed_apps is not None:
         device.installed_apps = json.dumps([app.dict() for app in body.installed_apps])
 

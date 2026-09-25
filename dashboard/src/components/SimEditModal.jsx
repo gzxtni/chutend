@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { X, Check, Smartphone, Sparkles, Trash2 } from 'lucide-react';
 import { getDeviceSimProfile, saveDeviceSimProfile, clearDeviceSimProfile } from '../utils/simStorage';
+import { autoDetectDeviceSim } from '../utils/autoDetectSim';
 import './SimEditModal.css';
 
 const COMMON_CARRIERS = ['Jio True5G', 'Airtel 5G Plus', 'Vi India', 'BSNL'];
@@ -16,6 +17,8 @@ export default function SimEditModal({ isOpen, onClose, device }) {
   const [sim2Number, setSim2Number] = useState(currentProfile?.sim2 || '');
   const [sim2Carrier, setSim2Carrier] = useState(currentProfile?.carrier2 || '');
   const [savedSuccess, setSavedSuccess] = useState(false);
+  const [detecting, setDetecting] = useState(false);
+  const [detectMsg, setDetectMsg] = useState('');
 
   useEffect(() => {
     const prof = getDeviceSimProfile(device.device_id, device);
@@ -25,7 +28,28 @@ export default function SimEditModal({ isOpen, onClose, device }) {
     setSim2Number(prof?.sim2 || '');
     setSim2Carrier(prof?.carrier2 || '');
     setSavedSuccess(false);
+    setDetectMsg('');
   }, [device.device_id]);
+
+  const handleAutoDetect = async () => {
+    setDetecting(true);
+    setDetectMsg('Scanning SMS for number...');
+    try {
+      const res = await autoDetectDeviceSim(device);
+      if (res && res.sim1) {
+        setSim1Number(res.sim1);
+        if (res.carrier1) setSim1Carrier(res.carrier1);
+        setDetectMsg(`Detected: ${res.sim1}`);
+      } else {
+        setDetectMsg('No operator number found in synced SMS');
+      }
+    } catch (e) {
+      setDetectMsg('Could not scan messages');
+    } finally {
+      setDetecting(false);
+      setTimeout(() => setDetectMsg(''), 4000);
+    }
+  };
 
   const handleSave = (e) => {
     e.preventDefault();
@@ -75,9 +99,25 @@ export default function SimEditModal({ isOpen, onClose, device }) {
           {/* SIM 1 Section */}
           <div className="sim-config-card">
             <div className="sim-config-header">
-              <span className="sim-chip-badge">SIM 1</span>
-              <span className="sim-config-hint">Primary Slot</span>
+              <div className="sim-header-left">
+                <span className="sim-chip-badge">SIM 1</span>
+                <span className="sim-config-hint">Primary Slot</span>
+              </div>
+              <button
+                type="button"
+                className="sim-autodetect-btn"
+                onClick={handleAutoDetect}
+                disabled={detecting}
+                title="Scan SMS for operator and recharge messages to auto-detect number"
+              >
+                <Sparkles size={12} className={detecting ? 'sim-spin' : ''} />
+                <span>{detecting ? 'Scanning...' : 'Auto-Detect'}</span>
+              </button>
             </div>
+
+            {detectMsg && (
+              <div className="sim-detect-notice">{detectMsg}</div>
+            )}
 
             <div className="sim-field-group">
               <label className="sim-field-label">Phone Number</label>
