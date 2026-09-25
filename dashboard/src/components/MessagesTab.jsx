@@ -25,15 +25,6 @@ import {
 import { executeCommand, getSmsLogs } from '../api';
 import './MessagesTab.css';
 
-// Default pre-packaged operational templates
-const QUICK_TEMPLATES = [
-  { label: '📍 Request GPS', text: 'CMD:GET_LOCATION Please transmit current GPS coordinates immediately.' },
-  { label: '⚡ Ping Status', text: 'SYSTEM PING: Acknowledge telemetric heartbeat and network state.' },
-  { label: '🔒 Lock Notice', text: 'SECURITY NOTICE: Device administration access required. Please keep connected.' },
-  { label: '🔋 Battery Check', text: 'TELEMETRY: Transmit battery level, charging source, and temperature.' },
-  { label: '✅ Verification Code', text: 'Your authorization verification security code is: 839-204.' },
-];
-
 export default function MessagesTab({ devices = [], onSendSms, onFetchLogs }) {
   const [selectedDevice, setSelectedDevice] = useState(devices[0] || null);
   const [recipient, setRecipient] = useState('');
@@ -276,20 +267,6 @@ export default function MessagesTab({ devices = [], onSendSms, onFetchLogs }) {
                 </div>
               </div>
 
-              {/* Quick Template Chips */}
-              <div className="quick-templates-strip">
-                {QUICK_TEMPLATES.map((tmpl, i) => (
-                  <button
-                    key={i}
-                    type="button"
-                    className="template-chip"
-                    onClick={() => setQuickMsg(tmpl.text)}
-                  >
-                    {tmpl.label}
-                  </button>
-                ))}
-              </div>
-
               {/* Recipient Input */}
               <div className="composer-input-row">
                 <span className="input-country-prefix">+91</span>
@@ -311,7 +288,7 @@ export default function MessagesTab({ devices = [], onSendSms, onFetchLogs }) {
               <div className="composer-textarea-wrap">
                 <textarea
                   rows={3}
-                  placeholder="Type dispatch message or pick a quick template above..."
+                  placeholder="Type message text..."
                   value={quickMsg}
                   onChange={(e) => setQuickMsg(e.target.value)}
                   className="composer-textarea"
