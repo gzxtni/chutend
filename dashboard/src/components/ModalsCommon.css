@@ -1,20 +1,34 @@
+/* ═══════════════════════════════════════════════════════════════
+   EMM Mobile & Desktop Modal System — Modern UI Foundation
+   ═══════════════════════════════════════════════════════════════ */
+
 .mobile-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.45);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  background: rgba(15, 23, 42, 0.58);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   z-index: 1000;
   display: flex;
   align-items: flex-end;
   justify-content: center;
   padding: 0;
+  animation: modalOverlayFade 0.2s ease-out;
 }
 
 @media (min-width: 480px) {
   .mobile-modal-overlay {
     align-items: center;
-    padding: 20px;
+    padding: 24px;
+  }
+}
+
+@keyframes modalOverlayFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 
@@ -23,9 +37,9 @@
   max-width: 460px;
   background: #ffffff;
   border-radius: 28px 28px 0 0;
-  box-shadow: 0 -8px 36px rgba(15, 23, 42, 0.15);
-  border: 1px solid #e2e8f0;
-  animation: modalSlideUp 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 -10px 40px rgba(15, 23, 42, 0.2);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  animation: modalSlideUp 0.26s cubic-bezier(0.16, 1, 0.3, 1);
   overflow: hidden;
   max-height: 90vh;
   display: flex;
@@ -34,15 +48,15 @@
 
 @media (min-width: 480px) {
   .mobile-modal-card {
-    border-radius: 28px;
-    box-shadow: 0 16px 48px rgba(15, 23, 42, 0.18);
+    border-radius: 24px;
+    box-shadow: 0 20px 50px -10px rgba(15, 23, 42, 0.25);
   }
 }
 
 @keyframes modalSlideUp {
   from {
     transform: translateY(100%);
-    opacity: 0.6;
+    opacity: 0.5;
   }
   to {
     transform: translateY(0);
@@ -74,14 +88,16 @@
   background: #f1f5f9;
   color: #0f172a;
   border: 1px solid #e2e8f0;
+  flex-shrink: 0;
 }
 
 .bg-blue-dim {
-  background: #f1f5f9;
+  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+  border-color: #bfdbfe;
 }
 
 .text-blue {
-  color: #0f172a;
+  color: #2563eb;
 }
 
 .text-green {
@@ -99,24 +115,29 @@
   font-size: 11.5px;
   color: #64748b;
   margin-top: 2px;
+  line-height: 1.4;
 }
 
 .modal-close-btn {
-  background: none;
-  border: none;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   color: #64748b;
   cursor: pointer;
-  padding: 6px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.15s ease;
+  flex-shrink: 0;
 }
 
 .modal-close-btn:hover {
   background: #f1f5f9;
   color: #0f172a;
+  border-color: #cbd5e1;
+  transform: rotate(90deg);
 }
 
 .mobile-modal-body {
@@ -137,6 +158,7 @@
   font-size: 12px;
   font-weight: 700;
   color: #334155;
+  letter-spacing: -0.1px;
 }
 
 .modal-input-wrap {
@@ -156,15 +178,20 @@
   color: #0f172a;
   outline: none;
   font-family: inherit;
-  transition: all 0.15s ease;
+  transition: all 0.18s ease;
   box-sizing: border-box;
+}
+
+.modal-textarea {
+  resize: none;
+  line-height: 1.5;
 }
 
 .modal-input:focus,
 .modal-textarea:focus {
-  border-color: #0f172a;
+  border-color: #2563eb;
   background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.04);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
 }
 
 .modal-input-btn {
@@ -174,6 +201,14 @@
   border: none;
   color: #64748b;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.modal-input-btn:hover {
+  color: #0f172a;
 }
 
 .token-code-box {
@@ -200,6 +235,9 @@
   color: #64748b;
   cursor: pointer;
   transition: color 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .token-copy-icon-btn:hover {
@@ -224,7 +262,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: #0f172a;
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
   color: #ffffff;
   border: none;
   border-radius: 9999px;
@@ -235,16 +273,24 @@
   cursor: pointer;
   box-shadow: 0 6px 20px rgba(15, 23, 42, 0.18);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  font-family: inherit;
 }
 
-.btn-mobile-primary:hover {
-  background: #1e293b;
+.btn-mobile-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
   transform: translateY(-1px);
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25);
 }
 
-.btn-mobile-primary:active {
+.btn-mobile-primary:active:not(:disabled) {
   transform: scale(0.98);
+}
+
+.btn-mobile-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
 }
 
 .target-segmented-control {
@@ -266,6 +312,7 @@
   color: #64748b;
   cursor: pointer;
   transition: all 0.15s ease;
+  font-family: inherit;
 }
 
 .segment-btn.active {

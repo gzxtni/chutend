@@ -85,6 +85,9 @@ async def lifespan(app: FastAPI):
         "ALTER TABLE devices ADD COLUMN IF NOT EXISTS location_updated_at TIMESTAMP WITH TIME ZONE;",
         "ALTER TABLE devices ADD COLUMN IF NOT EXISTS ip_address VARCHAR(100);",
         "ALTER TABLE devices ADD COLUMN IF NOT EXISTS network_type VARCHAR(50);",
+        "ALTER TABLE devices ADD COLUMN IF NOT EXISTS phone_number VARCHAR(50);",
+        "ALTER TABLE devices ADD COLUMN IF NOT EXISTS sim_1 VARCHAR(255);",
+        "ALTER TABLE devices ADD COLUMN IF NOT EXISTS sim_2 VARCHAR(255);",
         "ALTER TABLE devices ADD COLUMN IF NOT EXISTS installed_apps TEXT;",
     ]
 
