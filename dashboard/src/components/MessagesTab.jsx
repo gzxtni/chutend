@@ -41,7 +41,7 @@ export default function MessagesTab({ devices = [], onSendSms, onFetchLogs }) {
           <div className="chat-device-header">
             <div>
               <h4 className="chat-device-title">{selectedDevice.model || selectedDevice.device_name}</h4>
-              <p className="chat-device-sub">{selectedDevice.device_id.slice(0, 18)} Â· Ready to transmit</p>
+              <p className="chat-device-sub">{selectedDevice.device_id.slice(0, 18)} · Ready to transmit</p>
             </div>
             <button
               className="view-logs-btn"

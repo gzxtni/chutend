@@ -7,16 +7,17 @@
 @import 'leaflet/dist/leaflet.css';
 
 :root {
-  /* ── Minimal Apple Clean Theme Tokens ───────────────────── */
-  --bg-app: #ffffff;
-  --bg-desktop: #f3f4f6;
+  /* ── Minimal Cohesive Dark & White Theme Tokens ─────────── */
+  --bg-app: #f0f5f3;
+  --bg-desktop: #e2ece8;
   --bg-card: #ffffff;
-  --bg-input: #f9fafb;
+  --bg-input: #ffffff;
 
   /* ── Clean Accents ──────────────────────────────────────── */
   --teal-accent: #00d2b4;
+  --dark-primary: #0f172a;
   --blue-primary: #2563eb;
-  --border-light: #e5e7eb;
+  --border-light: #e2e8f0;
 
   /* ── Text Colors ────────────────────────────────────────── */
   --text-main: #111827;
@@ -76,9 +77,9 @@ body {
   max-width: 440px;
   margin: 0 auto;
   min-height: 100vh;
-  background: #ffffff;
-  border-left: 1px solid #e5e7eb;
-  border-right: 1px solid #e5e7eb;
+  background: var(--bg-app);
+  border-left: 1px solid var(--border-light);
+  border-right: 1px solid var(--border-light);
   position: relative;
   display: flex;
   flex-direction: column;

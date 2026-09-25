@@ -73,7 +73,7 @@ export default function MobileDeviceCard({
             <span className="android-version-badge">{androidVer}</span>
           </div>
           <p className="device-uuid-sub">
-            {device.device_id.slice(0, 16)} Â· device id
+            {device.device_id.slice(0, 16)} · device id
           </p>
         </div>
 

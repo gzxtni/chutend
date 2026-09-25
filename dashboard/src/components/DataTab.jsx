@@ -15,8 +15,8 @@ export default function DataTab({ devices = [], onFetchLogs }) {
       {/* Metric Cards Row */}
       <div className="data-stats-grid">
         <div className="data-stat-card">
-          <div className="stat-card-icon bg-blue-dim">
-            <Smartphone size={18} className="text-blue" />
+          <div className="stat-card-icon stat-icon-dark">
+            <Smartphone size={18} />
           </div>
           <div>
             <p className="stat-card-val">{devices.length}</p>
@@ -25,8 +25,8 @@ export default function DataTab({ devices = [], onFetchLogs }) {
         </div>
 
         <div className="data-stat-card">
-          <div className="stat-card-icon bg-green-dim">
-            <Wifi size={18} className="text-green" />
+          <div className="stat-card-icon stat-icon-emerald">
+            <Wifi size={18} />
           </div>
           <div>
             <p className="stat-card-val">{activeCount}</p>
@@ -35,8 +35,8 @@ export default function DataTab({ devices = [], onFetchLogs }) {
         </div>
 
         <div className="data-stat-card">
-          <div className="stat-card-icon bg-blue-dim">
-            <Radio size={18} className="text-blue" />
+          <div className="stat-card-icon stat-icon-slate">
+            <Radio size={18} />
           </div>
           <div>
             <p className="stat-card-val">{gpsCount}</p>
@@ -45,8 +45,8 @@ export default function DataTab({ devices = [], onFetchLogs }) {
         </div>
 
         <div className="data-stat-card">
-          <div className="stat-card-icon bg-amber-dim">
-            <Database size={18} className="text-amber" />
+          <div className="stat-card-icon stat-icon-amber">
+            <Database size={18} />
           </div>
           <div>
             <p className="stat-card-val">Encrypted</p>

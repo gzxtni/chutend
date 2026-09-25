@@ -1,5 +1,5 @@
 .messages-tab-page {
-  padding: 8px 14px 90px;
+  padding: 12px 16px 125px; /* ample clearance so floating bottom capsule never overlaps content */
   width: 100%;
 }
 
@@ -7,22 +7,24 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .tab-main-heading {
-  font-size: 17px;
-  font-weight: 700;
-  color: #122844;
+  font-size: 18px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.2px;
 }
 
 .tab-pill-badge {
-  background: #eaf3fe;
-  color: #1877f2;
+  background: #f1f5f9;
+  color: #0f172a;
+  border: 1px solid #e2e8f0;
   font-size: 11.5px;
   font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 999px;
+  padding: 4px 12px;
+  border-radius: 9999px;
 }
 
 .device-picker-carousel {
@@ -41,138 +43,194 @@
 .device-pill-card {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   background: #ffffff;
-  border: 1.5px solid #ddecfa;
-  border-radius: 14px;
-  padding: 8px 12px;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 10px 14px;
   flex-shrink: 0;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.02);
+}
+
+.device-pill-card:hover {
+  border-color: #cbd5e1;
+  transform: translateY(-1px);
 }
 
 .device-pill-card.is-selected {
-  border-color: #1877f2;
-  background: #eaf3fe;
+  border-color: #0f172a;
+  background: #0f172a;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.15);
 }
 
 .picker-avatar {
-  width: 30px;
-  height: 30px;
-  border-radius: 8px;
-  background: #eaf3fe;
-  color: #1877f2;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  background: #f1f5f9;
+  color: #0f172a;
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: all 0.2s ease;
 }
 
 .device-pill-card.is-selected .picker-avatar {
-  background: #1877f2;
+  background: rgba(255, 255, 255, 0.15);
   color: #ffffff;
 }
 
 .picker-info {
   display: flex;
   flex-direction: column;
+  gap: 2px;
 }
 
 .picker-name {
-  font-size: 12.5px;
+  font-size: 13px;
   font-weight: 700;
-  color: #122844;
+  color: #0f172a;
+  transition: color 0.2s ease;
+}
+
+.device-pill-card.is-selected .picker-name {
+  color: #ffffff;
 }
 
 .picker-sub {
-  font-size: 10px;
-  color: #7b97b0;
+  font-size: 11px;
+  color: #64748b;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.device-pill-card.is-selected .picker-sub {
+  color: #94a3b8;
 }
 
 .messages-chat-container {
   background: #ffffff;
-  border-radius: 20px;
-  border: 1.5px solid #ddecfa;
-  padding: 16px;
-  box-shadow: 0 4px 18px rgba(18, 40, 68, 0.04);
+  border-radius: 24px;
+  border: 1px solid #e2e8f0;
+  padding: 18px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.03);
 }
 
 .chat-device-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #f0f6fd;
-  margin-bottom: 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #f1f5f9;
+  margin-bottom: 16px;
 }
 
 .chat-device-title {
-  font-size: 15px;
-  font-weight: 700;
-  color: #122844;
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
 }
 
 .chat-device-sub {
-  font-size: 11px;
-  color: #7b97b0;
+  font-size: 11.5px;
+  color: #64748b;
+  margin-top: 2px;
 }
 
 .view-logs-btn {
-  background: #f0f7fe;
-  border: 1px solid #d0e4fa;
-  color: #1877f2;
-  border-radius: 8px;
-  padding: 6px 12px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+  border-radius: 9999px;
+  padding: 7px 14px;
   font-size: 11.5px;
-  font-weight: 600;
+  font-weight: 700;
   cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.view-logs-btn:hover {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
 }
 
 .quick-sms-card {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .quick-sms-title {
-  font-size: 13px;
-  font-weight: 700;
-  color: #1e3a5f;
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.2px;
 }
 
 .quick-input,
 .quick-textarea {
   width: 100%;
-  background: #f7fbff;
-  border: 1.5px solid #ddecfa;
-  border-radius: 12px;
-  padding: 10px 12px;
-  font-size: 13px;
-  color: #122844;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 12px 14px;
+  font-size: 13.5px;
+  color: #0f172a;
   outline: none;
   font-family: inherit;
+  transition: all 0.15s ease;
+  box-sizing: border-box;
+}
+
+.quick-input:focus,
+.quick-textarea:focus {
+  border-color: #0f172a;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.04);
 }
 
 .quick-send-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  background: #1877f2;
+  gap: 8px;
+  background: #0f172a;
   color: #ffffff;
   border: none;
-  border-radius: 12px;
-  padding: 12px;
-  font-size: 13px;
-  font-weight: 700;
+  border-radius: 9999px;
+  padding: 14px 20px;
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
   cursor: pointer;
   margin-top: 4px;
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.18);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.quick-send-btn:hover {
+  background: #1e293b;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.25);
+}
+
+.quick-send-btn:active {
+  transform: scale(0.98);
 }
 
 .no-device-selected {
   text-align: center;
-  padding: 40px 20px;
+  padding: 48px 20px;
   background: #ffffff;
-  border-radius: 20px;
-  border: 1.5px solid #ddecfa;
-  color: #7b97b0;
+  border-radius: 24px;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  font-size: 13px;
 }

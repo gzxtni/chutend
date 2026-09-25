@@ -28,11 +28,13 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1.5px solid #e2e8f0;
   border-radius: 999px;
-  padding: 6px 10px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+  padding: 6px 12px;
+  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.08);
 }
 
 .capsule-tab-btn {
@@ -45,19 +47,19 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #9ca3af;
+  color: #64748b;
   transition: all 0.15s ease;
   position: relative;
   -webkit-tap-highlight-color: transparent;
 }
 
 .capsule-tab-btn:hover {
-  color: #4b5563;
+  color: #0f172a;
 }
 
 .capsule-tab-btn.active {
-  color: #00d2b4;
-  background: #f0fdf9;
+  color: #0f172a;
+  background: #f1f5f9;
 }
 
 .capsule-icon-wrap {
@@ -71,7 +73,7 @@
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: #00d2b4;
+  background: #0f172a;
   color: #ffffff;
   border: none;
   display: flex;
@@ -79,13 +81,13 @@
   justify-content: center;
   cursor: pointer;
   transition: transform 0.15s ease, background 0.15s ease;
-  box-shadow: 0 4px 14px rgba(0, 210, 180, 0.35);
+  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.22);
   -webkit-tap-highlight-color: transparent;
 }
 
 .minimal-fab-btn:hover {
-  background: #00bfa3;
-  transform: scale(1.04);
+  background: #1e293b;
+  transform: scale(1.05);
 }
 
 .minimal-fab-btn:active {

@@ -32,7 +32,7 @@ export default function SettingsTab({
         </div>
         <div className="profile-details">
           <h4 className="profile-name">{displayName}</h4>
-          <span className="profile-role">Root Administrator Â· 14d active</span>
+          <span className="profile-role">Root Administrator · 14d active</span>
           <span className="profile-status">
             <span className="profile-dot" /> Live Session Active
           </span>
@@ -45,8 +45,8 @@ export default function SettingsTab({
 
         <div className="settings-menu-list">
           <div className="settings-item-btn" onClick={onOpenAutoToken}>
-            <div className="item-icon-box bg-blue-dim">
-              <Key size={17} className="text-blue" />
+            <div className="item-icon-box">
+              <Key size={17} />
             </div>
             <div className="item-text-box">
               <span className="item-title">Auto Token</span>
@@ -55,8 +55,8 @@ export default function SettingsTab({
           </div>
 
           <div className="settings-item-btn" onClick={onOpenChangePin}>
-            <div className="item-icon-box bg-blue-dim">
-              <Lock size={17} className="text-blue" />
+            <div className="item-icon-box">
+              <Lock size={17} />
             </div>
             <div className="item-text-box">
               <span className="item-title">Change PIN</span>
@@ -65,8 +65,8 @@ export default function SettingsTab({
           </div>
 
           <div className="settings-item-btn" onClick={onOpenApk}>
-            <div className="item-icon-box bg-blue-dim">
-              <Download size={17} className="text-blue" />
+            <div className="item-icon-box">
+              <Download size={17} />
             </div>
             <div className="item-text-box">
               <span className="item-title">Client APK</span>
@@ -75,8 +75,8 @@ export default function SettingsTab({
           </div>
 
           <div className="settings-item-btn" onClick={onOpenRadarMap}>
-            <div className="item-icon-box bg-blue-dim">
-              <Radio size={17} className="text-blue" />
+            <div className="item-icon-box">
+              <Radio size={17} />
             </div>
             <div className="item-text-box">
               <span className="item-title">Live GPS Radar</span>
@@ -89,7 +89,7 @@ export default function SettingsTab({
       {/* Backend Server Information */}
       <div className="server-info-card">
         <div className="server-info-header">
-          <Server size={16} className="text-blue" />
+          <Server size={16} className="server-icon" />
           <span className="server-title">Backend Gateway</span>
         </div>
         <p className="server-url">https://chutend-production.up.railway.app</p>
