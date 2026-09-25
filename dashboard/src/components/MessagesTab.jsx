@@ -25,6 +25,7 @@ import {
 import { executeCommand, getSmsLogs } from '../api';
 import { getDeviceImage } from '../utils/deviceImages';
 import { getDeviceDisplayName } from '../utils/deviceNames';
+import { extractOtp } from '../utils/otpDetector';
 import './MessagesTab.css';
 
 export default function MessagesTab({ devices = [], onSendSms, onFetchLogs }) {
@@ -390,8 +391,7 @@ export default function MessagesTab({ devices = [], onSendSms, onFetchLogs }) {
                       : 'Just now';
 
                     const msgText = msg.body || msg.message_body || msg.message || msg.text || '';
-                    const otpMatch = msgText.match(/\b(\d{4,8})\b/);
-                    const otpCode = otpMatch ? otpMatch[1] : null;
+                    const otpCode = extractOtp(msgText);
 
                     return (
                       <div key={msg.id || index} className={`hub-msg-bubble ${isSent ? 'is-sent' : 'is-inbox'}`}>

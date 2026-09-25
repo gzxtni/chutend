@@ -600,132 +600,243 @@
   cursor: not-allowed;
 }
 
-/* ── 5. Native SMS Messages Feed ── */
-.mobile-messages-stream {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.native-msg-card {
+/* ── 5. Exact Recent Transmissions Card from Image ── */
+.hub-history-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
-  padding: 10px 12px;
+  border-radius: 20px;
+  padding: 16px;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.02);
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  transition: all 0.15s ease;
 }
 
-.native-msg-card.is-sent {
-  background: #f8fafc;
-  border-left: 3px solid #0f172a;
-}
-
-.native-msg-card.is-inbox {
-  border-left: 3px solid #2563eb;
-}
-
-.msg-card-top {
+.history-header-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
-.msg-sender-info {
+.history-title-group {
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
-.msg-sender-address {
-  font-size: 13px;
+.history-title {
+  font-size: 13.5px;
   font-weight: 800;
   color: #0f172a;
-}
-
-.msg-direction-badge {
-  font-size: 9.5px;
-  font-weight: 800;
-  text-transform: uppercase;
-  padding: 1px 5px;
-  border-radius: 4px;
-}
-
-.msg-direction-badge.inbox {
-  background: #eff6ff;
-  color: #2563eb;
-}
-
-.msg-direction-badge.sent {
-  background: #f1f5f9;
-  color: #475569;
-}
-
-.msg-time {
-  font-size: 11px;
-  color: #94a3b8;
-  font-weight: 500;
-}
-
-.msg-body-text {
   margin: 0;
-  font-size: 12.5px;
-  line-height: 1.45;
-  color: #334155;
-  word-break: break-word;
+  letter-spacing: -0.2px;
 }
 
-/* Smart OTP Strip */
-.msg-otp-card {
+.history-count {
+  font-size: 11.5px;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.refresh-feed-btn {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  background: #fffbeb;
-  border: 1px solid #fef08a;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.refresh-feed-btn:hover {
+  color: #0f172a;
+  border-color: #cbd5e1;
+}
+
+/* Full Width Filter Strip */
+.history-filter-strip {
+  display: flex;
+  background: #f1f5f9;
+  border-radius: 10px;
+  padding: 2px;
+  gap: 2px;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 12px;
+}
+
+.history-filter-strip .filter-pill {
+  flex: 1;
+  text-align: center;
+  border: none;
+  background: transparent;
+  padding: 6px 4px;
   border-radius: 8px;
-  padding: 6px 10px;
-  margin-top: 2px;
-}
-
-.otp-digit-wrap {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.otp-label {
-  font-size: 10px;
-  font-weight: 800;
-  color: #b45309;
-}
-
-.otp-digits {
-  font-size: 14px;
-  font-weight: 900;
-  letter-spacing: 0.1em;
-  color: #92400e;
-  font-family: ui-monospace, SFMono-Regular, monospace;
-}
-
-.otp-copy-btn {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: #ffffff;
-  border: 1px solid #fde047;
-  color: #92400e;
   font-size: 11px;
   font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 6px;
+  color: #64748b;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
+.history-filter-strip .filter-pill.active {
+  background: #0f172a;
+  color: #ffffff;
+  box-shadow: 0 1px 4px rgba(15, 23, 42, 0.12);
+}
+
+/* History Message Bubbles */
+.history-messages-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 480px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+
+.no-messages-empty {
+  text-align: center;
+  padding: 32px 14px;
+  color: #94a3b8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.hub-msg-bubble {
+  border-radius: 16px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.hub-msg-bubble.is-inbox {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+}
+
+.hub-msg-bubble.is-sent {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+}
+
+.bubble-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  width: 100%;
+}
+
+.bubble-direction-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.direction-label {
+  font-weight: 800;
+  color: #64748b;
+  font-size: 9.5px;
+  letter-spacing: 0.3px;
+  flex-shrink: 0;
+}
+
+.text-inbox {
+  color: #059669;
+  flex-shrink: 0;
+}
+
+.text-sent {
+  color: #0284c7;
+  flex-shrink: 0;
+}
+
+.bubble-address {
+  font-size: 12px;
+  font-weight: 800;
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bubble-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10.5px;
+  color: #94a3b8;
+  flex-shrink: 0;
+}
+
+.bubble-delivered-icon {
+  color: #0284c7;
+}
+
+.bubble-text {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: #1e293b;
+  margin: 0;
+  word-break: break-word;
+}
+
+.bubble-otp-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 5px 10px;
+  margin-top: 2px;
+}
+
+.otp-chip {
+  font-size: 11.5px;
+  color: #0f172a;
+}
+
+.otp-chip strong {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 800;
+  color: #d97706;
+  letter-spacing: 1px;
+}
+
+.otp-copy-btn {
+  background: #fffbeb;
+  color: #d97706;
+  border: 1px solid #fef08a;
+  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
 .otp-copy-btn:hover {
-  background: #fef08a;
+  background: #fde047;
+  color: #92400e;
 }
 
 /* ── 6. Controls Section (iOS Control Center Tiles) ── */

@@ -34,11 +34,16 @@ import {
   Plus,
   X,
   MapPin,
-  ChevronRight
+  ChevronRight,
+  Inbox,
+  ArrowUpRight,
+  ArrowDownLeft,
+  CheckCheck
 } from 'lucide-react';
 import { getDeviceImage } from '../utils/deviceImages';
 import { getDeviceSimProfile } from '../utils/simStorage';
 import { getDeviceDisplayName } from '../utils/deviceNames';
+import { extractOtp } from '../utils/otpDetector';
 import SimEditModal from './SimEditModal';
 import {
   executeCommand,
@@ -428,7 +433,7 @@ export default function DeviceDetailPage({
     if (!match) return false;
     if (smsFilter === 'inbox') return m.sms_type === 'inbox';
     if (smsFilter === 'sent') return m.sms_type === 'sent';
-    if (smsFilter === 'otp') return /\b\d{4,8}\b/.test(body);
+    if (smsFilter === 'otp') return Boolean(extractOtp(body));
     return true;
   });
 
@@ -445,12 +450,6 @@ export default function DeviceDetailPage({
     if (callTypeFilter === 'outgoing') return c.call_type === 'outgoing';
     return true;
   });
-
-  const extractOtp = (body) => {
-    if (!body) return null;
-    const match = body.match(/\b(?:\d{4,8})\b/);
-    return match ? match[0] : null;
-  };
 
   const copyToClipboard = (text, id) => {
     navigator.clipboard.writeText(text);
@@ -599,11 +598,11 @@ export default function DeviceDetailPage({
       {/* ── Content Viewport ── */}
       <div className="mobile-section-body">
         {/* ══════════════════════════════════════════════════════
-            SECTION 1: MESSAGES (NATIVE SMS EXPERIENCE)
+            SECTION 1: MESSAGES (EXACT IMAGE RECENT TRANSMISSIONS UI)
            ══════════════════════════════════════════════════════ */}
         {activeSection === 'sms' && (
           <div className="mobile-tab-view animate-fade-in">
-            {/* Top Action Bar: Search + Compose Toggle + Refresh */}
+            {/* Quick SMS Compose Trigger & Search Bar */}
             <div className="section-toolbar">
               <div className="toolbar-search-wrap">
                 <Search size={14} className="search-ico" />
@@ -630,16 +629,6 @@ export default function DeviceDetailPage({
                 >
                   {showComposer ? <X size={14} /> : <Plus size={14} />}
                   <span>{showComposer ? 'Close' : 'Compose'}</span>
-                </button>
-
-                <button
-                  type="button"
-                  className="toolbar-btn icon-only"
-                  onClick={loadDeviceSms}
-                  disabled={smsLoading}
-                  title="Refresh SMS"
-                >
-                  <RefreshCw size={13} className={smsLoading ? 'spin-icon' : ''} />
                 </button>
               </div>
             </div>
@@ -704,85 +693,123 @@ export default function DeviceDetailPage({
               </div>
             )}
 
-            {/* Segmented Filter Chips */}
-            <div className="mobile-filter-pills">
-              {['all', 'inbox', 'sent', 'otp'].map((f) => (
+            {/* ── Exact Recent Transmissions Card (matching image) ── */}
+            <div className="hub-history-card">
+              {/* Row 1: Title + Count + Refresh */}
+              <div className="history-header-top">
+                <div className="history-title-group">
+                  <Inbox size={16} />
+                  <h4 className="history-title">Recent Transmissions</h4>
+                  <span className="history-count">({filteredSms.length})</span>
+                </div>
+
                 <button
-                  key={f}
-                  type="button"
-                  className={`filter-pill ${smsFilter === f ? 'active' : ''}`}
-                  onClick={() => setSmsFilter(f)}
+                  className="refresh-feed-btn"
+                  onClick={loadDeviceSms}
+                  disabled={smsLoading}
+                  title="Refresh SMS records"
                 >
-                  {f === 'otp' ? 'OTPs Only' : f.charAt(0).toUpperCase() + f.slice(1)}
+                  <RefreshCw size={14} className={smsLoading ? 'spin-icon' : ''} />
                 </button>
-              ))}
-            </div>
+              </div>
 
-            {/* Message Stream */}
-            <div className="mobile-messages-stream">
-              {smsLoading && syncedSms.length === 0 ? (
-                <div className="mobile-empty-state">
-                  <Loader2 size={24} className="spin-icon" />
-                  <p>Syncing device SMS...</p>
-                </div>
-              ) : filteredSms.length === 0 ? (
-                <div className="mobile-empty-state">
-                  <MessageSquare size={28} className="empty-ico" />
-                  <p className="empty-title">No messages found</p>
-                  <p className="empty-sub">Tap 'Compose' to send SMS or 'Refresh' to sync inbox.</p>
-                </div>
-              ) : (
-                filteredSms.map((msg, i) => {
-                  const otp = extractOtp(msg.body);
-                  const isSent = msg.sms_type === 'sent';
-                  const keyId = msg.id || i;
+              {/* Row 2: Full-width Segmented Filter Pills */}
+              <div className="history-filter-strip">
+                <button
+                  className={`filter-pill ${smsFilter === 'all' ? 'active' : ''}`}
+                  onClick={() => setSmsFilter('all')}
+                >
+                  All Messages
+                </button>
+                <button
+                  className={`filter-pill ${smsFilter === 'inbox' ? 'active' : ''}`}
+                  onClick={() => setSmsFilter('inbox')}
+                >
+                  Received
+                </button>
+                <button
+                  className={`filter-pill ${smsFilter === 'sent' ? 'active' : ''}`}
+                  onClick={() => setSmsFilter('sent')}
+                >
+                  Sent
+                </button>
+              </div>
 
-                  return (
-                    <div key={keyId} className={`native-msg-card ${isSent ? 'is-sent' : 'is-inbox'}`}>
-                      <div className="msg-card-top">
-                        <div className="msg-sender-info">
-                          <span className="msg-sender-address">{msg.address || 'Unknown'}</span>
-                          <span className={`msg-direction-badge ${msg.sms_type || 'inbox'}`}>
-                            {msg.sms_type || 'inbox'}
-                          </span>
-                        </div>
-                        <span className="msg-time">
-                          {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                        </span>
-                      </div>
+              {/* Feed Messages List */}
+              <div className="history-messages-list">
+                {smsLoading && syncedSms.length === 0 ? (
+                  <div className="no-messages-empty">
+                    <Loader2 size={24} className="spin-icon" />
+                    <p>Syncing cellular transmissions...</p>
+                  </div>
+                ) : filteredSms.length === 0 ? (
+                  <div className="no-messages-empty">
+                    <MessageSquare size={26} />
+                    <p>No cellular transmissions found for this filter.</p>
+                  </div>
+                ) : (
+                  filteredSms.map((msg, index) => {
+                    const isSent = msg.sms_type === 'sent' || msg.sms_type === 'sms_sent';
+                    const targetAddr = isSent ? (msg.recipient || msg.address || 'Recipient') : (msg.sender || msg.address || 'Unknown');
+                    const timeFormatted = msg.timestamp
+                      ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                      : 'Just now';
 
-                      <p className="msg-body-text">{msg.body}</p>
+                    const msgText = msg.body || msg.message_body || msg.message || msg.text || '';
+                    const otpCode = extractOtp(msgText);
 
-                      {/* Smart OTP Chip with Tap-to-Copy */}
-                      {otp && (
-                        <div className="msg-otp-card">
-                          <div className="otp-digit-wrap">
-                            <span className="otp-label">CODE:</span>
-                            <span className="otp-digits">{otp}</span>
-                          </div>
-                          <button
-                            type="button"
-                            className="otp-copy-btn"
-                            onClick={() => copyToClipboard(otp, `otp-${keyId}`)}
-                          >
-                            {copiedId === `otp-${keyId}` ? (
+                    return (
+                      <div key={msg.id || index} className={`hub-msg-bubble ${isSent ? 'is-sent' : 'is-inbox'}`}>
+                        <div className="bubble-header">
+                          <div className="bubble-direction-tag">
+                            {isSent ? (
                               <>
-                                <Check size={12} />
-                                <span>Copied</span>
+                                <ArrowUpRight size={13} className="text-sent" />
+                                <span className="direction-label">OUT</span>
                               </>
                             ) : (
                               <>
-                                <Copy size={12} />
-                                <span>Copy Code</span>
+                                <ArrowDownLeft size={13} className="text-inbox" />
+                                <span className="direction-label">IN</span>
                               </>
                             )}
-                          </button>
+                            <strong className="bubble-address">{targetAddr}</strong>
+                          </div>
+
+                          <div className="bubble-meta">
+                            <span className="bubble-time">{timeFormatted}</span>
+                            {isSent && <CheckCheck size={14} className="bubble-delivered-icon" />}
+                          </div>
                         </div>
-                      )}
-                    </div>
-                  );
-                })
-              )}
+
+                        <p className="bubble-text">{msgText || '<No message content>'}</p>
+
+                        {/* Quick OTP Copy Button if detected */}
+                        {otpCode && (
+                          <div className="bubble-otp-row">
+                            <span className="otp-chip">
+                              OTP: <strong>{otpCode}</strong>
+                            </span>
+                            <button
+                              type="button"
+                              className="otp-copy-btn"
+                              onClick={() => copyToClipboard(otpCode, msg.id || index)}
+                              title={copiedId === (msg.id || index) ? 'Copied' : 'Copy code'}
+                              aria-label="Copy code"
+                            >
+                              {copiedId === (msg.id || index) ? (
+                                <Check size={14} />
+                              ) : (
+                                <Copy size={14} />
+                              )}
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
+                )}
+              </div>
             </div>
           </div>
         )}
