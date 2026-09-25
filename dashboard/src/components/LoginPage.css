@@ -245,20 +245,23 @@
 
 /* Submit Pill Button */
 .login-submit-pill-btn {
+  position: relative;
   width: 100%;
-  height: 56px;
+  height: 58px;
   background: #0f172a;
   color: #ffffff;
   border: none;
   border-radius: 999px;
-  padding: 6px 10px 6px 24px;
-  font-size: 15px;
-  font-weight: 700;
+  padding: 6px 56px;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.2px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  text-align: center;
   cursor: pointer;
-  margin-top: 6px;
+  margin-top: 8px;
   box-shadow: 0 4px 18px rgba(15, 23, 42, 0.2);
   transition: transform 0.15s ease, background-color 0.15s ease;
   -webkit-tap-highlight-color: transparent;
@@ -273,7 +276,18 @@
   transform: scale(0.98);
 }
 
+.submit-btn-text {
+  font-size: 17px;
+  font-weight: 800;
+  color: #ffffff;
+  letter-spacing: -0.2px;
+}
+
 .submit-btn-arrow-circle {
+  position: absolute;
+  right: 7px;
+  top: 50%;
+  transform: translateY(-50%);
   width: 44px;
   height: 44px;
   border-radius: 50%;
@@ -287,7 +301,7 @@
 .login-submit-pill-btn:hover .submit-btn-arrow-circle {
   background: #ffffff;
   color: #0f172a;
-  transform: translateX(2px);
+  transform: translateY(-50%) translateX(2px);
 }
 
 .animate-spin-icon {

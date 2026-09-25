@@ -124,9 +124,9 @@ export default function LoginPage({ onLoginSuccess, onBack }) {
                 </>
               ) : (
                 <>
-                  <span>Sign In to Console</span>
+                  <span className="submit-btn-text">Sign In to Console</span>
                   <div className="submit-btn-arrow-circle">
-                    <ArrowRight size={16} />
+                    <ArrowRight size={18} />
                   </div>
                 </>
               )}
