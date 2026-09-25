@@ -41,7 +41,9 @@ import {
   launchDeviceApp,
   requestDeviceLocation,
   getSmsLogs,
-  getCallLogs
+  getCallLogs,
+  getCommunicationLogs,
+  getDeviceEvents
 } from '../api';
 import './DeviceDetailPage.css';
 
@@ -148,10 +150,79 @@ export default function DeviceDetailPage({
   async function loadDeviceSms() {
     try {
       setSmsLoading(true);
-      const res = await getSmsLogs(device.device_id, { limit: 60 });
-      if (res && Array.isArray(res.logs)) {
-        setSyncedSms(res.logs);
+      // Query all sources simultaneously to ensure no SMS is missed
+      const [smsRes, commRes, eventRes] = await Promise.allSettled([
+        getSmsLogs(device.device_id, { limit: 100 }),
+        getCommunicationLogs(device.device_id, { limit: 100 }),
+        getDeviceEvents(device.device_id, { limit: 100 })
+      ]);
+
+      const items = [];
+
+      // 1. SMS Logs from /sync/sms-logs
+      if (smsRes.status === 'fulfilled' && smsRes.value) {
+        const raw = smsRes.value;
+        const list = Array.isArray(raw) ? raw : (Array.isArray(raw?.logs) ? raw.logs : []);
+        list.forEach((m) => {
+          items.push({
+            id: m.id || `sms-${m.timestamp}-${m.address}`,
+            address: m.address || m.sender || m.recipient || 'Unknown',
+            body: m.body || m.message_body || m.message || '',
+            sms_type: m.sms_type || 'inbox',
+            timestamp: m.timestamp || m.synced_at || new Date().toISOString(),
+            read: m.read
+          });
+        });
       }
+
+      // 2. Communication Logs from /communication-logs
+      if (commRes.status === 'fulfilled' && commRes.value) {
+        const raw = commRes.value;
+        const list = Array.isArray(raw) ? raw : (Array.isArray(raw?.logs) ? raw.logs : []);
+        list.forEach((m) => {
+          items.push({
+            id: m.id || `comm-${m.timestamp}-${m.address}`,
+            address: m.address || m.sender || 'Unknown',
+            body: m.body || '',
+            sms_type: 'inbox',
+            timestamp: m.timestamp || m.synced_at || new Date().toISOString(),
+            read: true
+          });
+        });
+      }
+
+      // 3. Webhook real-time events (incoming SMS)
+      if (eventRes.status === 'fulfilled' && eventRes.value) {
+        const raw = eventRes.value;
+        const list = Array.isArray(raw) ? raw : (Array.isArray(raw?.events) ? raw.events : []);
+        list.forEach((e) => {
+          if (e.event_type === 'sms_received' || (e.message_body && !e.event_type?.startsWith('call_'))) {
+            items.push({
+              id: e.event_id || `evt-${e.timestamp}-${e.sender_number}`,
+              address: e.sender_number || 'Unknown',
+              body: e.message_body || '',
+              sms_type: 'inbox',
+              timestamp: e.timestamp || e.received_at || new Date().toISOString(),
+              read: true
+            });
+          }
+        });
+      }
+
+      // Deduplicate by signature
+      const seen = new Set();
+      const unique = [];
+      for (const item of items) {
+        const key = `${(item.address || '').trim()}_${(item.body || '').trim().slice(0, 30)}_${(item.timestamp || '').slice(0, 16)}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          unique.push(item);
+        }
+      }
+
+      // Sort newest first
+      unique.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      setSyncedSms(unique);
     } catch (e) {
       console.debug('Failed to load SMS logs', e);
     } finally {
@@ -162,10 +233,61 @@ export default function DeviceDetailPage({
   async function loadDeviceCalls() {
     try {
       setCallsLoading(true);
-      const res = await getCallLogs(device.device_id, { limit: 60 });
-      if (res && Array.isArray(res.logs)) {
-        setCallLogs(res.logs);
+      const [callsRes, eventRes] = await Promise.allSettled([
+        getCallLogs(device.device_id, { limit: 100 }),
+        getDeviceEvents(device.device_id, { limit: 100 })
+      ]);
+
+      const items = [];
+
+      // 1. Call logs from /sync/call-logs
+      if (callsRes.status === 'fulfilled' && callsRes.value) {
+        const raw = callsRes.value;
+        const list = Array.isArray(raw) ? raw : (Array.isArray(raw?.logs) ? raw.logs : []);
+        list.forEach((c) => {
+          items.push({
+            id: c.id || `call-${c.timestamp}-${c.phone_number}`,
+            phone_number: c.phone_number || 'Unknown',
+            contact_name: c.contact_name || null,
+            call_type: c.call_type || 'incoming',
+            duration_seconds: c.duration_seconds || 0,
+            timestamp: c.timestamp || c.synced_at || new Date().toISOString()
+          });
+        });
       }
+
+      // 2. Webhook real-time call events
+      if (eventRes.status === 'fulfilled' && eventRes.value) {
+        const raw = eventRes.value;
+        const list = Array.isArray(raw) ? raw : (Array.isArray(raw?.events) ? raw.events : []);
+        list.forEach((e) => {
+          if (e.event_type && e.event_type.startsWith('call_')) {
+            const cType = e.event_type.replace('call_', '');
+            items.push({
+              id: e.event_id || `call-evt-${e.timestamp}-${e.sender_number}`,
+              phone_number: e.sender_number || 'Unknown',
+              contact_name: null,
+              call_type: cType,
+              duration_seconds: e.call_duration || 0,
+              timestamp: e.timestamp || e.received_at || new Date().toISOString()
+            });
+          }
+        });
+      }
+
+      // Deduplicate
+      const seen = new Set();
+      const unique = [];
+      for (const item of items) {
+        const key = `${(item.phone_number || '').trim()}_${item.call_type}_${(item.timestamp || '').slice(0, 16)}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          unique.push(item);
+        }
+      }
+
+      unique.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+      setCallLogs(unique);
     } catch (e) {
       console.debug('Failed to load call logs', e);
     } finally {
@@ -178,16 +300,31 @@ export default function DeviceDetailPage({
     e.preventDefault();
     if (!smsRecipient.trim() || !smsBody.trim() || smsSending) return;
 
+    const to = smsRecipient.trim();
+    const msg = smsBody.trim();
+
     try {
       setSmsSending(true);
       await executeCommand(device.device_id, 'send_sms', {
-        to: smsRecipient.trim(),
-        message: smsBody.trim()
+        to: to,
+        message: msg
       });
       addToast(`SMS command dispatched to ${device.device_id.slice(0, 8)}`, 'success');
+
+      // Optimistically add to messages list
+      const sentItem = {
+        id: 'sent-' + Date.now(),
+        address: to,
+        body: msg,
+        sms_type: 'sent',
+        timestamp: new Date().toISOString(),
+        read: true
+      };
+      setSyncedSms((prev) => [sentItem, ...prev]);
+
       setSmsRecipient('');
       setSmsBody('');
-      setTimeout(loadDeviceSms, 2000);
+      setTimeout(loadDeviceSms, 2500);
     } catch (err) {
       addToast(`Failed to send SMS: ${err.message}`, 'error');
     } finally {
