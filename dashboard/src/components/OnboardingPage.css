@@ -1,0 +1,158 @@
+/* ═══════════════════════════════════════════════════════════════
+   Onboarding Landing Screen Styles
+   Matching exact reference screenshot
+   ═══════════════════════════════════════════════════════════════ */
+
+.onboarding-page {
+  position: relative;
+  min-height: 100vh;
+  width: 100%;
+  background: #e9f3f0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+/* Top Header */
+.onboarding-header {
+  padding: 24px 20px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+
+.onboarding-brand-logo {
+  font-size: 26px;
+  font-weight: 900;
+  letter-spacing: 5px;
+  color: #111827;
+  font-family: var(--font-sans);
+}
+
+.onboarding-brand-logo span {
+  position: relative;
+  display: inline-block;
+  letter-spacing: 3px;
+}
+
+/* Hero Image Section */
+.onboarding-hero-wrapper {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  max-height: 58vh;
+}
+
+.onboarding-hero-img {
+  width: 100%;
+  max-width: 380px;
+  height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+}
+
+/* Bottom Sheet Card */
+.onboarding-sheet {
+  background: #ffffff;
+  border-radius: 36px 36px 0 0;
+  padding: 34px 24px 38px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  z-index: 20;
+  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.04);
+}
+
+.onboarding-headline {
+  font-size: 27px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.22;
+  letter-spacing: -0.4px;
+  margin-bottom: 12px;
+  max-width: 320px;
+  text-transform: uppercase;
+}
+
+.onboarding-subtext {
+  font-size: 14px;
+  color: #64748b;
+  line-height: 1.45;
+  margin-bottom: 28px;
+  max-width: 290px;
+}
+
+/* Capsule Action Button */
+.onboarding-action-capsule {
+  width: 100%;
+  max-width: 340px;
+  height: 58px;
+  background: #0f172a;
+  border-radius: 999px;
+  padding: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  user-select: none;
+  transition: transform 0.15s ease, background-color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.onboarding-action-capsule:hover {
+  background: #1e293b;
+  transform: translateY(-1px);
+}
+
+.onboarding-action-capsule:active {
+  transform: scale(0.98);
+}
+
+.capsule-inner-btn {
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 15px;
+  font-weight: 700;
+  padding: 12px 28px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  transition: transform 0.15s ease;
+}
+
+.onboarding-action-capsule:hover .capsule-inner-btn {
+  transform: translateX(4px);
+}
+
+.capsule-arrows-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  margin-right: 18px;
+}
+
+.capsule-chevrons {
+  stroke-width: 2.5px;
+  animation: nudgeArrows 1.8s infinite ease-in-out;
+}
+
+@keyframes nudgeArrows {
+  0%, 100% {
+    transform: translateX(0);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateX(4px);
+    opacity: 1;
+  }
+}

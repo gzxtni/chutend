@@ -19,6 +19,7 @@ import SystemControlsModal from './components/SystemControlsModal';
 import AppManagementModal from './components/AppManagementModal';
 import Toast from './components/Toast';
 import LoginPage from './components/LoginPage';
+import OnboardingPage from './components/OnboardingPage';
 
 import {
   listDevices,
@@ -32,6 +33,7 @@ import './App.css';
 export default function App() {
   const [authed, setAuthed] = useState(isAuthenticated());
   const [manager, setManager] = useState(getStoredManager());
+  const [showLogin, setShowLogin] = useState(false);
 
   const [devices, setDevices] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -132,11 +134,18 @@ export default function App() {
     addToast(`Deregistration command sent to ${device.device_name || device.device_id}`, 'warning');
   }
 
-  // ── Not authenticated → show login ──────────────────────
+  // ── Not authenticated → show Onboarding Landing or Login ──────────────────────
   if (!authed) {
     return (
       <div className="mobile-app-shell">
-        <LoginPage onLoginSuccess={handleLoginSuccess} />
+        {!showLogin ? (
+          <OnboardingPage onGetStarted={() => setShowLogin(true)} />
+        ) : (
+          <LoginPage
+            onLoginSuccess={handleLoginSuccess}
+            onBack={() => setShowLogin(false)}
+          />
+        )}
         <div className="toast-container">
           {toasts.map((t) => (
             <Toast

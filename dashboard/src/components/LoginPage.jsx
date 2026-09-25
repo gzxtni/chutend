@@ -3,7 +3,7 @@ import { Lock, User, ArrowRight, Eye, EyeOff, AlertCircle, RefreshCw } from 'luc
 import { login } from '../api';
 import './LoginPage.css';
 
-export default function LoginPage({ onLoginSuccess }) {
+export default function LoginPage({ onLoginSuccess, onBack }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -30,6 +30,11 @@ export default function LoginPage({ onLoginSuccess }) {
   return (
     <div className="login-page">
       <div className="login-card">
+        {onBack && (
+          <button className="login-back-btn" onClick={onBack} aria-label="Go back">
+            ← Back
+          </button>
+        )}
         <div className="login-header">
           <div className="login-avatar-wrap">
             <img
@@ -41,7 +46,7 @@ export default function LoginPage({ onLoginSuccess }) {
               }}
             />
           </div>
-          <h1 className="login-title">NARAYAN ADMIN</h1>
+          <h1 className="login-title">APIXER / NARAYAN</h1>
           <p className="login-subtitle">Enterprise Device Fleet Authentication</p>
         </div>
 
