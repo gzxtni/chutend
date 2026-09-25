@@ -13,7 +13,6 @@ import ChangePinModal from './components/ChangePinModal';
 import BulkSenderModal from './components/BulkSenderModal';
 import ApkModal from './components/ApkModal';
 import FleetMap from './components/FleetMap';
-import LogsPanel from './components/LogsPanel';
 import SmsModal from './components/SmsModal';
 import SystemControlsModal from './components/SystemControlsModal';
 import AppManagementModal from './components/AppManagementModal';
@@ -312,14 +311,6 @@ export default function App() {
             />
           </div>
         </div>
-      )}
-
-      {logsDevice && (
-        <LogsPanel
-          device={logsDevice}
-          onClose={() => setLogsDevice(null)}
-          addToast={addToast}
-        />
       )}
 
       {smsDevice && (

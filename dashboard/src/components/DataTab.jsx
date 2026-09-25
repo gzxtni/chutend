@@ -55,29 +55,28 @@ export default function DataTab({ devices = [], onFetchLogs }) {
         </div>
       </div>
 
-      {/* Device Data Inspection List */}
+      {/* Enrolled Fleet Terminals Overview */}
       <div className="data-devices-container">
-        <h4 className="data-section-title">Select Device to Inspect Logs</h4>
+        <h4 className="data-section-title">Enrolled Fleet Terminals</h4>
 
         <div className="data-device-list">
           {devices.map((device, idx) => (
             <div
               key={device.device_id || idx}
               className="data-device-item"
-              onClick={() => onFetchLogs && onFetchLogs(device)}
             >
               <div className="data-device-left">
                 <span className="data-index-pill">#{devices.length - idx}</span>
                 <div>
-                  <h5 className="data-device-name">{device.model || device.device_name || 'V2428'}</h5>
-                  <p className="data-device-id">{device.device_id.slice(0, 16)}...</p>
+                  <h5 className="data-device-name">{device.model || device.device_name || 'Terminal'}</h5>
+                  <p className="data-device-id">{device.sim_1 || device.phone_number || device.device_id.slice(0, 16)}</p>
                 </div>
               </div>
 
-              <button className="data-inspect-btn">
-                <FileText size={14} />
-                <span>Open Logs</span>
-              </button>
+              <div className="data-device-status-pill">
+                <span className={`terminal-state-dot ${device.is_active ? 'online' : 'offline'}`} />
+                <span>{device.is_active ? 'Active' : 'Offline'}</span>
+              </div>
             </div>
           ))}
         </div>

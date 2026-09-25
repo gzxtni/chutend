@@ -229,15 +229,6 @@ export default function MessagesTab({ devices = [], onSendSms, onFetchLogs }) {
                   <p className="terminal-uuid">{selectedDevice.device_id.slice(0, 16)} · Ready</p>
                 </div>
               </div>
-
-              <button
-                className="hub-inbox-btn"
-                onClick={() => onFetchLogs && onFetchLogs(selectedDevice)}
-                title="Open comprehensive inbox & call records"
-              >
-                <FileText size={13} />
-                <span>Full Logs</span>
-              </button>
             </div>
           </div>
 

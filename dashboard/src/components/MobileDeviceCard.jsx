@@ -178,11 +178,11 @@ export default function MobileDeviceCard({
 
         <button
           className="bottom-action-btn"
-          onClick={() => onFetchLogs && onFetchLogs(device)}
-          title="View SMS & Call logs"
+          onClick={() => onOpenControls && onOpenControls(device)}
+          title="Remote controls"
         >
-          <FileText size={13} />
-          <span>Logs</span>
+          <Sliders size={13} />
+          <span>Controls</span>
         </button>
 
         <button
