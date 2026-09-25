@@ -126,6 +126,7 @@ export default function MessagesTab({ devices = [], onSendSms, onFetchLogs }) {
         id: 'sent-' + Date.now(),
         sender: selectedDevice.phone_number || selectedDevice.device_name || 'Terminal',
         recipient: recipient.trim(),
+        body: quickMsg.trim(),
         message_body: quickMsg.trim(),
         sms_type: 'sent',
         timestamp: new Date().toISOString(),
@@ -380,13 +381,13 @@ export default function MessagesTab({ devices = [], onSendSms, onFetchLogs }) {
                 ) : (
                   filteredMessages.map((msg, index) => {
                     const isSent = msg.sms_type === 'sent' || msg.sms_type === 'sms_sent';
-                    const targetAddr = isSent ? msg.recipient || 'Recipient' : msg.sender || msg.address || 'Unknown';
+                    const targetAddr = isSent ? (msg.recipient || msg.address || 'Recipient') : (msg.sender || msg.address || 'Unknown');
                     const timeFormatted = msg.timestamp
                       ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                       : 'Just now';
 
-                    // Extract OTP if 4-8 digits found
-                    const otpMatch = msg.message_body?.match(/\b(\d{4,8})\b/);
+                    const msgText = msg.body || msg.message_body || msg.message || msg.text || '';
+                    const otpMatch = msgText.match(/\b(\d{4,8})\b/);
                     const otpCode = otpMatch ? otpMatch[1] : null;
 
                     return (
@@ -413,7 +414,7 @@ export default function MessagesTab({ devices = [], onSendSms, onFetchLogs }) {
                           </div>
                         </div>
 
-                        <p className="bubble-text">{msg.message_body}</p>
+                        <p className="bubble-text">{msgText || '<No message content>'}</p>
 
                         {/* Quick OTP Copy Button if detected */}
                         {otpCode && (
@@ -424,15 +425,13 @@ export default function MessagesTab({ devices = [], onSendSms, onFetchLogs }) {
                             <button
                               className="otp-copy-btn"
                               onClick={() => handleCopy(otpCode, msg.id || index)}
+                              title={copiedId === (msg.id || index) ? 'Copied' : 'Copy code'}
+                              aria-label="Copy code"
                             >
                               {copiedId === (msg.id || index) ? (
-                                <>
-                                  <Check size={12} /> Copied
-                                </>
+                                <Check size={14} />
                               ) : (
-                                <>
-                                  <Copy size={12} /> Copy Code
-                                </>
+                                <Copy size={14} />
                               )}
                             </button>
                           </div>
