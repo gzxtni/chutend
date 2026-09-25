@@ -23,6 +23,7 @@ import {
   FileText
 } from 'lucide-react';
 import { executeCommand, getSmsLogs } from '../api';
+import { getDeviceImage } from '../utils/deviceImages';
 import './MessagesTab.css';
 
 export default function MessagesTab({ devices = [], onSendSms, onFetchLogs }) {
@@ -188,7 +189,12 @@ export default function MessagesTab({ devices = [], onSendSms, onFetchLogs }) {
             >
               <div className="hub-card-top">
                 <div className="hub-device-avatar">
-                  <Smartphone size={16} />
+                  <img
+                    src={getDeviceImage(d)}
+                    alt={modelName}
+                    className="hub-device-img"
+                    onError={(e) => { e.target.src = '/devices/generic.jpg'; }}
+                  />
                 </div>
                 <div className={`hub-online-tag ${isOnline ? 'online' : 'offline'}`}>
                   <span className="tag-dot" />
@@ -219,7 +225,12 @@ export default function MessagesTab({ devices = [], onSendSms, onFetchLogs }) {
             <div className="terminal-header-row">
               <div className="terminal-info-left">
                 <div className="terminal-badge-icon">
-                  <Smartphone size={18} />
+                  <img
+                    src={getDeviceImage(selectedDevice)}
+                    alt="Terminal"
+                    className="terminal-device-img"
+                    onError={(e) => { e.target.src = '/devices/generic.jpg'; }}
+                  />
                 </div>
                 <div className="terminal-text-col">
                   <div className="terminal-title-flex">

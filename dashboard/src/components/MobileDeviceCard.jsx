@@ -1,4 +1,5 @@
 import { Radio, Trash2, RefreshCw, Battery, Sliders, MessageSquare, FileText, Boxes } from 'lucide-react';
+import { getDeviceImage } from '../utils/deviceImages';
 import './MobileDeviceCard.css';
 
 // Hash helper for stable fallback SIM numbers if not in device telemetry
@@ -61,9 +62,15 @@ export default function MobileDeviceCard({
     <article className="mobile-device-card" id={`card-${device.device_id}`}>
       {/* Top Main Row */}
       <div className="card-top-row">
-        {/* Left: Solid Blue Number Pill */}
-        <div className="device-index-pill" title={`Device #${indexNumber}`}>
-          {indexNumber}
+        {/* Left: Realistic Device Image Thumbnail */}
+        <div className="device-thumb-wrapper" title={`Device #${indexNumber} - ${modelName}`}>
+          <img
+            src={getDeviceImage(device)}
+            alt={modelName}
+            className="device-thumb-image"
+            onError={(e) => { e.target.src = '/devices/generic.jpg'; }}
+          />
+          <span className="device-thumb-pill">#{indexNumber}</span>
         </div>
 
         {/* Center: Model Name, Version Pill, Subtitle */}

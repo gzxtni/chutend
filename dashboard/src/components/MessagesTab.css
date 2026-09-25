@@ -108,20 +108,23 @@
 }
 
 .hub-device-avatar {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
-  background: #f1f5f9;
-  color: #0f172a;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease;
+  overflow: hidden;
+  padding: 1px;
 }
 
-.hub-device-card.is-selected .hub-device-avatar {
-  background: rgba(255, 255, 255, 0.15);
-  color: #ffffff;
+.hub-device-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 6px;
 }
 
 .hub-online-tag {
@@ -249,15 +252,24 @@
 }
 
 .terminal-badge-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: #0f172a;
-  color: #ffffff;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  overflow: hidden;
+  padding: 2px;
+}
+
+.terminal-device-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 9px;
 }
 
 .terminal-text-col {
