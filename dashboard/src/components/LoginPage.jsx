@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Lock, User, ArrowRight, Eye, EyeOff, AlertCircle, RefreshCw } from 'lucide-react';
+import { Lock, User, ArrowRight, Eye, EyeOff, AlertCircle, RefreshCw, ArrowLeft, ShieldCheck } from 'lucide-react';
 import { login } from '../api';
 import './LoginPage.css';
 
@@ -28,90 +28,117 @@ export default function LoginPage({ onLoginSuccess, onBack }) {
   }
 
   return (
-    <div className="login-page">
-      <div className="login-card">
+    <div className="login-page" id="login-page">
+      {/* Top Header Logo & Navigation */}
+      <div className="login-top-bar">
         {onBack && (
-          <button className="login-back-btn" onClick={onBack} aria-label="Go back">
-            ← Back
+          <button className="login-back-pill" onClick={onBack} aria-label="Go back">
+            <ArrowLeft size={16} />
+            <span>Back</span>
           </button>
         )}
-        <div className="login-header">
-          <div className="login-avatar-wrap">
-            <img
-              src="/avatar.jpg"
-              alt="Narayan Admin"
-              className="login-avatar-img"
-              onError={(e) => {
-                e.target.src = 'https://api.dicebear.com/7.x/bottts/svg?seed=sheikh';
-              }}
-            />
-          </div>
-          <h1 className="login-title">APIXER / NARAYAN</h1>
-          <p className="login-subtitle">Enterprise Device Fleet Authentication</p>
-        </div>
+        <h2 className="login-brand-logo">
+          APIX<span>E</span>R
+        </h2>
+        <div className="top-spacer" />
+      </div>
 
-        <form onSubmit={handleSubmit} className="login-form">
-          {error && (
-            <div className="login-error" id="login-error">
-              <AlertCircle size={16} className="text-danger flex-shrink-0" />
-              <span>{error}</span>
-            </div>
-          )}
+      {/* Hero Anime Character Image */}
+      <div className="login-hero-wrapper">
+        <img
+          src="/login-hero.png"
+          alt="Login Hero"
+          className="login-hero-img"
+        />
+      </div>
 
-          <div className="login-field">
-            <label className="login-label">Manager Username</label>
-            <div className="login-input-wrap">
-              <User size={16} className="login-input-icon" />
-              <input
-                type="text"
-                placeholder="Enter username"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="login-input"
-                autoComplete="username"
-                required
-              />
-            </div>
+      {/* Main Login Sheet Card */}
+      <div className="login-sheet-container">
+        <div className="login-card-inner">
+          <div className="login-heading-section">
+            <h1 className="login-main-title">WELCOME BACK</h1>
+            <p className="login-sub-description">
+              Enter your manager credentials to access the fleet console.
+            </p>
           </div>
 
-          <div className="login-field">
-            <label className="login-label">Password / PIN</label>
-            <div className="login-input-wrap">
-              <Lock size={16} className="login-input-icon" />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                placeholder="Enter password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="login-input"
-                autoComplete="current-password"
-                required
-              />
-              <button
-                type="button"
-                className="login-input-eye"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label="Toggle password visibility"
-              >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-              </button>
-            </div>
-          </div>
-
-          <button type="submit" className="login-btn" disabled={loading}>
-            {loading ? (
-              <>
-                <RefreshCw size={16} className="animate-spin" />
-                <span>Authenticating...</span>
-              </>
-            ) : (
-              <>
-                <span>Access Console</span>
-                <ArrowRight size={16} />
-              </>
+          <form onSubmit={handleSubmit} className="login-form">
+            {error && (
+              <div className="login-error-alert" id="login-error">
+                <AlertCircle size={16} className="error-icon flex-shrink-0" />
+                <span>{error}</span>
+              </div>
             )}
-          </button>
-        </form>
+
+            <div className="login-input-group">
+              <label className="login-field-label">MANAGER USERNAME</label>
+              <div className="login-input-box">
+                <User size={18} className="input-field-icon" />
+                <input
+                  type="text"
+                  placeholder="e.g. admin"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="login-text-input"
+                  autoComplete="username"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="login-input-group">
+              <label className="login-field-label">PASSWORD / SECURITY PIN</label>
+              <div className="login-input-box">
+                <Lock size={18} className="input-field-icon" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="login-text-input"
+                  autoComplete="current-password"
+                  required
+                />
+                <button
+                  type="button"
+                  className="password-toggle-eye"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label="Toggle password visibility"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+            </div>
+
+            {/* Dark & White Pill Submit Button */}
+            <button
+              type="submit"
+              className="login-submit-pill-btn"
+              disabled={loading}
+              id="login-submit-btn"
+            >
+              {loading ? (
+                <>
+                  <RefreshCw size={17} className="animate-spin-icon" />
+                  <span>Authenticating...</span>
+                </>
+              ) : (
+                <>
+                  <span>Sign In to Console</span>
+                  <div className="submit-btn-arrow-circle">
+                    <ArrowRight size={16} />
+                  </div>
+                </>
+              )}
+            </button>
+          </form>
+
+          {/* Bottom Security Note */}
+          <div className="login-footer-security">
+            <ShieldCheck size={14} className="heart-icon" />
+            <span>Build with love by Zxtni</span>
+          </div>
+        </div>
       </div>
     </div>
   );

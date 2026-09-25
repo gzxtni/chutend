@@ -1,177 +1,312 @@
 /* ═══════════════════════════════════════════════════════════════
-   EMM Dashboard — Mobile Login Page (Sky Blue Theme)
+   Login Page — Minimal Dark & White Theme with Naruto Hero
+   Matching Onboarding Screen Aesthetic
    ═══════════════════════════════════════════════════════════════ */
 
 .login-page {
   position: relative;
   min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-  background: #f0f7fe;
-  z-index: 1;
-}
-
-.login-card {
-  position: relative;
   width: 100%;
-  max-width: 400px;
-  background: #ffffff;
-  border: 1.5px solid #ddecfa;
-  border-radius: 28px;
-  padding: 2.2rem 1.8rem;
-  box-shadow: 0 16px 48px rgba(24, 119, 242, 0.08);
-}
-
-.login-back-btn {
-  background: none;
-  border: none;
-  color: #64748b;
-  font-size: 13.5px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-bottom: 8px;
-  padding: 4px 0;
-  display: inline-flex;
-  align-items: center;
-  transition: color 0.15s ease;
-}
-
-.login-back-btn:hover {
-  color: #0f172a;
-}
-
-.login-header {
-  text-align: center;
-  margin-bottom: 1.8rem;
+  background: #e9f3f0;
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+/* Top Navigation Bar */
+.login-top-bar {
+  padding: 18px 20px 8px;
+  display: flex;
   align-items: center;
+  justify-content: space-between;
+  z-index: 10;
+  flex-shrink: 0;
 }
 
-.login-avatar-wrap {
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  border: 3px solid #8abcf2;
-  overflow: hidden;
-  margin-bottom: 1rem;
-  box-shadow: 0 4px 16px rgba(24, 119, 242, 0.2);
+.login-back-pill {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
-.login-avatar-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.login-back-pill:hover {
+  background: #f8fafc;
+  transform: translateX(-2px);
 }
 
-.login-title {
-  font-size: 1.25rem;
+.login-brand-logo {
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: 5px;
+  color: #111827;
+  font-family: var(--font-sans);
+}
+
+.login-brand-logo span {
+  display: inline-block;
+  letter-spacing: 3px;
+}
+
+.top-spacer {
+  width: 72px; /* balance the back button */
+}
+
+/* Hero Naruto Character Image */
+.login-hero-wrapper {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 6px 20px 0;
+  max-height: 240px;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.login-hero-img {
+  max-height: 230px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.06));
+  animation: heroFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes heroFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Main Login Sheet Container */
+.login-sheet-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.login-card-inner {
+  background: #ffffff;
+  border-radius: 36px 36px 0 0;
+  padding: 30px 24px 34px;
+  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  animation: sheetSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes sheetSlideUp {
+  from {
+    transform: translateY(30px);
+    opacity: 0.8;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Heading Section */
+.login-heading-section {
+  margin-bottom: 22px;
+  text-align: center;
+}
+
+.login-main-title {
+  font-size: 24px;
   font-weight: 800;
-  color: #122844;
-  margin-bottom: 0.25rem;
+  color: #0f172a;
+  letter-spacing: -0.4px;
+  margin-bottom: 4px;
+  text-transform: uppercase;
 }
 
-.login-subtitle {
-  font-size: 0.8125rem;
-  color: #7b97b0;
+.login-sub-description {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.4;
 }
 
+/* Form */
 .login-form {
   display: flex;
   flex-direction: column;
-  gap: 1.2rem;
+  gap: 16px;
 }
 
-.login-error {
+/* Error Alert */
+.login-error-alert {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.75rem 0.85rem;
-  background: #fee2e2;
-  border: 1px solid #fca5a5;
-  border-radius: 12px;
-  font-size: 0.8125rem;
-  color: #dc2626;
+  gap: 8px;
+  padding: 10px 14px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 14px;
+  color: #ef4444;
+  font-size: 13px;
+  font-weight: 500;
 }
 
-.login-field {
+.error-icon {
+  color: #ef4444;
+}
+
+/* Input Groups */
+.login-input-group {
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
+  gap: 6px;
 }
 
-.login-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #2b4563;
+.login-field-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+  letter-spacing: 0.5px;
 }
 
-.login-input-wrap {
+.login-input-box {
   position: relative;
   display: flex;
   align-items: center;
-}
-
-.login-input-icon {
-  position: absolute;
-  left: 14px;
-  color: #7b97b0;
-  pointer-events: none;
-}
-
-.login-input {
-  width: 100%;
-  background: #f7fbff;
-  border: 1.5px solid #d5e7fa;
-  border-radius: 14px;
-  padding: 12px 14px 12px 42px;
-  font-size: 0.875rem;
-  color: #122844;
-  outline: none;
-  font-family: inherit;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 0 14px;
+  height: 52px;
   transition: all 0.15s ease;
 }
 
-.login-input:focus {
-  border-color: #1877f2;
+.login-input-box:focus-within {
+  border-color: #0f172a;
   background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(24, 119, 242, 0.12);
+  box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.06);
 }
 
-.login-input-eye {
-  position: absolute;
-  right: 12px;
+.input-field-icon {
+  color: #94a3b8;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.login-text-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: #0f172a;
+  font-family: inherit;
+}
+
+.login-text-input::placeholder {
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.password-toggle-eye {
   background: none;
   border: none;
-  color: #7b97b0;
+  color: #94a3b8;
   cursor: pointer;
-}
-
-.login-btn {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 8px;
-  background: #1877f2;
-  color: #ffffff;
-  border: none;
-  border-radius: 14px;
-  padding: 14px;
-  font-size: 0.9375rem;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 4px 14px rgba(24, 119, 242, 0.35);
-  margin-top: 0.5rem;
-  transition: all 0.15s ease;
+  padding: 4px;
+  transition: color 0.15s ease;
 }
 
-.login-btn:hover {
-  background: #166fe5;
+.password-toggle-eye:hover {
+  color: #0f172a;
+}
+
+/* Submit Pill Button */
+.login-submit-pill-btn {
+  width: 100%;
+  height: 56px;
+  background: #0f172a;
+  color: #ffffff;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 10px 6px 24px;
+  font-size: 15px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  margin-top: 6px;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.2);
+  transition: transform 0.15s ease, background-color 0.15s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.login-submit-pill-btn:hover {
+  background: #1e293b;
   transform: translateY(-1px);
 }
 
-.login-btn:active {
+.login-submit-pill-btn:active {
   transform: scale(0.98);
+}
+
+.submit-btn-arrow-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.login-submit-pill-btn:hover .submit-btn-arrow-circle {
+  background: #ffffff;
+  color: #0f172a;
+  transform: translateX(2px);
+}
+
+.animate-spin-icon {
+  animation: spinSlow 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spinSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Security Footer */
+.login-footer-security {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 18px;
+  font-size: 11.5px;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.security-icon {
+  color: #10b981;
 }
