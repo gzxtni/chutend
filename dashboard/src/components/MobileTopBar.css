@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════
-   Minimal iOS Top Bar Styles
+   Minimal Clean Web Header Styles (No fake phone frames)
    ═══════════════════════════════════════════════════════════════ */
 
 .minimal-top-bar {
@@ -7,86 +7,124 @@
   top: 0;
   z-index: 99;
   background: #ffffff;
-  padding: 10px 16px 4px;
+  border-bottom: 1px solid #f1f3f5;
+  padding: 12px 18px;
 }
 
-/* iOS Status Bar */
-.ios-status-bar {
+.top-bar-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 32px;
-  color: #111827;
-  font-size: 14px;
-  font-weight: 600;
-  padding: 0 4px;
+  width: 100%;
 }
 
-.ios-status-time {
-  font-weight: 700;
-  letter-spacing: -0.2px;
-}
-
-.ios-dynamic-island {
-  width: 90px;
-  height: 24px;
-  background: #000000;
-  border-radius: 999px;
-}
-
-.ios-status-icons {
+/* Left: Branding & Status */
+.top-brand-group {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 12px;
 }
 
-/* Top Action Row (Bell & User Avatar Initials) */
-.minimal-top-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 10px;
-  margin-top: 6px;
-}
-
-.minimal-circle-btn {
-  position: relative;
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
+.top-avatar-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  overflow: hidden;
   background: #f3f4f6;
-  border: none;
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.top-avatar-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.top-brand-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.brand-name-row {
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: #1f2937;
+  gap: 4px;
   cursor: pointer;
-  transition: background 0.15s ease;
 }
 
-.minimal-circle-btn:hover {
-  background: #e5e7eb;
+.brand-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: #111827;
 }
 
-.minimal-bell-dot {
-  position: absolute;
-  top: 9px;
-  right: 9px;
+.brand-chevron {
+  color: #6b7280;
+}
+
+.brand-status-sub {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.live-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: #10b981;
 }
 
-.minimal-user-badge-btn {
+/* Right: Actions */
+.top-action-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.top-action-btn {
+  position: relative;
   width: 38px;
   height: 38px;
   border-radius: 50%;
   background: #f3f4f6;
-  border: none;
-  font-size: 13.5px;
-  font-weight: 700;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   color: #1f2937;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.top-action-btn:hover {
+  background: #e5e7eb;
+}
+
+.top-bell-dot {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+}
+
+.top-user-pill-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #f3f4f6;
+  border: 1px solid #e5e7eb;
+  font-size: 13px;
+  font-weight: 700;
+  color: #111827;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -94,7 +132,7 @@
   transition: background 0.15s ease;
 }
 
-.minimal-user-badge-btn:hover {
+.top-user-pill-btn:hover {
   background: #e5e7eb;
 }
 
@@ -109,7 +147,7 @@
 .minimal-user-dropdown,
 .minimal-alerts-dropdown {
   position: absolute;
-  top: 80px;
+  top: 60px;
   right: 16px;
   width: 220px;
   background: #ffffff;

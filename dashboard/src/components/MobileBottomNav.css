@@ -91,12 +91,3 @@
 .minimal-fab-btn:active {
   transform: scale(0.94);
 }
-
-/* iOS Home Indicator Bar */
-.ios-home-indicator {
-  width: 134px;
-  height: 5px;
-  background: #111827;
-  border-radius: 999px;
-  opacity: 0.85;
-}

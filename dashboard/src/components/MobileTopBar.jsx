@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Bell, Key, Lock, LogOut, ShieldCheck } from 'lucide-react';
+import { Bell, Key, Lock, LogOut, ShieldCheck, ChevronDown } from 'lucide-react';
 import './MobileTopBar.css';
 
 export default function MobileTopBar({
@@ -19,49 +19,51 @@ export default function MobileTopBar({
 
   return (
     <header className="minimal-top-bar" id="minimal-top-bar">
-      {/* iOS Status Bar with Dynamic Island */}
-      <div className="ios-status-bar">
-        <span className="ios-status-time">9:41</span>
-        <div className="ios-dynamic-island" />
-        <div className="ios-status-icons">
-          {/* Signal bars */}
-          <svg width="16" height="11" viewBox="0 0 17 11" fill="currentColor">
-            <rect x="0" y="8" width="3" height="3" rx="1" />
-            <rect x="4.5" y="5.5" width="3" height="5.5" rx="1" />
-            <rect x="9" y="3" width="3" height="8" rx="1" />
-            <rect x="13.5" y="0" width="3" height="11" rx="1" />
-          </svg>
-          {/* Wifi */}
-          <svg width="15" height="11" viewBox="0 0 15 11" fill="currentColor">
-            <path d="M7.5 9.5a1.25 1.25 0 100-2.5 1.25 1.25 0 000 2.5zM11.5 5.5A5.65 5.65 0 003.5 5.5M14.5 2.5A9.85 9.85 0 00.5 2.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none" />
-          </svg>
-          {/* Battery */}
-          <svg width="22" height="11" viewBox="0 0 25 12" fill="currentColor">
-            <rect x="0.5" y="0.5" width="21" height="11" rx="3.5" fill="none" stroke="currentColor" />
-            <rect x="2.5" y="2.5" width="13" height="7" rx="2" />
-            <path d="M23 4v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-          </svg>
+      <div className="top-bar-inner">
+        {/* Left: Branding & Status */}
+        <div className="top-brand-group">
+          <div className="top-avatar-box" onClick={() => setShowUserMenu(!showUserMenu)}>
+            <img
+              src="/avatar.jpg"
+              alt="Mascot"
+              className="top-avatar-img"
+              onError={(e) => {
+                e.target.style.display = 'none';
+              }}
+            />
+          </div>
+          <div className="top-brand-text">
+            <div className="brand-name-row" onClick={() => setShowUserMenu(!showUserMenu)}>
+              <span className="brand-name">{displayName}</span>
+              <ChevronDown size={14} className="brand-chevron" />
+            </div>
+            <span className="brand-status-sub">
+              <span className="live-dot" /> {activeCount} of {totalDevices} Online
+            </span>
+          </div>
         </div>
-      </div>
 
-      {/* Top Action Row (Bell & User Avatar Initials) */}
-      <div className="minimal-top-actions">
-        <button
-          className="minimal-circle-btn"
-          onClick={() => setShowAlerts(!showAlerts)}
-          aria-label="Notifications"
-        >
-          <Bell size={18} strokeWidth={2} />
-          {activeCount > 0 && <span className="minimal-bell-dot" />}
-        </button>
+        {/* Right: Notification Bell & Initials Button */}
+        <div className="top-action-group">
+          <button
+            className="top-action-btn"
+            onClick={() => setShowAlerts(!showAlerts)}
+            title="System notifications"
+            aria-label="Notifications"
+          >
+            <Bell size={18} strokeWidth={2} />
+            {activeCount > 0 && <span className="top-bell-dot" />}
+          </button>
 
-        <button
-          className="minimal-user-badge-btn"
-          onClick={() => setShowUserMenu(!showUserMenu)}
-          aria-label="User Profile"
-        >
-          {initials}
-        </button>
+          <button
+            className="top-user-pill-btn"
+            onClick={() => setShowUserMenu(!showUserMenu)}
+            title="Account Menu"
+            aria-label="Account"
+          >
+            <span>{initials}</span>
+          </button>
+        </div>
       </div>
 
       {/* User Menu Dropdown */}

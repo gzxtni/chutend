@@ -62,9 +62,6 @@ export default function MobileBottomNav({ activeTab, onTabChange, onQuickAction 
           <Plus size={24} strokeWidth={2.5} />
         </button>
       </div>
-
-      {/* iOS Home Indicator Bar */}
-      <div className="ios-home-indicator" />
     </div>
   );
 }
