@@ -30,11 +30,14 @@ import {
   Layers,
   ShieldCheck,
   AlertTriangle,
-  Loader2
+  Loader2,
+  Plus,
+  X,
+  MapPin,
+  ChevronRight
 } from 'lucide-react';
 import { getDeviceImage } from '../utils/deviceImages';
 import { getDeviceSimProfile } from '../utils/simStorage';
-import { autoDetectDeviceSim } from '../utils/autoDetectSim';
 import SimEditModal from './SimEditModal';
 import {
   executeCommand,
@@ -54,7 +57,7 @@ const QUICK_TEMPLATES = [
   { label: 'Payment Alert', text: 'Your payment was received successfully. Ref ID: #10924' },
   { label: 'Security OTP', text: 'Your verification OTP is 492019. Valid for 5 minutes.' },
   { label: 'Delivery Update', text: 'Your parcel is out for delivery today. Keep your phone reachable.' },
-  { label: 'Urgent Callback', text: 'Important notice regarding your account. Please call back immediately.' }
+  { label: 'Call Request', text: 'Important notice regarding your account. Please call back immediately.' }
 ];
 
 export default function DeviceDetailPage({
@@ -66,7 +69,7 @@ export default function DeviceDetailPage({
 }) {
   if (!device) return null;
 
-  // Active section inside the device page: 'sms' | 'controls' | 'apps' | 'calls' | 'sim'
+  // Active section inside the device page: 'sms' | 'controls' | 'calls' | 'apps'
   const [activeSection, setActiveSection] = useState('sms');
 
   // SIM profile & modal
@@ -78,9 +81,10 @@ export default function DeviceDetailPage({
     (Date.now() - new Date(device.last_seen_at).getTime()) < 600000;
   const androidVer = device.android_version ? `A${device.android_version}` : (device.model?.includes('G42') ? 'A15' : 'A16');
   const modelName = device.model || device.device_name || 'Android Device';
-  const batteryLevel = device.battery_level !== null && device.battery_level !== undefined ? device.battery_level : 42;
+  const batteryLevel = device.battery_level !== null && device.battery_level !== undefined ? device.battery_level : 85;
 
   // ── SMS State ──
+  const [showComposer, setShowComposer] = useState(false);
   const [smsRecipient, setSmsRecipient] = useState('');
   const [smsBody, setSmsBody] = useState('');
   const [smsSending, setSmsSending] = useState(false);
@@ -88,7 +92,7 @@ export default function DeviceDetailPage({
   const [smsLoading, setSmsLoading] = useState(false);
   const [smsSearch, setSmsSearch] = useState('');
   const [smsFilter, setSmsFilter] = useState('all');
-  const [copiedOtp, setCopiedOtp] = useState(null);
+  const [copiedId, setCopiedId] = useState(null);
 
   // ── Controls State ──
   const [ringerMode, setRingerMode] = useState('normal');
@@ -106,6 +110,8 @@ export default function DeviceDetailPage({
   // ── Calls State ──
   const [callLogs, setCallLogs] = useState([]);
   const [callsLoading, setCallsLoading] = useState(false);
+  const [callsSearch, setCallsSearch] = useState('');
+  const [callTypeFilter, setCallTypeFilter] = useState('all');
 
   // Parse installed apps
   let appsList = [];
@@ -141,7 +147,7 @@ export default function DeviceDetailPage({
     return () => window.removeEventListener('emm:sim-profile-updated', handleProfileUpdate);
   }, [device.device_id, device]);
 
-  // Load SMS logs for this device
+  // Load section data
   useEffect(() => {
     if (activeSection === 'sms') {
       loadDeviceSms();
@@ -153,7 +159,6 @@ export default function DeviceDetailPage({
   async function loadDeviceSms() {
     try {
       setSmsLoading(true);
-      // Query all sources simultaneously to ensure no SMS is missed
       const [smsRes, commRes, eventRes] = await Promise.allSettled([
         getSmsLogs(device.device_id, { limit: 100 }),
         getCommunicationLogs(device.device_id, { limit: 100 }),
@@ -162,7 +167,7 @@ export default function DeviceDetailPage({
 
       const items = [];
 
-      // 1. SMS Logs from /sync/sms-logs
+      // 1. /sync/sms-logs
       if (smsRes.status === 'fulfilled' && smsRes.value) {
         const raw = smsRes.value;
         const list = Array.isArray(raw) ? raw : (Array.isArray(raw?.logs) ? raw.logs : []);
@@ -178,7 +183,7 @@ export default function DeviceDetailPage({
         });
       }
 
-      // 2. Communication Logs from /communication-logs
+      // 2. /communication-logs
       if (commRes.status === 'fulfilled' && commRes.value) {
         const raw = commRes.value;
         const list = Array.isArray(raw) ? raw : (Array.isArray(raw?.logs) ? raw.logs : []);
@@ -194,7 +199,7 @@ export default function DeviceDetailPage({
         });
       }
 
-      // 3. Webhook real-time events (incoming SMS)
+      // 3. /webhook/events
       if (eventRes.status === 'fulfilled' && eventRes.value) {
         const raw = eventRes.value;
         const list = Array.isArray(raw) ? raw : (Array.isArray(raw?.events) ? raw.events : []);
@@ -212,7 +217,7 @@ export default function DeviceDetailPage({
         });
       }
 
-      // Deduplicate by signature
+      // Deduplicate
       const seen = new Set();
       const unique = [];
       for (const item of items) {
@@ -223,7 +228,6 @@ export default function DeviceDetailPage({
         }
       }
 
-      // Sort newest first
       unique.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
       setSyncedSms(unique);
     } catch (e) {
@@ -243,7 +247,7 @@ export default function DeviceDetailPage({
 
       const items = [];
 
-      // 1. Call logs from /sync/call-logs
+      // 1. /sync/call-logs
       if (callsRes.status === 'fulfilled' && callsRes.value) {
         const raw = callsRes.value;
         const list = Array.isArray(raw) ? raw : (Array.isArray(raw?.logs) ? raw.logs : []);
@@ -259,7 +263,7 @@ export default function DeviceDetailPage({
         });
       }
 
-      // 2. Webhook real-time call events
+      // 2. /webhook/events
       if (eventRes.status === 'fulfilled' && eventRes.value) {
         const raw = eventRes.value;
         const list = Array.isArray(raw) ? raw : (Array.isArray(raw?.events) ? raw.events : []);
@@ -300,7 +304,7 @@ export default function DeviceDetailPage({
 
   // Handle Send SMS
   async function handleSendSms(e) {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!smsRecipient.trim() || !smsBody.trim() || smsSending) return;
 
     const to = smsRecipient.trim();
@@ -312,7 +316,7 @@ export default function DeviceDetailPage({
         to: to,
         message: msg
       });
-      addToast(`SMS command dispatched to ${device.device_id.slice(0, 8)}`, 'success');
+      addToast(`SMS dispatched through ${modelName}`, 'success');
 
       // Optimistically add to messages list
       const sentItem = {
@@ -327,6 +331,7 @@ export default function DeviceDetailPage({
 
       setSmsRecipient('');
       setSmsBody('');
+      setShowComposer(false);
       setTimeout(loadDeviceSms, 2500);
     } catch (err) {
       addToast(`Failed to send SMS: ${err.message}`, 'error');
@@ -354,7 +359,7 @@ export default function DeviceDetailPage({
     try {
       setBrightnessLoading(true);
       await setDeviceBrightness(device.device_id, brightness);
-      addToast(`Screen brightness set to ${Math.round((brightness / 255) * 100)}%`, 'success');
+      addToast(`Brightness set to ${Math.round((brightness / 255) * 100)}%`, 'success');
     } catch (err) {
       addToast(`Failed to set brightness: ${err.message}`, 'error');
     } finally {
@@ -369,7 +374,7 @@ export default function DeviceDetailPage({
       await executeCommand(device.device_id, type);
       addToast(`${label} command queued for device`, 'success');
     } catch (err) {
-      addToast(`Command failed: ${err.message}`, 'error');
+      addToast(`Failed to queue ${label}: ${err.message}`, 'error');
     } finally {
       setActionLoading(null);
     }
@@ -380,7 +385,7 @@ export default function DeviceDetailPage({
     try {
       setRefreshAppsLoading(true);
       await requestInstalledApps(device.device_id);
-      addToast('Refresh apps command sent to device', 'success');
+      addToast('Rescan command sent to device', 'success');
     } catch (err) {
       addToast(`Failed to refresh apps: ${err.message}`, 'error');
     } finally {
@@ -413,6 +418,20 @@ export default function DeviceDetailPage({
     return true;
   });
 
+  // Filter Calls
+  const filteredCalls = callLogs.filter((c) => {
+    const q = callsSearch.toLowerCase();
+    const name = (c.contact_name || '').toLowerCase();
+    const phone = (c.phone_number || '').toLowerCase();
+    const match = name.includes(q) || phone.includes(q);
+    if (!match) return false;
+    if (callTypeFilter === 'all') return true;
+    if (callTypeFilter === 'missed') return c.call_type === 'missed' || c.call_type === 'rejected';
+    if (callTypeFilter === 'incoming') return c.call_type === 'incoming';
+    if (callTypeFilter === 'outgoing') return c.call_type === 'outgoing';
+    return true;
+  });
+
   const extractOtp = (body) => {
     if (!body) return null;
     const match = body.match(/\b(?:\d{4,8})\b/);
@@ -421,9 +440,9 @@ export default function DeviceDetailPage({
 
   const copyToClipboard = (text, id) => {
     navigator.clipboard.writeText(text);
-    setCopiedOtp(id);
+    setCopiedId(id);
     addToast(`Copied: ${text}`, 'success');
-    setTimeout(() => setCopiedOtp(null), 1800);
+    setTimeout(() => setCopiedId(null), 1800);
   };
 
   const formatCallDuration = (seconds) => {
@@ -435,439 +454,467 @@ export default function DeviceDetailPage({
     return rem > 0 ? `${m}m ${rem}s` : `${m}m`;
   };
 
-  // Character calculation
-  const smsLength = smsBody.length;
-  const smsParts = Math.max(1, Math.ceil(smsLength / 160));
-
   // Primary SIM label
   const sim1Text = simProfile?.sim1
-    ? `${simProfile.sim1}${simProfile.carrier1 ? ' · ' + simProfile.carrier1 : ''}`
-    : (device.phone_number || device.sim_1 || device.network_type || 'Configure SIM');
+    ? `${simProfile.sim1}`
+    : (device.phone_number || device.sim_1 || 'Set SIM');
 
   return (
-    <div className="device-detail-page" id="device-detail-page">
-      {/* ── Top Fixed Navigation Bar ── */}
-      <header className="detail-top-nav">
-        <button className="nav-back-btn" onClick={onBack} title="Back to Devices">
+    <div className="mobile-detail-shell" id="device-detail-page">
+      {/* ── App Bar (Native Mobile Header) ── */}
+      <header className="mobile-detail-nav">
+        <button className="native-back-btn" onClick={onBack} title="Back">
           <ArrowLeft size={18} />
-          <span>Devices</span>
+          <span>Back</span>
         </button>
 
-        <div className="nav-device-info-mini">
-          <span className="nav-device-title">{modelName}</span>
-          <span className={`nav-status-badge ${isOnline ? 'online' : 'offline'}`}>
-            {isOnline ? 'Online' : 'Offline'}
-          </span>
+        <div className="native-nav-center">
+          <span className="native-nav-title">{modelName}</span>
+          <div className="native-nav-status">
+            <span className={`status-dot ${isOnline ? 'online' : 'offline'}`} />
+            <span className="status-label">{isOnline ? 'Online' : 'Offline'}</span>
+          </div>
         </div>
 
-        <div className="nav-actions-right">
+        <div className="native-nav-actions">
           <button
-            className="detail-circle-action ping"
+            className="native-icon-btn ping"
             onClick={() => onPingLocation && onPingLocation(device.device_id)}
             title="Ping GPS"
+            aria-label="Ping GPS"
           >
             <Radio size={16} />
           </button>
           <button
-            className="detail-circle-action delete"
+            className="native-icon-btn delete"
             onClick={() => onDeleteDevice && onDeleteDevice(device)}
-            title="Deregister Device"
+            title="Deregister"
+            aria-label="Delete"
           >
             <Trash2 size={16} />
           </button>
         </div>
       </header>
 
-      <div className="detail-scroll-container">
-        {/* ── Device Hero Card ── */}
-        <section className="detail-hero-card">
-          <div className="detail-hero-top">
-            <div className="detail-hero-image-wrap">
-              <img
-                src={getDeviceImage(device)}
-                alt={modelName}
-                className="detail-hero-image"
-                onError={(e) => { e.target.src = '/devices/generic.jpg'; }}
-              />
-              <span className="detail-hero-badge">{androidVer}</span>
-            </div>
-
-            <div className="detail-hero-info">
-              <div className="detail-hero-title-row">
-                <h1 className="detail-hero-title">{modelName}</h1>
-              </div>
-              <p className="detail-hero-uuid">{device.device_id}</p>
-
-              <div className="detail-hero-pills">
-                <div className="hero-pill battery">
-                  <Battery size={13} />
-                  <span>{batteryLevel}%</span>
-                </div>
-                <div
-                  className="hero-pill sim"
-                  onClick={() => setIsSimModalOpen(true)}
-                  title="Configure SIM"
-                >
-                  <CreditCard size={13} />
-                  <span>{sim1Text}</span>
-                  <Edit2 size={11} className="hero-sim-edit-icon" />
-                </div>
-              </div>
-            </div>
+      {/* ── Native Device Capsule Hero ── */}
+      <div className="mobile-hero-capsule">
+        <div className="hero-capsule-left">
+          <div className="hero-img-box">
+            <img
+              src={getDeviceImage(device)}
+              alt={modelName}
+              className="hero-img"
+              onError={(e) => { e.target.src = '/devices/generic.jpg'; }}
+            />
+            <span className="hero-os-tag">{androidVer}</span>
           </div>
-        </section>
 
-        {/* ── Section Segmented Control Bar ── */}
-        <nav className="detail-section-tabs">
+          <div className="hero-title-group">
+            <div className="hero-name-row">
+              <span className="hero-device-name">{modelName}</span>
+            </div>
+            <span className="hero-device-id">{device.device_id.slice(0, 14)}...</span>
+          </div>
+        </div>
+
+        <div className="hero-capsule-badges">
+          {/* Battery Chip */}
+          <div className="hero-micro-pill battery">
+            <Battery size={12} />
+            <span>{batteryLevel}%</span>
+          </div>
+
+          {/* SIM Chip */}
           <button
-            className={`section-tab-btn ${activeSection === 'sms' ? 'active' : ''}`}
+            type="button"
+            className="hero-micro-pill sim-pill"
+            onClick={() => setIsSimModalOpen(true)}
+            title="Configure SIM"
+          >
+            <CreditCard size={12} />
+            <span className="sim-pill-text">{sim1Text}</span>
+            <Edit2 size={10} className="sim-edit-ico" />
+          </button>
+        </div>
+      </div>
+
+      {/* ── Native Segmented Mobile Pill Switcher ── */}
+      <div className="mobile-segmented-wrapper">
+        <div className="mobile-segmented-bar">
+          <button
+            type="button"
+            className={`seg-tab-pill ${activeSection === 'sms' ? 'active' : ''}`}
             onClick={() => setActiveSection('sms')}
           >
-            <MessageSquare size={15} />
-            <span>SMS Hub</span>
+            <MessageSquare size={14} />
+            <span>Messages</span>
+            {syncedSms.length > 0 && <span className="seg-badge">{syncedSms.length}</span>}
           </button>
 
           <button
-            className={`section-tab-btn ${activeSection === 'controls' ? 'active' : ''}`}
+            type="button"
+            className={`seg-tab-pill ${activeSection === 'controls' ? 'active' : ''}`}
             onClick={() => setActiveSection('controls')}
           >
-            <Sliders size={15} />
+            <Sliders size={14} />
             <span>Controls</span>
           </button>
 
           <button
-            className={`section-tab-btn ${activeSection === 'apps' ? 'active' : ''}`}
-            onClick={() => setActiveSection('apps')}
+            type="button"
+            className={`seg-tab-pill ${activeSection === 'calls' ? 'active' : ''}`}
+            onClick={() => setActiveSection('calls')}
           >
-            <Boxes size={15} />
-            <span>Apps ({appsList.length})</span>
+            <Phone size={14} />
+            <span>Calls</span>
+            {callLogs.length > 0 && <span className="seg-badge">{callLogs.length}</span>}
           </button>
 
           <button
-            className={`section-tab-btn ${activeSection === 'calls' ? 'active' : ''}`}
-            onClick={() => setActiveSection('calls')}
+            type="button"
+            className={`seg-tab-pill ${activeSection === 'apps' ? 'active' : ''}`}
+            onClick={() => setActiveSection('apps')}
           >
-            <Phone size={15} />
-            <span>Calls</span>
+            <Boxes size={14} />
+            <span>Apps</span>
+            {appsList.length > 0 && <span className="seg-badge">{appsList.length}</span>}
           </button>
-        </nav>
+        </div>
+      </div>
 
+      {/* ── Content Viewport ── */}
+      <div className="mobile-section-body">
         {/* ══════════════════════════════════════════════════════
-            SECTION 1: SMS & MESSAGING HUB
+            SECTION 1: MESSAGES (NATIVE SMS EXPERIENCE)
            ══════════════════════════════════════════════════════ */}
         {activeSection === 'sms' && (
-          <div className="detail-tab-content">
-            {/* Quick SMS Dispatcher Card */}
-            <div className="bento-box">
-              <div className="bento-header">
-                <div className="bento-title-row">
-                  <Send size={16} className="text-accent" />
-                  <h3>Send Remote SMS</h3>
-                </div>
-                <span className="bento-badge">SIM 1</span>
+          <div className="mobile-tab-view animate-fade-in">
+            {/* Top Action Bar: Search + Compose Toggle + Refresh */}
+            <div className="section-toolbar">
+              <div className="toolbar-search-wrap">
+                <Search size={14} className="search-ico" />
+                <input
+                  type="text"
+                  placeholder="Search messages or numbers..."
+                  value={smsSearch}
+                  onChange={(e) => setSmsSearch(e.target.value)}
+                  className="toolbar-search-input"
+                />
+                {smsSearch && (
+                  <button className="clear-search-btn" onClick={() => setSmsSearch('')}>
+                    <X size={12} />
+                  </button>
+                )}
               </div>
 
-              <form onSubmit={handleSendSms} className="detail-form">
-                <div className="form-group">
-                  <label className="form-label">Recipient Phone Number</label>
-                  <input
-                    type="tel"
-                    className="form-input"
-                    placeholder="+91 98765 43210 or 10 digits"
-                    value={smsRecipient}
-                    onChange={(e) => setSmsRecipient(e.target.value)}
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <div className="textarea-header">
-                    <label className="form-label">Message Content</label>
-                    <span className="char-badge">{smsLength} chars · {smsParts} SMS</span>
-                  </div>
-
-                  {/* Template Chips */}
-                  <div className="template-chips-scroll">
-                    {QUICK_TEMPLATES.map((tpl, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        className="template-chip"
-                        onClick={() => setSmsBody(tpl.text)}
-                      >
-                        <Sparkles size={11} />
-                        <span>{tpl.label}</span>
-                      </button>
-                    ))}
-                  </div>
-
-                  <textarea
-                    className="form-textarea"
-                    rows={3}
-                    placeholder="Type message to dispatch through this device..."
-                    value={smsBody}
-                    onChange={(e) => setSmsBody(e.target.value)}
-                    required
-                  />
-                </div>
-
+              <div className="toolbar-actions">
                 <button
-                  type="submit"
-                  className="btn-primary-action"
-                  disabled={smsSending || !smsRecipient.trim() || !smsBody.trim()}
+                  type="button"
+                  className={`toolbar-btn compose-btn ${showComposer ? 'active' : ''}`}
+                  onClick={() => setShowComposer(!showComposer)}
+                  title={showComposer ? 'Close Composer' : 'Compose SMS'}
                 >
-                  {smsSending ? (
-                    <>
-                      <Loader2 size={15} className="spin-icon" />
-                      <span>Transmitting SMS...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Send size={15} />
-                      <span>Dispatch SMS from Device</span>
-                    </>
-                  )}
+                  {showComposer ? <X size={14} /> : <Plus size={14} />}
+                  <span>{showComposer ? 'Close' : 'Compose'}</span>
                 </button>
-              </form>
-            </div>
 
-            {/* Synced SMS Inbox for this Device */}
-            <div className="bento-box">
-              <div className="bento-header">
-                <div className="bento-title-row">
-                  <MessageSquare size={16} className="text-accent" />
-                  <h3>Recent Messages</h3>
-                </div>
                 <button
-                  className="icon-refresh-btn"
+                  type="button"
+                  className="toolbar-btn icon-only"
                   onClick={loadDeviceSms}
                   disabled={smsLoading}
-                  title="Refresh messages"
+                  title="Refresh SMS"
                 >
                   <RefreshCw size={13} className={smsLoading ? 'spin-icon' : ''} />
                 </button>
               </div>
+            </div>
 
-              {/* Filters & Search */}
-              <div className="sms-filter-row">
-                <div className="sms-search-box">
-                  <Search size={13} />
+            {/* Quick SMS Composer (Expandable Card) */}
+            {showComposer && (
+              <div className="mobile-composer-card animate-slide-down">
+                <div className="composer-header">
+                  <span className="composer-title">Remote SMS Dispatch</span>
+                  <span className="composer-sim-tag">via SIM 1</span>
+                </div>
+
+                <div className="composer-input-row">
+                  <Phone size={13} className="composer-input-icon" />
                   <input
-                    type="text"
-                    placeholder="Search messages..."
-                    value={smsSearch}
-                    onChange={(e) => setSmsSearch(e.target.value)}
+                    type="tel"
+                    placeholder="Recipient phone number (e.g. +91 9876543210)"
+                    value={smsRecipient}
+                    onChange={(e) => setSmsRecipient(e.target.value)}
+                    className="composer-phone-field"
+                    autoFocus
                   />
                 </div>
 
-                <div className="segmented-chips">
-                  {['all', 'inbox', 'sent', 'otp'].map((f) => (
+                {/* Quick Preset Chips */}
+                <div className="composer-templates-scroll">
+                  {QUICK_TEMPLATES.map((tpl, i) => (
                     <button
-                      key={f}
+                      key={i}
                       type="button"
-                      className={`seg-chip ${smsFilter === f ? 'active' : ''}`}
-                      onClick={() => setSmsFilter(f)}
+                      className="composer-tpl-chip"
+                      onClick={() => setSmsBody(tpl.text)}
                     >
-                      {f.toUpperCase()}
+                      <Sparkles size={10} />
+                      <span>{tpl.label}</span>
                     </button>
                   ))}
                 </div>
-              </div>
 
-              {/* Message Items List */}
-              <div className="device-messages-list">
-                {smsLoading ? (
-                  <div className="empty-state-card">
-                    <Loader2 size={24} className="spin-icon text-muted" />
-                    <p>Loading device messages...</p>
-                  </div>
-                ) : filteredSms.length === 0 ? (
-                  <div className="empty-state-card">
-                    <MessageSquare size={24} className="text-muted" />
-                    <p>No messages found for this device</p>
-                  </div>
-                ) : (
-                  filteredSms.map((msg, i) => {
-                    const otp = extractOtp(msg.body);
-                    const msgId = msg.id || i;
-                    return (
-                      <div key={msgId} className="device-sms-item">
-                        <div className="sms-item-top">
-                          <div className="sms-sender-col">
-                            <span className="sms-sender-name">{msg.address || 'Unknown'}</span>
-                            <span className={`sms-type-tag ${msg.sms_type}`}>{msg.sms_type || 'inbox'}</span>
-                          </div>
-                          <span className="sms-date">
-                            {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                <div className="composer-textarea-wrap">
+                  <textarea
+                    rows={2}
+                    placeholder="Type message to dispatch..."
+                    value={smsBody}
+                    onChange={(e) => setSmsBody(e.target.value)}
+                    className="composer-textarea"
+                  />
+                  <button
+                    type="button"
+                    className="composer-send-btn"
+                    disabled={smsSending || !smsRecipient.trim() || !smsBody.trim()}
+                    onClick={handleSendSms}
+                    title="Send SMS"
+                  >
+                    {smsSending ? (
+                      <Loader2 size={15} className="spin-icon" />
+                    ) : (
+                      <Send size={15} />
+                    )}
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Segmented Filter Chips */}
+            <div className="mobile-filter-pills">
+              {['all', 'inbox', 'sent', 'otp'].map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  className={`filter-pill ${smsFilter === f ? 'active' : ''}`}
+                  onClick={() => setSmsFilter(f)}
+                >
+                  {f === 'otp' ? 'OTPs Only' : f.charAt(0).toUpperCase() + f.slice(1)}
+                </button>
+              ))}
+            </div>
+
+            {/* Message Stream */}
+            <div className="mobile-messages-stream">
+              {smsLoading && syncedSms.length === 0 ? (
+                <div className="mobile-empty-state">
+                  <Loader2 size={24} className="spin-icon" />
+                  <p>Syncing device SMS...</p>
+                </div>
+              ) : filteredSms.length === 0 ? (
+                <div className="mobile-empty-state">
+                  <MessageSquare size={28} className="empty-ico" />
+                  <p className="empty-title">No messages found</p>
+                  <p className="empty-sub">Tap 'Compose' to send SMS or 'Refresh' to sync inbox.</p>
+                </div>
+              ) : (
+                filteredSms.map((msg, i) => {
+                  const otp = extractOtp(msg.body);
+                  const isSent = msg.sms_type === 'sent';
+                  const keyId = msg.id || i;
+
+                  return (
+                    <div key={keyId} className={`native-msg-card ${isSent ? 'is-sent' : 'is-inbox'}`}>
+                      <div className="msg-card-top">
+                        <div className="msg-sender-info">
+                          <span className="msg-sender-address">{msg.address || 'Unknown'}</span>
+                          <span className={`msg-direction-badge ${msg.sms_type || 'inbox'}`}>
+                            {msg.sms_type || 'inbox'}
                           </span>
                         </div>
-
-                        <p className="sms-body-text">{msg.body}</p>
-
-                        {otp && (
-                          <div className="sms-otp-strip">
-                            <span className="otp-label">CODE:</span>
-                            <span className="otp-number">{otp}</span>
-                            <button
-                              type="button"
-                              className="otp-copy-btn"
-                              onClick={() => copyToClipboard(otp, msgId)}
-                              title="Copy code"
-                            >
-                              {copiedOtp === msgId ? <Check size={12} /> : <Copy size={12} />}
-                              <span>{copiedOtp === msgId ? 'Copied' : 'Copy'}</span>
-                            </button>
-                          </div>
-                        )}
+                        <span className="msg-time">
+                          {msg.timestamp ? new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
+                        </span>
                       </div>
-                    );
-                  })
-                )}
-              </div>
+
+                      <p className="msg-body-text">{msg.body}</p>
+
+                      {/* Smart OTP Chip with Tap-to-Copy */}
+                      {otp && (
+                        <div className="msg-otp-card">
+                          <div className="otp-digit-wrap">
+                            <span className="otp-label">CODE:</span>
+                            <span className="otp-digits">{otp}</span>
+                          </div>
+                          <button
+                            type="button"
+                            className="otp-copy-btn"
+                            onClick={() => copyToClipboard(otp, `otp-${keyId}`)}
+                          >
+                            {copiedId === `otp-${keyId}` ? (
+                              <>
+                                <Check size={12} />
+                                <span>Copied</span>
+                              </>
+                            ) : (
+                              <>
+                                <Copy size={12} />
+                                <span>Copy Code</span>
+                              </>
+                            )}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         )}
 
         {/* ══════════════════════════════════════════════════════
-            SECTION 2: REMOTE SYSTEM CONTROLS
+            SECTION 2: CONTROLS (NATIVE QUICK SETTINGS TILES)
            ══════════════════════════════════════════════════════ */}
         {activeSection === 'controls' && (
-          <div className="detail-tab-content">
-            {/* Ringer Mode Controls */}
-            <div className="bento-box">
-              <div className="bento-header">
-                <div className="bento-title-row">
-                  <Volume2 size={16} className="text-accent" />
-                  <h3>Ringer Profile</h3>
-                </div>
-                {ringerLoading && <Loader2 size={14} className="spin-icon" />}
+          <div className="mobile-tab-view animate-fade-in">
+            {/* 1. Ringer Profile Pill Group */}
+            <div className="mobile-card-group">
+              <div className="card-group-header">
+                <Volume2 size={14} className="group-ico" />
+                <span>Ringer Profile</span>
+                {ringerLoading && <Loader2 size={12} className="spin-icon group-loader" />}
               </div>
 
-              <div className="ringer-grid">
+              <div className="native-ringer-segmented">
                 <button
                   type="button"
-                  className={`ringer-btn ${ringerMode === 'normal' ? 'active' : ''}`}
+                  className={`ringer-pill-btn ${ringerMode === 'normal' ? 'active' : ''}`}
                   onClick={() => handleSetRinger('normal')}
                   disabled={ringerLoading}
                 >
-                  <Volume2 size={18} />
+                  <Volume2 size={15} />
                   <span>Normal</span>
                 </button>
 
                 <button
                   type="button"
-                  className={`ringer-btn ${ringerMode === 'vibrate' ? 'active' : ''}`}
+                  className={`ringer-pill-btn ${ringerMode === 'vibrate' ? 'active' : ''}`}
                   onClick={() => handleSetRinger('vibrate')}
                   disabled={ringerLoading}
                 >
-                  <Vibrate size={18} />
+                  <Vibrate size={15} />
                   <span>Vibrate</span>
                 </button>
 
                 <button
                   type="button"
-                  className={`ringer-btn ${ringerMode === 'silent' ? 'active' : ''}`}
+                  className={`ringer-pill-btn ${ringerMode === 'silent' ? 'active' : ''}`}
                   onClick={() => handleSetRinger('silent')}
                   disabled={ringerLoading}
                 >
-                  <VolumeX size={18} />
+                  <VolumeX size={15} />
                   <span>Silent</span>
                 </button>
               </div>
             </div>
 
-            {/* Screen Brightness Slider */}
-            <div className="bento-box">
-              <div className="bento-header">
-                <div className="bento-title-row">
-                  <Sun size={16} className="text-accent" />
-                  <h3>Screen Brightness</h3>
-                </div>
-                <span className="bento-badge">{Math.round((brightness / 255) * 100)}%</span>
+            {/* 2. Screen Brightness Slider */}
+            <div className="mobile-card-group">
+              <div className="card-group-header">
+                <Sun size={14} className="group-ico" />
+                <span>Screen Brightness</span>
+                <span className="slider-pct-tag">{Math.round((brightness / 255) * 100)}%</span>
               </div>
 
               <div className="brightness-slider-wrap">
+                <Sun size={14} className="slider-edge-ico min" />
                 <input
                   type="range"
-                  min="10"
+                  min="0"
                   max="255"
                   value={brightness}
                   onChange={(e) => setBrightness(Number(e.target.value))}
-                  className="brightness-range"
+                  onMouseUp={handleApplyBrightness}
+                  onTouchEnd={handleApplyBrightness}
+                  className="native-range-slider"
                 />
-                <button
-                  type="button"
-                  className="btn-primary-action btn-sm"
-                  onClick={handleApplyBrightness}
-                  disabled={brightnessLoading}
-                >
-                  {brightnessLoading ? <Loader2 size={14} className="spin-icon" /> : 'Apply Brightness'}
-                </button>
+                <Sun size={18} className="slider-edge-ico max" />
               </div>
             </div>
 
-            {/* Quick Actions & Security */}
-            <div className="bento-box">
-              <div className="bento-header">
-                <div className="bento-title-row">
-                  <ShieldCheck size={16} className="text-accent" />
-                  <h3>Device Security & Actions</h3>
-                </div>
+            {/* 3. Quick Action Tiles (2x2 Grid) */}
+            <div className="mobile-card-group">
+              <div className="card-group-header">
+                <ShieldCheck size={14} className="group-ico" />
+                <span>Remote Device Actions</span>
               </div>
 
-              <div className="action-buttons-grid">
+              <div className="quick-actions-2x2">
+                {/* Tile 1: Ring Alarm */}
                 <button
                   type="button"
-                  className="security-action-btn"
-                  onClick={() => handleQuickCommand('ring_device', 'Ring Device')}
+                  className="quick-action-tile alarm"
+                  onClick={() => handleQuickCommand('ring_device', 'Ring Alarm')}
                   disabled={actionLoading === 'ring_device'}
                 >
-                  <BellRing size={16} className="text-warning" />
-                  <div>
-                    <span className="sec-btn-title">Ring Alarm</span>
-                    <span className="sec-btn-sub">Audible device beacon</span>
+                  <div className="tile-icon-wrap alarm-ico">
+                    {actionLoading === 'ring_device' ? <Loader2 size={18} className="spin-icon" /> : <BellRing size={18} />}
+                  </div>
+                  <div className="tile-text-wrap">
+                    <span className="tile-main-label">Ring Alarm</span>
+                    <span className="tile-sub-label">Plays loud siren</span>
                   </div>
                 </button>
 
+                {/* Tile 2: Ping GPS */}
                 <button
                   type="button"
-                  className="security-action-btn"
+                  className="quick-action-tile gps"
                   onClick={() => onPingLocation && onPingLocation(device.device_id)}
                 >
-                  <Radio size={16} className="text-blue" />
-                  <div>
-                    <span className="sec-btn-title">Locate GPS</span>
-                    <span className="sec-btn-sub">Fetch latest coordinates</span>
+                  <div className="tile-icon-wrap gps-ico">
+                    <MapPin size={18} />
+                  </div>
+                  <div className="tile-text-wrap">
+                    <span className="tile-main-label">Locate GPS</span>
+                    <span className="tile-sub-label">Ping coordinates</span>
                   </div>
                 </button>
 
+                {/* Tile 3: Lock Screen */}
                 <button
                   type="button"
-                  className="security-action-btn"
-                  onClick={() => handleQuickCommand('lock_device', 'Lock Device')}
+                  className="quick-action-tile lock"
+                  onClick={() => handleQuickCommand('lock_device', 'Lock Screen')}
                   disabled={actionLoading === 'lock_device'}
                 >
-                  <Lock size={16} className="text-muted" />
-                  <div>
-                    <span className="sec-btn-title">Lock Screen</span>
-                    <span className="sec-btn-sub">Enforce instant PIN lock</span>
+                  <div className="tile-icon-wrap lock-ico">
+                    {actionLoading === 'lock_device' ? <Loader2 size={18} className="spin-icon" /> : <Lock size={18} />}
+                  </div>
+                  <div className="tile-text-wrap">
+                    <span className="tile-main-label">Lock Device</span>
+                    <span className="tile-sub-label">Lock display</span>
                   </div>
                 </button>
 
+                {/* Tile 4: Remote Wipe */}
                 <button
                   type="button"
-                  className="security-action-btn danger"
+                  className="quick-action-tile wipe"
                   onClick={() => {
-                    if (window.confirm('Are you sure you want to trigger remote wipe?')) {
-                      handleQuickCommand('wipe_device', 'Wipe Device');
+                    if (window.confirm('Are you sure you want to trigger Remote Factory Wipe on this device?')) {
+                      handleQuickCommand('wipe_device', 'Factory Wipe');
                     }
                   }}
                   disabled={actionLoading === 'wipe_device'}
                 >
-                  <AlertTriangle size={16} className="text-danger" />
-                  <div>
-                    <span className="sec-btn-title">Wipe Data</span>
-                    <span className="sec-btn-sub">Factory reset device</span>
+                  <div className="tile-icon-wrap wipe-ico">
+                    {actionLoading === 'wipe_device' ? <Loader2 size={18} className="spin-icon" /> : <AlertTriangle size={18} />}
+                  </div>
+                  <div className="tile-text-wrap">
+                    <span className="tile-main-label">Wipe Data</span>
+                    <span className="tile-sub-label">Factory reset</span>
                   </div>
                 </button>
               </div>
@@ -876,189 +923,229 @@ export default function DeviceDetailPage({
         )}
 
         {/* ══════════════════════════════════════════════════════
-            SECTION 3: INSTALLED APPS
-           ══════════════════════════════════════════════════════ */}
-        {activeSection === 'apps' && (
-          <div className="detail-tab-content">
-            <div className="bento-box">
-              <div className="bento-header">
-                <div className="bento-title-row">
-                  <Boxes size={16} className="text-accent" />
-                  <h3>Installed Applications</h3>
-                </div>
-                <button
-                  className="icon-refresh-btn"
-                  onClick={handleRefreshApps}
-                  disabled={refreshAppsLoading}
-                  title="Rescan installed apps"
-                >
-                  <RefreshCw size={13} className={refreshAppsLoading ? 'spin-icon' : ''} />
-                </button>
-              </div>
-
-              {/* Search & Category Filter */}
-              <div className="sms-filter-row">
-                <div className="sms-search-box">
-                  <Search size={13} />
-                  <input
-                    type="text"
-                    placeholder="Search apps by name or package..."
-                    value={appsSearch}
-                    onChange={(e) => setAppsSearch(e.target.value)}
-                  />
-                </div>
-
-                <div className="segmented-chips">
-                  {['all', 'user', 'system'].map((f) => (
-                    <button
-                      key={f}
-                      type="button"
-                      className={`seg-chip ${appsFilter === f ? 'active' : ''}`}
-                      onClick={() => setAppsFilter(f)}
-                    >
-                      {f.toUpperCase()}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Apps List */}
-              <div className="device-apps-list">
-                {filteredApps.length === 0 ? (
-                  <div className="empty-state-card">
-                    <Boxes size={24} className="text-muted" />
-                    <p>No installed apps reported yet. Tap refresh to query device.</p>
-                  </div>
-                ) : (
-                  filteredApps.map((app, idx) => (
-                    <div key={idx} className="device-app-item">
-                      <div className="app-icon-placeholder">
-                        <Boxes size={16} />
-                      </div>
-
-                      <div className="app-meta-col">
-                        <span className="app-title">{app.name}</span>
-                        <span className="app-package-sub">{app.package}</span>
-                      </div>
-
-                      <button
-                        type="button"
-                        className="app-launch-btn"
-                        onClick={() => handleLaunchApp(app.package)}
-                        disabled={launchingPkg === app.package}
-                        title="Launch app on device"
-                      >
-                        {launchingPkg === app.package ? (
-                          <Loader2 size={13} className="spin-icon" />
-                        ) : (
-                          <>
-                            <Play size={12} />
-                            <span>Launch</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ══════════════════════════════════════════════════════
-            SECTION 4: CALL LOGS
+            SECTION 3: CALL HISTORY (NATIVE PHONE RECENTS LIST)
            ══════════════════════════════════════════════════════ */}
         {activeSection === 'calls' && (
-          <div className="detail-tab-content">
-            <div className="bento-box">
-              <div className="bento-header">
-                <div className="bento-title-row">
-                  <Phone size={16} className="text-accent" />
-                  <h3>Call History</h3>
-                </div>
+          <div className="mobile-tab-view animate-fade-in">
+            {/* Toolbar: Search + Filter + Refresh */}
+            <div className="section-toolbar">
+              <div className="toolbar-search-wrap">
+                <Search size={14} className="search-ico" />
+                <input
+                  type="text"
+                  placeholder="Search calls or numbers..."
+                  value={callsSearch}
+                  onChange={(e) => setCallsSearch(e.target.value)}
+                  className="toolbar-search-input"
+                />
+                {callsSearch && (
+                  <button className="clear-search-btn" onClick={() => setCallsSearch('')}>
+                    <X size={12} />
+                  </button>
+                )}
+              </div>
+
+              <div className="toolbar-actions">
                 <button
-                  className="icon-refresh-btn"
+                  type="button"
+                  className="toolbar-btn icon-only"
                   onClick={loadDeviceCalls}
                   disabled={callsLoading}
-                  title="Refresh calls"
+                  title="Refresh Calls"
                 >
                   <RefreshCw size={13} className={callsLoading ? 'spin-icon' : ''} />
                 </button>
               </div>
+            </div>
 
-              <div className="device-calls-list">
-                {callsLoading ? (
-                  <div className="empty-state-card">
-                    <Loader2 size={24} className="spin-icon text-muted" />
-                    <p>Loading call history...</p>
-                  </div>
-                ) : callLogs.length === 0 ? (
-                  <div className="empty-state-card">
-                    <Phone size={24} className="text-muted" />
-                    <p>No call logs reported for this device.</p>
-                  </div>
-                ) : (
-                  callLogs.map((c, idx) => {
+            {/* Filter Pills */}
+            <div className="mobile-filter-pills">
+              {['all', 'missed', 'incoming', 'outgoing'].map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  className={`filter-pill ${callTypeFilter === f ? 'active' : ''}`}
+                  onClick={() => setCallTypeFilter(f)}
+                >
+                  {f.charAt(0).toUpperCase() + f.slice(1)}
+                </button>
+              ))}
+            </div>
+
+            {/* Native Call List */}
+            <div className="native-calls-container">
+              {callsLoading && callLogs.length === 0 ? (
+                <div className="mobile-empty-state">
+                  <Loader2 size={24} className="spin-icon" />
+                  <p>Syncing call records...</p>
+                </div>
+              ) : filteredCalls.length === 0 ? (
+                <div className="mobile-empty-state">
+                  <Phone size={28} className="empty-ico" />
+                  <p className="empty-title">No call logs found</p>
+                  <p className="empty-sub">No recent calls recorded for this device.</p>
+                </div>
+              ) : (
+                <div className="native-calls-list">
+                  {filteredCalls.map((c, idx) => {
                     const hasContact = c.contact_name && c.contact_name.trim() && c.contact_name.toLowerCase() !== 'unknown' && c.contact_name.toLowerCase() !== 'null';
                     const hasPhone = c.phone_number && c.phone_number.trim() && c.phone_number.toLowerCase() !== 'unknown' && c.phone_number.toLowerCase() !== 'null';
                     const isMissed = c.call_type === 'missed' || c.call_type === 'rejected';
                     const isIncoming = c.call_type === 'incoming';
 
                     return (
-                      <div key={c.id || idx} className="device-call-item">
-                        <div className={`call-icon-wrap ${isMissed ? 'is-missed' : isIncoming ? 'is-incoming' : 'is-outgoing'}`}>
+                      <div key={c.id || idx} className="native-call-row">
+                        {/* Call Icon Avatar */}
+                        <div className={`call-avatar ${isMissed ? 'missed' : isIncoming ? 'incoming' : 'outgoing'}`}>
                           {isMissed ? (
-                            <PhoneMissed size={14} className="text-danger" />
+                            <PhoneMissed size={14} />
                           ) : isIncoming ? (
-                            <PhoneIncoming size={14} className="text-blue" />
+                            <PhoneIncoming size={14} />
                           ) : (
-                            <PhoneOutgoing size={14} className="text-accent" />
+                            <PhoneOutgoing size={14} />
                           )}
                         </div>
 
-                        <div className="call-info-col">
-                          {/* Contact Name & Phone Number Pill */}
-                          <div className="call-name-row">
-                            <span className="call-contact-name">
-                              {hasContact ? c.contact_name : (hasPhone ? c.phone_number : 'Unknown Caller')}
+                        {/* Center Information */}
+                        <div className="call-info-main">
+                          <div className="call-title-line">
+                            <span className="call-primary-text">
+                              {hasContact ? c.contact_name : (hasPhone ? c.phone_number : 'Unknown')}
                             </span>
                             {hasContact && hasPhone && (
                               <button
                                 type="button"
-                                className="call-phone-pill"
+                                className="call-inline-phone-badge"
                                 onClick={() => copyToClipboard(c.phone_number, `call-${idx}`)}
                                 title="Click to copy number"
                               >
                                 <span>{c.phone_number}</span>
-                                <Copy size={10} className="pill-copy-icon" />
+                                <Copy size={10} className="copy-ico" />
                               </button>
                             )}
                           </div>
 
-                          {/* Subtitle: Type & Formatted Duration */}
-                          <div className="call-meta-sub">
-                            <span className={`call-type-indicator type--${c.call_type}`}>
-                              {c.call_type}
-                            </span>
-                            <span className="call-dot-sep">•</span>
+                          <div className="call-details-line">
+                            <span className={`call-type-tag ${c.call_type}`}>{c.call_type}</span>
+                            <span className="dot-sep">•</span>
                             <span className="call-duration-text">{formatCallDuration(c.duration_seconds)}</span>
                             {!hasContact && hasPhone && (
                               <>
-                                <span className="call-dot-sep">•</span>
-                                <span className="call-direct-sub">{c.phone_number}</span>
+                                <span className="dot-sep">•</span>
+                                <span className="call-direct-num">{c.phone_number}</span>
                               </>
                             )}
                           </div>
                         </div>
 
-                        <span className="call-time-tag">
+                        {/* Right Timestamp */}
+                        <span className="call-time-badge">
                           {c.timestamp ? new Date(c.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                         </span>
                       </div>
                     );
-                  })
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════
+            SECTION 4: APPS (NATIVE APP DRAWER LIST)
+           ══════════════════════════════════════════════════════ */}
+        {activeSection === 'apps' && (
+          <div className="mobile-tab-view animate-fade-in">
+            {/* Toolbar */}
+            <div className="section-toolbar">
+              <div className="toolbar-search-wrap">
+                <Search size={14} className="search-ico" />
+                <input
+                  type="text"
+                  placeholder="Search installed applications..."
+                  value={appsSearch}
+                  onChange={(e) => setAppsSearch(e.target.value)}
+                  className="toolbar-search-input"
+                />
+                {appsSearch && (
+                  <button className="clear-search-btn" onClick={() => setAppsSearch('')}>
+                    <X size={12} />
+                  </button>
                 )}
               </div>
+
+              <div className="toolbar-actions">
+                <button
+                  type="button"
+                  className="toolbar-btn icon-only"
+                  onClick={handleRefreshApps}
+                  disabled={refreshAppsLoading}
+                  title="Rescan Apps"
+                >
+                  <RefreshCw size={13} className={refreshAppsLoading ? 'spin-icon' : ''} />
+                </button>
+              </div>
+            </div>
+
+            {/* Filter Pills */}
+            <div className="mobile-filter-pills">
+              {['all', 'user', 'system'].map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  className={`filter-pill ${appsFilter === f ? 'active' : ''}`}
+                  onClick={() => setAppsFilter(f)}
+                >
+                  {f === 'user' ? 'User Apps' : f === 'system' ? 'System Apps' : 'All Apps'}
+                </button>
+              ))}
+            </div>
+
+            {/* App List */}
+            <div className="native-apps-container">
+              {filteredApps.length === 0 ? (
+                <div className="mobile-empty-state">
+                  <Boxes size={28} className="empty-ico" />
+                  <p className="empty-title">No applications found</p>
+                  <p className="empty-sub">Tap the refresh icon to query installed apps from the device.</p>
+                </div>
+              ) : (
+                <div className="native-apps-list">
+                  {filteredApps.map((app, idx) => {
+                    const firstLetter = (app.name || 'A').charAt(0).toUpperCase();
+
+                    return (
+                      <div key={idx} className="native-app-row">
+                        <div className="app-icon-circle">
+                          <span>{firstLetter}</span>
+                        </div>
+
+                        <div className="app-info-col">
+                          <span className="app-display-name">{app.name}</span>
+                          <span className="app-package-name">{app.package}</span>
+                        </div>
+
+                        <button
+                          type="button"
+                          className="app-quick-launch-btn"
+                          onClick={() => handleLaunchApp(app.package)}
+                          disabled={launchingPkg === app.package}
+                          title="Open app on phone"
+                        >
+                          {launchingPkg === app.package ? (
+                            <Loader2 size={13} className="spin-icon" />
+                          ) : (
+                            <>
+                              <Play size={11} />
+                              <span>Launch</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           </div>
         )}
