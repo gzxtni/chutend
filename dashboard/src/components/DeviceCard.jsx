@@ -16,6 +16,7 @@ import {
   Compass,
   Clock
 } from 'lucide-react';
+import { getDeviceDisplayName } from '../utils/deviceNames';
 import './DeviceCard.css';
 
 function formatDate(dateStr) {
@@ -91,7 +92,7 @@ export default function DeviceCard({
           <Smartphone size={20} className="avatar-phone-icon" />
         </div>
         <div className="device-info">
-          <h3 className="device-name">{device.device_name || device.device_id}</h3>
+          <h3 className="device-name">{getDeviceDisplayName(device)}</h3>
           <p className="device-id font-mono">{device.device_id}</p>
         </div>
         <div className={`status-badge ${isOnline ? 'status-badge--online' : device.is_active ? 'status-badge--active' : 'status-badge--inactive'}`}>

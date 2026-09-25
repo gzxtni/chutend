@@ -1,4 +1,5 @@
 import { Database, FileText, Smartphone, HardDrive, Wifi, Radio } from 'lucide-react';
+import { getDeviceDisplayName } from '../utils/deviceNames';
 import './DataTab.css';
 
 export default function DataTab({ devices = [], onFetchLogs }) {
@@ -68,7 +69,7 @@ export default function DataTab({ devices = [], onFetchLogs }) {
               <div className="data-device-left">
                 <span className="data-index-pill">#{devices.length - idx}</span>
                 <div>
-                  <h5 className="data-device-name">{device.model || device.device_name || 'Terminal'}</h5>
+                  <h5 className="data-device-name">{getDeviceDisplayName(device)}</h5>
                   <p className="data-device-id">{device.sim_1 || device.phone_number || device.device_id.slice(0, 16)}</p>
                 </div>
               </div>

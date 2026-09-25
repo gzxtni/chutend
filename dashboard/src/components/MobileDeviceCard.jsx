@@ -3,6 +3,7 @@ import { Radio, Trash2, Battery, Sliders, ChevronRight, Edit2 } from 'lucide-rea
 import { getDeviceImage } from '../utils/deviceImages';
 import { getDeviceSimProfile } from '../utils/simStorage';
 import { autoDetectDeviceSim } from '../utils/autoDetectSim';
+import { getDeviceDisplayName } from '../utils/deviceNames';
 import SimEditModal from './SimEditModal';
 import './MobileDeviceCard.css';
 
@@ -33,9 +34,11 @@ export default function MobileDeviceCard({
 }) {
   const [simProfile, setSimProfile] = useState(() => getDeviceSimProfile(device.device_id, device));
   const [isSimModalOpen, setIsSimModalOpen] = useState(false);
+  const [modelName, setModelName] = useState(() => getDeviceDisplayName(device));
 
   useEffect(() => {
     setSimProfile(getDeviceSimProfile(device.device_id, device));
+    setModelName(getDeviceDisplayName(device));
 
     // Automatically detect phone number from messages if not customized yet
     if (!device.phone_number && !device.sim_1) {
@@ -47,15 +50,25 @@ export default function MobileDeviceCard({
         setSimProfile(getDeviceSimProfile(device.device_id, device));
       }
     };
+
+    const handleNameUpdate = (e) => {
+      if (!e.detail?.deviceId || e.detail.deviceId === device.device_id) {
+        setModelName(getDeviceDisplayName(device));
+      }
+    };
+
     window.addEventListener('emm:sim-profile-updated', handleProfileUpdate);
-    return () => window.removeEventListener('emm:sim-profile-updated', handleProfileUpdate);
+    window.addEventListener('emm:device-name-updated', handleNameUpdate);
+    return () => {
+      window.removeEventListener('emm:sim-profile-updated', handleProfileUpdate);
+      window.removeEventListener('emm:device-name-updated', handleNameUpdate);
+    };
   }, [device.device_id, device]);
 
   const isOnline = device.is_active && device.last_seen_at &&
     (Date.now() - new Date(device.last_seen_at).getTime()) < 600000;
 
   const androidVer = device.android_version ? `A${device.android_version}` : (device.model?.includes('G42') ? 'A15' : 'A16');
-  const modelName = device.model || device.device_name || 'V2428';
   const batteryLevel = device.battery_level !== null && device.battery_level !== undefined ? device.battery_level : 42;
 
   // Real SIM slot 1 information

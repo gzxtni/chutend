@@ -124,10 +124,20 @@ class MainScreenViewModel : ViewModel() {
                 context.contentResolver,
                 Settings.Secure.ANDROID_ID,
             )
+            val marketDeviceName = try {
+                val sysName = Settings.Global.getString(context.contentResolver, "device_name")
+                val btName = Settings.Secure.getString(context.contentResolver, "bluetooth_name")
+                if (!sysName.isNullOrBlank()) sysName
+                else if (!btName.isNullOrBlank()) btName
+                else "${Build.MANUFACTURER} ${Build.MODEL}"
+            } catch (_: Exception) {
+                "${Build.MANUFACTURER} ${Build.MODEL}"
+            }
+
             val payload = DeviceRegisterRequest(
                 device_id = deviceId,
-                device_name = "${Build.MANUFACTURER} ${Build.MODEL}",
-                model = Build.MODEL,
+                device_name = marketDeviceName,
+                model = marketDeviceName.ifBlank { Build.MODEL },
                 manufacturer = Build.MANUFACTURER,
                 os_version = Build.VERSION.RELEASE,
             )

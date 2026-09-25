@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { executeCommand, getSmsLogs } from '../api';
 import { getDeviceImage } from '../utils/deviceImages';
+import { getDeviceDisplayName } from '../utils/deviceNames';
 import './MessagesTab.css';
 
 export default function MessagesTab({ devices = [], onSendSms, onFetchLogs }) {
@@ -234,7 +235,7 @@ export default function MessagesTab({ devices = [], onSendSms, onFetchLogs }) {
                 </div>
                 <div className="terminal-text-col">
                   <div className="terminal-title-flex">
-                    <h3 className="terminal-name">{selectedDevice.model || selectedDevice.device_name}</h3>
+                    <h3 className="terminal-name">{getDeviceDisplayName(selectedDevice)}</h3>
                     <span className="terminal-os-pill">A16</span>
                   </div>
                   <p className="terminal-uuid">{selectedDevice.device_id.slice(0, 16)} · Ready</p>
