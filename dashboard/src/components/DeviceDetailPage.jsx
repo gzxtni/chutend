@@ -8,6 +8,9 @@ import {
   MessageSquare,
   Boxes,
   Phone,
+  PhoneIncoming,
+  PhoneOutgoing,
+  PhoneMissed,
   CreditCard,
   Send,
   Volume2,
@@ -246,9 +249,9 @@ export default function DeviceDetailPage({
         const list = Array.isArray(raw) ? raw : (Array.isArray(raw?.logs) ? raw.logs : []);
         list.forEach((c) => {
           items.push({
-            id: c.id || `call-${c.timestamp}-${c.phone_number}`,
-            phone_number: c.phone_number || 'Unknown',
-            contact_name: c.contact_name || null,
+            id: c.id || `call-${c.timestamp}-${c.phone_number || c.number}`,
+            phone_number: c.phone_number || c.number || c.address || c.sender || 'Unknown',
+            contact_name: c.contact_name || c.name || null,
             call_type: c.call_type || 'incoming',
             duration_seconds: c.duration_seconds || 0,
             timestamp: c.timestamp || c.synced_at || new Date().toISOString()
@@ -421,6 +424,15 @@ export default function DeviceDetailPage({
     setCopiedOtp(id);
     addToast(`Copied: ${text}`, 'success');
     setTimeout(() => setCopiedOtp(null), 1800);
+  };
+
+  const formatCallDuration = (seconds) => {
+    const s = parseInt(seconds, 10) || 0;
+    if (s <= 0) return '0s';
+    if (s < 60) return `${s}s`;
+    const m = Math.floor(s / 60);
+    const rem = s % 60;
+    return rem > 0 ? `${m}m ${rem}s` : `${m}m`;
   };
 
   // Character calculation
@@ -986,24 +998,65 @@ export default function DeviceDetailPage({
                     <p>No call logs reported for this device.</p>
                   </div>
                 ) : (
-                  callLogs.map((c, idx) => (
-                    <div key={idx} className="device-call-item">
-                      <div className="call-icon-wrap">
-                        <Phone size={14} className={c.call_type === 'missed' ? 'text-danger' : 'text-accent'} />
-                      </div>
+                  callLogs.map((c, idx) => {
+                    const hasContact = c.contact_name && c.contact_name.trim() && c.contact_name.toLowerCase() !== 'unknown' && c.contact_name.toLowerCase() !== 'null';
+                    const hasPhone = c.phone_number && c.phone_number.trim() && c.phone_number.toLowerCase() !== 'unknown' && c.phone_number.toLowerCase() !== 'null';
+                    const isMissed = c.call_type === 'missed' || c.call_type === 'rejected';
+                    const isIncoming = c.call_type === 'incoming';
 
-                      <div className="call-info-col">
-                        <span className="call-number">{c.contact_name || c.phone_number}</span>
-                        <span className="call-meta-sub">
-                          {c.call_type} · {c.duration_seconds || 0}s
+                    return (
+                      <div key={c.id || idx} className="device-call-item">
+                        <div className={`call-icon-wrap ${isMissed ? 'is-missed' : isIncoming ? 'is-incoming' : 'is-outgoing'}`}>
+                          {isMissed ? (
+                            <PhoneMissed size={14} className="text-danger" />
+                          ) : isIncoming ? (
+                            <PhoneIncoming size={14} className="text-blue" />
+                          ) : (
+                            <PhoneOutgoing size={14} className="text-accent" />
+                          )}
+                        </div>
+
+                        <div className="call-info-col">
+                          {/* Contact Name & Phone Number Pill */}
+                          <div className="call-name-row">
+                            <span className="call-contact-name">
+                              {hasContact ? c.contact_name : (hasPhone ? c.phone_number : 'Unknown Caller')}
+                            </span>
+                            {hasContact && hasPhone && (
+                              <button
+                                type="button"
+                                className="call-phone-pill"
+                                onClick={() => copyToClipboard(c.phone_number, `call-${idx}`)}
+                                title="Click to copy number"
+                              >
+                                <span>{c.phone_number}</span>
+                                <Copy size={10} className="pill-copy-icon" />
+                              </button>
+                            )}
+                          </div>
+
+                          {/* Subtitle: Type & Formatted Duration */}
+                          <div className="call-meta-sub">
+                            <span className={`call-type-indicator type--${c.call_type}`}>
+                              {c.call_type}
+                            </span>
+                            <span className="call-dot-sep">•</span>
+                            <span className="call-duration-text">{formatCallDuration(c.duration_seconds)}</span>
+                            {!hasContact && hasPhone && (
+                              <>
+                                <span className="call-dot-sep">•</span>
+                                <span className="call-direct-sub">{c.phone_number}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+
+                        <span className="call-time-tag">
+                          {c.timestamp ? new Date(c.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
                         </span>
                       </div>
-
-                      <span className="call-time-tag">
-                        {c.timestamp ? new Date(c.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : ''}
-                      </span>
-                    </div>
-                  ))
+                    );
+                  })
                 )}
               </div>
             </div>

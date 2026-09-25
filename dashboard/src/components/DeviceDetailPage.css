@@ -901,12 +901,18 @@
   padding: 10px 12px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 10px;
+  border-radius: 12px;
+  transition: all 0.15s ease;
+}
+
+.device-call-item:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
 }
 
 .call-icon-wrap {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   background: #ffffff;
   border: 1px solid #e2e8f0;
@@ -916,30 +922,115 @@
   flex-shrink: 0;
 }
 
+.call-icon-wrap.is-missed {
+  background: #fef2f2;
+  border-color: #fecaca;
+}
+
+.call-icon-wrap.is-incoming {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.call-icon-wrap.is-outgoing {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
 .call-info-col {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
-.call-number {
-  font-size: 13px;
+.call-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.call-contact-name {
+  font-size: 13.5px;
   font-weight: 700;
   color: #0f172a;
+  letter-spacing: -0.01em;
+}
+
+.call-phone-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  color: #1e293b;
+  background: #e2e8f0;
+  border: 1px solid #cbd5e1;
+  padding: 1.5px 7px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.call-phone-pill:hover {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+}
+
+.pill-copy-icon {
+  opacity: 0.6;
 }
 
 .call-meta-sub {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 11px;
   color: #64748b;
   text-transform: capitalize;
+}
+
+.call-type-indicator {
+  font-weight: 600;
+}
+
+.call-type-indicator.type--missed,
+.call-type-indicator.type--rejected {
+  color: #ef4444;
+}
+
+.call-type-indicator.type--incoming {
+  color: #2563eb;
+}
+
+.call-type-indicator.type--outgoing {
+  color: #10b981;
+}
+
+.call-dot-sep {
+  color: #cbd5e1;
+  font-size: 9px;
+}
+
+.call-duration-text {
+  color: #64748b;
+}
+
+.call-direct-sub {
+  font-family: ui-monospace, monospace;
+  font-weight: 600;
+  color: #475569;
 }
 
 .call-time-tag {
   font-size: 11px;
   color: #94a3b8;
   flex-shrink: 0;
+  font-weight: 500;
 }
 
 /* ── Empty State ── */
