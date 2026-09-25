@@ -7,10 +7,7 @@ import './MobileDeviceList.css';
 export default function MobileDeviceList({
   devices = [],
   loading,
-  onFetchLogs,
-  onSendSms,
-  onOpenControls,
-  onOpenApps,
+  onSelectDevice,
   onPingLocation,
   onDeleteDevice,
   onOpenRadarMap
@@ -125,10 +122,7 @@ export default function MobileDeviceList({
               key={device.device_id || idx}
               device={device}
               indexNumber={indexNum}
-              onFetchLogs={onFetchLogs}
-              onSendSms={onSendSms}
-              onOpenControls={onOpenControls}
-              onOpenApps={onOpenApps}
+              onSelectDevice={onSelectDevice}
               onPingLocation={onPingLocation}
               onDelete={onDeleteDevice}
             />

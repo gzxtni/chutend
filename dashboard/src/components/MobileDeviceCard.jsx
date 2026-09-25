@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Radio, Trash2, Battery, Sliders, MessageSquare, Boxes, Edit2 } from 'lucide-react';
+import { Radio, Trash2, Battery, Sliders, ChevronRight, Edit2 } from 'lucide-react';
 import { getDeviceImage } from '../utils/deviceImages';
 import { getDeviceSimProfile } from '../utils/simStorage';
 import { autoDetectDeviceSim } from '../utils/autoDetectSim';
@@ -27,10 +27,7 @@ function formatInstallDate(dateStr) {
 export default function MobileDeviceCard({
   device,
   indexNumber,
-  onFetchLogs,
-  onSendSms,
-  onOpenControls,
-  onOpenApps,
+  onSelectDevice,
   onPingLocation,
   onDelete
 }) {
@@ -136,12 +133,12 @@ export default function MobileDeviceCard({
             <Trash2 size={16} className="btn-icon--delete" />
           </button>
 
-          {/* Controls Button */}
+          {/* Controls / Hub Button */}
           <button
             className="action-circle-btn action-circle-btn--refresh"
-            onClick={() => onOpenControls && onOpenControls(device)}
-            title="Remote system controls"
-            aria-label="Device controls"
+            onClick={() => onSelectDevice && onSelectDevice(device)}
+            title="Open Device Console"
+            aria-label="Device console"
           >
             <Sliders size={15} className="btn-icon--refresh" />
           </button>
@@ -223,33 +220,17 @@ export default function MobileDeviceCard({
         </span>
       </div>
 
-      {/* Interactive Bottom Control Drawer */}
-      <div className="card-action-bar-bottom">
+      {/* Single Unified Device Management Action */}
+      <div className="card-single-action-bar">
         <button
-          className="bottom-action-btn"
-          onClick={() => onSendSms && onSendSms(device)}
-          title="Send SMS"
-        >
-          <MessageSquare size={13} />
-          <span>SMS</span>
-        </button>
-
-        <button
-          className="bottom-action-btn"
-          onClick={() => onOpenControls && onOpenControls(device)}
-          title="Remote controls"
+          type="button"
+          className="device-manage-btn"
+          onClick={() => onSelectDevice && onSelectDevice(device)}
+          title="Open complete device hub"
         >
           <Sliders size={13} />
-          <span>Controls</span>
-        </button>
-
-        <button
-          className="bottom-action-btn"
-          onClick={() => onOpenApps && onOpenApps(device)}
-          title="View installed apps"
-        >
-          <Boxes size={13} />
-          <span>Apps</span>
+          <span>Manage Device</span>
+          <ChevronRight size={14} className="manage-arrow" />
         </button>
       </div>
 

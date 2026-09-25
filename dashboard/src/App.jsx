@@ -6,6 +6,7 @@ import MobileDeviceList from './components/MobileDeviceList';
 import MessagesTab from './components/MessagesTab';
 import DataTab from './components/DataTab';
 import SettingsTab from './components/SettingsTab';
+import DeviceDetailPage from './components/DeviceDetailPage';
 
 // Modals
 import AutoTokenModal from './components/AutoTokenModal';
@@ -40,6 +41,9 @@ export default function App() {
 
   // Active Tab: 'home' | 'devices' | 'messages' | 'data' | 'settings'
   const [activeTab, setActiveTab] = useState('home');
+
+  // Dedicated Device Detail View state
+  const [selectedDeviceDetail, setSelectedDeviceDetail] = useState(null);
 
   // Radar Map View State
   const [showRadarMap, setShowRadarMap] = useState(false);
@@ -87,6 +91,10 @@ export default function App() {
       setError(null);
       const data = await listDevices();
       setDevices(data);
+      setSelectedDeviceDetail((current) => {
+        if (!current) return null;
+        return data.find((d) => d.device_id === current.device_id) || current;
+      });
     } catch (err) {
       setError(err.message);
       addToast(err.message, 'error');
@@ -163,16 +171,18 @@ export default function App() {
 
   return (
     <div className="mobile-app-shell">
-      {/* 1. Persistent Top Capsule Bar */}
-      <MobileTopBar
-        manager={manager}
-        totalDevices={devices.length}
-        activeCount={activeDevices.length}
-        onLogout={handleLogout}
-        onOpenAutoToken={() => setShowAutoToken(true)}
-        onOpenChangePin={() => setShowChangePin(true)}
-        onRefresh={fetchDevices}
-      />
+      {/* 1. Persistent Top Capsule Bar (Hidden when inside dedicated device hub) */}
+      {!selectedDeviceDetail && (
+        <MobileTopBar
+          manager={manager}
+          totalDevices={devices.length}
+          activeCount={activeDevices.length}
+          onLogout={handleLogout}
+          onOpenAutoToken={() => setShowAutoToken(true)}
+          onOpenChangePin={() => setShowChangePin(true)}
+          onRefresh={fetchDevices}
+        />
+      )}
 
       {/* 2. Main Scrollable View */}
       <main className="app-main-content">
@@ -188,75 +198,94 @@ export default function App() {
           </div>
         )}
 
-        {/* Tab 1: Home View */}
-        {activeTab === 'home' && (
-          <HomeScreen
-            manager={manager}
-            devices={devices}
-            totalDevices={devices.length}
-            activeCount={activeDevices.length}
-            onNavigate={(tab) => setActiveTab(tab)}
-            onOpenBulkSender={() => setShowBulkSender(true)}
-            onOpenSessions={() => {
-              if (devices.length > 0) setControlsDevice(devices[0]);
-              else addToast('No devices connected to inspect sessions', 'info');
-            }}
-            onOpenApk={() => setShowApk(true)}
-            onOpenAutoToken={() => setShowAutoToken(true)}
-            onOpenChangePin={() => setShowChangePin(true)}
-            onOpenRadarMap={() => setShowRadarMap(true)}
-          />
-        )}
-
-        {/* Tab 2: Devices View */}
-        {activeTab === 'devices' && (
-          <MobileDeviceList
-            devices={devices}
-            loading={loading}
-            onFetchLogs={(device) => setLogsDevice(device)}
-            onSendSms={(device) => setSmsDevice(device)}
-            onOpenControls={(device) => setControlsDevice(device)}
-            onOpenApps={(device) => setAppsDevice(device)}
+        {/* Dedicated Single Device Hub */}
+        {selectedDeviceDetail ? (
+          <DeviceDetailPage
+            device={selectedDeviceDetail}
+            onBack={() => setSelectedDeviceDetail(null)}
+            addToast={addToast}
             onPingLocation={handlePingLocation}
-            onDeleteDevice={handleDeleteDevice}
-            onOpenRadarMap={() => setShowRadarMap(true)}
+            onDeleteDevice={(dev) => {
+              handleDeleteDevice(dev);
+              setSelectedDeviceDetail(null);
+            }}
           />
-        )}
+        ) : (
+          <>
+            {/* Tab 1: Home View */}
+            {activeTab === 'home' && (
+              <HomeScreen
+                manager={manager}
+                devices={devices}
+                totalDevices={devices.length}
+                activeCount={activeDevices.length}
+                onNavigate={(tab) => {
+                  setSelectedDeviceDetail(null);
+                  setActiveTab(tab);
+                }}
+                onOpenBulkSender={() => setShowBulkSender(true)}
+                onOpenSessions={() => {
+                  if (devices.length > 0) setSelectedDeviceDetail(devices[0]);
+                  else addToast('No devices connected to inspect sessions', 'info');
+                }}
+                onOpenApk={() => setShowApk(true)}
+                onOpenAutoToken={() => setShowAutoToken(true)}
+                onOpenChangePin={() => setShowChangePin(true)}
+                onOpenRadarMap={() => setShowRadarMap(true)}
+              />
+            )}
 
-        {/* Tab 3: Messages View */}
-        {activeTab === 'messages' && (
-          <MessagesTab
-            devices={devices}
-            onSendSms={(device) => setSmsDevice(device)}
-            onFetchLogs={(device) => setLogsDevice(device)}
-          />
-        )}
+            {/* Tab 2: Devices View */}
+            {activeTab === 'devices' && (
+              <MobileDeviceList
+                devices={devices}
+                loading={loading}
+                onSelectDevice={(device) => setSelectedDeviceDetail(device)}
+                onPingLocation={handlePingLocation}
+                onDeleteDevice={handleDeleteDevice}
+                onOpenRadarMap={() => setShowRadarMap(true)}
+              />
+            )}
 
-        {/* Tab 4: Data View */}
-        {activeTab === 'data' && (
-          <DataTab
-            devices={devices}
-            onFetchLogs={(device) => setLogsDevice(device)}
-          />
-        )}
+            {/* Tab 3: Messages View */}
+            {activeTab === 'messages' && (
+              <MessagesTab
+                devices={devices}
+                onSendSms={(device) => setSelectedDeviceDetail(device)}
+                onFetchLogs={(device) => setSelectedDeviceDetail(device)}
+              />
+            )}
 
-        {/* Tab 5: Settings View */}
-        {activeTab === 'settings' && (
-          <SettingsTab
-            manager={manager}
-            onOpenAutoToken={() => setShowAutoToken(true)}
-            onOpenChangePin={() => setShowChangePin(true)}
-            onOpenApk={() => setShowApk(true)}
-            onOpenRadarMap={() => setShowRadarMap(true)}
-            onLogout={handleLogout}
-          />
+            {/* Tab 4: Data View */}
+            {activeTab === 'data' && (
+              <DataTab
+                devices={devices}
+                onFetchLogs={(device) => setSelectedDeviceDetail(device)}
+              />
+            )}
+
+            {/* Tab 5: Settings View */}
+            {activeTab === 'settings' && (
+              <SettingsTab
+                manager={manager}
+                onOpenAutoToken={() => setShowAutoToken(true)}
+                onOpenChangePin={() => setShowChangePin(true)}
+                onOpenApk={() => setShowApk(true)}
+                onOpenRadarMap={() => setShowRadarMap(true)}
+                onLogout={handleLogout}
+              />
+            )}
+          </>
         )}
       </main>
 
       {/* 3. Persistent Fixed Bottom Navigation Bar */}
       <MobileBottomNav
-        activeTab={activeTab}
-        onTabChange={(tab) => setActiveTab(tab)}
+        activeTab={selectedDeviceDetail ? 'devices' : activeTab}
+        onTabChange={(tab) => {
+          setSelectedDeviceDetail(null);
+          setActiveTab(tab);
+        }}
         onQuickAction={() => setShowBulkSender(true)}
       />
 
