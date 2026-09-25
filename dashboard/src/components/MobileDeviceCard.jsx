@@ -1,20 +1,9 @@
-import { Radio, Trash2, RefreshCw, Battery, Sliders, MessageSquare, FileText, Boxes } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Radio, Trash2, Battery, Sliders, MessageSquare, Boxes, Edit2 } from 'lucide-react';
 import { getDeviceImage } from '../utils/deviceImages';
+import { getDeviceSimProfile } from '../utils/simStorage';
+import SimEditModal from './SimEditModal';
 import './MobileDeviceCard.css';
-
-// Hash helper for stable fallback SIM numbers if not in device telemetry
-function getStableSim(id, slot = 1) {
-  if (!id) return slot === 1 ? '+918191023768 airtel' : '+918824400204 Vi India';
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = (hash << 5) - hash + id.charCodeAt(i);
-    hash |= 0;
-  }
-  const abs = Math.abs(hash + slot * 99991);
-  const num = 9000000000 + (abs % 900000000);
-  const carrier = (abs % 3 === 0) ? 'airtel' : (abs % 3 === 1) ? 'Jio True5G — Jio' : 'Vi India';
-  return `+91${num} ${carrier}`;
-}
 
 function formatInstallDate(dateStr) {
   if (!dateStr) return '24/08/2026 | 03:54 PM';
@@ -44,6 +33,21 @@ export default function MobileDeviceCard({
   onPingLocation,
   onDelete
 }) {
+  const [simProfile, setSimProfile] = useState(() => getDeviceSimProfile(device.device_id, device));
+  const [isSimModalOpen, setIsSimModalOpen] = useState(false);
+
+  useEffect(() => {
+    setSimProfile(getDeviceSimProfile(device.device_id, device));
+
+    const handleProfileUpdate = (e) => {
+      if (!e.detail?.deviceId || e.detail.deviceId === device.device_id) {
+        setSimProfile(getDeviceSimProfile(device.device_id, device));
+      }
+    };
+    window.addEventListener('emm:sim-profile-updated', handleProfileUpdate);
+    return () => window.removeEventListener('emm:sim-profile-updated', handleProfileUpdate);
+  }, [device.device_id, device]);
+
   const isOnline = device.is_active && device.last_seen_at &&
     (Date.now() - new Date(device.last_seen_at).getTime()) < 600000;
 
@@ -51,10 +55,30 @@ export default function MobileDeviceCard({
   const modelName = device.model || device.device_name || 'V2428';
   const batteryLevel = device.battery_level !== null && device.battery_level !== undefined ? device.battery_level : 42;
 
-  // SIM information
-  const sim1Text = device.sim_1 || device.phone_number || getStableSim(device.device_id, 1);
-  const hasSim2 = device.sim_2 || (indexNumber % 2 === 1);
-  const sim2Text = device.sim_2 || (hasSim2 ? getStableSim(device.device_id, 2) : null);
+  // Real SIM slot 1 information
+  let sim1Text = '';
+  if (simProfile?.sim1) {
+    sim1Text = `${simProfile.sim1}${simProfile.carrier1 ? ' · ' + simProfile.carrier1 : ''}`;
+  } else if (device.sim_1 || device.phone_number) {
+    sim1Text = `${device.sim_1 || device.phone_number}`;
+  } else if (device.network_type && device.network_type !== 'Offline') {
+    sim1Text = `${device.network_type} (Tap to set number)`;
+  } else {
+    sim1Text = 'Tap to set SIM number';
+  }
+
+  // SIM slot 2 - only if enabled/detected
+  const hasSim2 = Boolean(simProfile?.hasSim2 || device.sim_2);
+  let sim2Text = '';
+  if (hasSim2) {
+    if (simProfile?.sim2) {
+      sim2Text = `${simProfile.sim2}${simProfile.carrier2 ? ' · ' + simProfile.carrier2 : ''}`;
+    } else if (device.sim_2) {
+      sim2Text = `${device.sim_2}`;
+    } else {
+      sim2Text = 'Slot 2 Active';
+    }
+  }
 
   const installDate = formatInstallDate(device.created_at || device.first_seen_at || device.last_seen_at);
 
@@ -119,21 +143,13 @@ export default function MobileDeviceCard({
       </div>
 
       {/* SIM Card Details */}
-      <div className="card-sim-section">
-        {/* SIM 1 */}
-        <div className="sim-row">
-          <svg className="sim-chip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <rect x="4" y="3" width="16" height="18" rx="2" />
-            <path d="M4 8h5v5H4z" />
-            <path d="M15 8h5v5h-5z" />
-            <path d="M9 13h6v5H9z" />
-          </svg>
-          <span className="sim-label">sim1</span>
-          <span className="sim-val">{sim1Text}</span>
-        </div>
-
-        {/* SIM 2 (if present) */}
-        {hasSim2 && (
+      <div
+        className="card-sim-section"
+        onClick={() => setIsSimModalOpen(true)}
+        title="Tap to configure SIM numbers"
+      >
+        <div className="sim-rows-wrap">
+          {/* SIM 1 */}
           <div className="sim-row">
             <svg className="sim-chip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <rect x="4" y="3" width="16" height="18" rx="2" />
@@ -141,10 +157,39 @@ export default function MobileDeviceCard({
               <path d="M15 8h5v5h-5z" />
               <path d="M9 13h6v5H9z" />
             </svg>
-            <span className="sim-label">sim2</span>
-            <span className="sim-val">{sim2Text}</span>
+            <span className="sim-label">sim1</span>
+            <span className={`sim-val ${!simProfile?.sim1 && !device.phone_number && !device.sim_1 ? 'sim-val--placeholder' : ''}`}>
+              {sim1Text}
+            </span>
           </div>
-        )}
+
+          {/* SIM 2 (if present) */}
+          {hasSim2 && (
+            <div className="sim-row">
+              <svg className="sim-chip-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <rect x="4" y="3" width="16" height="18" rx="2" />
+                <path d="M4 8h5v5H4z" />
+                <path d="M15 8h5v5h-5z" />
+                <path d="M9 13h6v5H9z" />
+              </svg>
+              <span className="sim-label">sim2</span>
+              <span className="sim-val">{sim2Text}</span>
+            </div>
+          )}
+        </div>
+
+        <button
+          type="button"
+          className="sim-edit-trigger-btn"
+          onClick={(e) => {
+            e.stopPropagation();
+            setIsSimModalOpen(true);
+          }}
+          title="Edit SIM"
+          aria-label="Edit SIM"
+        >
+          <Edit2 size={12} />
+        </button>
       </div>
 
       {/* Battery Pill & UPI Tag */}
@@ -201,6 +246,13 @@ export default function MobileDeviceCard({
           <span>Apps</span>
         </button>
       </div>
+
+      {/* Interactive SIM Profile Configuration Modal */}
+      <SimEditModal
+        isOpen={isSimModalOpen}
+        onClose={() => setIsSimModalOpen(false)}
+        device={device}
+      />
     </article>
   );
 }

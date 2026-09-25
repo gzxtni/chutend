@@ -161,17 +161,43 @@
 /* SIM Section */
 .card-sim-section {
   display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 8px;
+  margin: 0 -4px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  border: 1px solid transparent;
+}
+
+.card-sim-section:hover {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+}
+
+.card-sim-section:hover .sim-edit-trigger-btn {
+  opacity: 1;
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.sim-rows-wrap {
+  display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 2px 0;
+  gap: 5px;
+  min-width: 0;
+  flex: 1;
 }
 
 .sim-row {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   font-size: 12px;
   color: #334155;
+  min-width: 0;
 }
 
 .sim-chip-icon {
@@ -184,7 +210,9 @@
 .sim-label {
   font-size: 11px;
   color: #64748b;
-  font-weight: 500;
+  font-weight: 600;
+  text-transform: lowercase;
+  flex-shrink: 0;
 }
 
 .sim-val {
@@ -194,6 +222,34 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.sim-val--placeholder {
+  color: #64748b;
+  font-weight: 500;
+  font-style: italic;
+}
+
+.sim-edit-trigger-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0.6;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+}
+
+.sim-edit-trigger-btn:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+  opacity: 1;
 }
 
 /* Metrics Row: Battery & UPI */

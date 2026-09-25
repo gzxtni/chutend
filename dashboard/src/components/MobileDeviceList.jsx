@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Search, Filter, Radio, X, Check } from 'lucide-react';
 import MobileDeviceCard from './MobileDeviceCard';
+import { getDeviceSimProfile } from '../utils/simStorage';
 import './MobileDeviceList.css';
 
 export default function MobileDeviceList({
@@ -28,12 +29,17 @@ export default function MobileDeviceList({
   const filteredDevices = devices.filter((d) => {
     // Search query
     const q = searchTerm.toLowerCase();
+    const simProf = getDeviceSimProfile(d.device_id, d);
     const matchSearch =
       (d.device_name || '').toLowerCase().includes(q) ||
       (d.device_id || '').toLowerCase().includes(q) ||
       (d.model || '').toLowerCase().includes(q) ||
       (d.phone_number || '').toLowerCase().includes(q) ||
       (d.sim_1 || '').toLowerCase().includes(q) ||
+      (simProf?.sim1 || '').toLowerCase().includes(q) ||
+      (simProf?.sim2 || '').toLowerCase().includes(q) ||
+      (simProf?.carrier1 || '').toLowerCase().includes(q) ||
+      (simProf?.carrier2 || '').toLowerCase().includes(q) ||
       (d.network_carrier || '').toLowerCase().includes(q);
 
     if (!matchSearch) return false;
