@@ -181,28 +181,28 @@ export default function MessagesTab({
       const isOnline = device.is_active;
       const isSelected = selectedDeviceId === device.device_id;
       const displayName = getDeviceDisplayName(device);
-      const initials = displayName.slice(0, 10);
 
       const html = `
         <div class="radar-custom-marker ${isOnline ? 'online' : 'offline'} ${isSelected ? 'selected' : ''}">
           <div class="marker-pulse-ring"></div>
           <div class="marker-core-dot">
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="#ffffff" stroke="none">
+              <path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/>
             </svg>
           </div>
           <div class="marker-label-pill">
-            <span>${initials}</span>
+            <span class="label-dot"></span>
+            <span class="label-text">${displayName}</span>
           </div>
         </div>
       `;
 
       const customIcon = L.divIcon({
         html,
-        className: 'radar-leaflet-marker',
-        iconSize: [44, 44],
-        iconAnchor: [22, 22],
-        popupAnchor: [0, -20]
+        className: 'radar-leaflet-marker-wrap',
+        iconSize: [32, 32],
+        iconAnchor: [16, 16],
+        popupAnchor: [0, -18]
       });
 
       const marker = L.marker([device.latitude, device.longitude], { icon: customIcon })

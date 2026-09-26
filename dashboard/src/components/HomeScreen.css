@@ -186,9 +186,8 @@
 }
 
 .service-modern-card {
-  background: #ffffff;
-  border: 1.5px solid #edf0f5;
   border-radius: 24px;
+  border: 1.5px solid;
   padding: 16px 14px;
   display: flex;
   flex-direction: column;
@@ -204,13 +203,32 @@
 }
 
 .service-modern-card:hover {
-  border-color: #cbd5e1;
   transform: translateY(-3px);
-  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
 }
 
 .service-modern-card:active {
   transform: scale(0.96);
+}
+
+/* Deeply Integrated Ghost Watermark Icon */
+.service-ghost-icon-wrap {
+  position: absolute;
+  right: -8px;
+  bottom: -8px;
+  pointer-events: none;
+  user-select: none;
+  opacity: 0.09;
+  transform: rotate(-12deg);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.service-modern-card:hover .service-ghost-icon-wrap {
+  opacity: 0.18;
+  transform: rotate(0deg) scale(1.12) translate(-2px, -2px);
 }
 
 .service-card-top-row {
@@ -219,6 +237,8 @@
   justify-content: space-between;
   width: 100%;
   margin-bottom: 14px;
+  position: relative;
+  z-index: 1;
 }
 
 .service-icon-box {
@@ -237,14 +257,14 @@
 }
 
 .service-status-pill {
-  font-size: 11px;
-  font-weight: 700;
-  color: #475569;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  padding: 3px 9px;
+  font-size: 10.5px;
+  font-weight: 750;
+  background: rgba(255, 255, 255, 0.88);
+  border: 1px solid;
+  padding: 3px 8px;
   border-radius: 9999px;
   letter-spacing: -0.1px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
 }
 
 .service-card-body {

@@ -59,8 +59,11 @@ export default function HomeScreen({
       tag: `${totalDevices} Nodes`,
       desc: 'Fleet Matrix',
       icon: Smartphone,
-      gradient: 'linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)',
-      glow: 'rgba(2, 132, 199, 0.3)',
+      accentColor: '#0284c7',
+      bgGradient: 'linear-gradient(155deg, #f0f9ff 0%, #ffffff 65%)',
+      borderColor: '#bae6fd',
+      iconGradient: 'linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)',
+      glow: 'rgba(2, 132, 199, 0.28)',
       action: () => onNavigate('devices')
     },
     {
@@ -69,8 +72,11 @@ export default function HomeScreen({
       tag: 'Live Inbox',
       desc: 'Real-time Feed',
       icon: MessageSquare,
-      gradient: 'linear-gradient(135deg, #34d399 0%, #059669 100%)',
-      glow: 'rgba(5, 150, 105, 0.3)',
+      accentColor: '#059669',
+      bgGradient: 'linear-gradient(155deg, #ecfdf5 0%, #ffffff 65%)',
+      borderColor: '#a7f3d0',
+      iconGradient: 'linear-gradient(135deg, #34d399 0%, #059669 100%)',
+      glow: 'rgba(5, 150, 105, 0.28)',
       action: () => onNavigate('messages')
     },
     {
@@ -79,8 +85,11 @@ export default function HomeScreen({
       tag: 'Broadcast',
       desc: 'Multi-node SMS',
       icon: Send,
-      gradient: 'linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%)',
-      glow: 'rgba(124, 58, 237, 0.3)',
+      accentColor: '#7c3aed',
+      bgGradient: 'linear-gradient(155deg, #f5f3ff 0%, #ffffff 65%)',
+      borderColor: '#ddd6fe',
+      iconGradient: 'linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%)',
+      glow: 'rgba(124, 58, 237, 0.28)',
       action: onOpenBulkSender
     },
     {
@@ -89,8 +98,11 @@ export default function HomeScreen({
       tag: 'Official',
       desc: 'Zxtni Studio Hub',
       icon: LifeBuoy,
-      gradient: 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)',
-      glow: 'rgba(217, 119, 6, 0.3)',
+      accentColor: '#d97706',
+      bgGradient: 'linear-gradient(155deg, #fffbeb 0%, #ffffff 65%)',
+      borderColor: '#fde68a',
+      iconGradient: 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)',
+      glow: 'rgba(217, 119, 6, 0.28)',
       action: () => onNavigate('data')
     },
     {
@@ -99,8 +111,11 @@ export default function HomeScreen({
       tag: 'Controls',
       desc: 'Remote Protection',
       icon: Shield,
-      gradient: 'linear-gradient(135deg, #fb7185 0%, #e11d48 100%)',
-      glow: 'rgba(225, 29, 72, 0.3)',
+      accentColor: '#e11d48',
+      bgGradient: 'linear-gradient(155deg, #fff1f2 0%, #ffffff 65%)',
+      borderColor: '#fecdd3',
+      iconGradient: 'linear-gradient(135deg, #fb7185 0%, #e11d48 100%)',
+      glow: 'rgba(225, 29, 72, 0.28)',
       action: onOpenSessions
     },
     {
@@ -109,8 +124,11 @@ export default function HomeScreen({
       tag: 'v0.1 Agent',
       desc: 'Download Package',
       icon: Download,
-      gradient: 'linear-gradient(135deg, #22d3ee 0%, #0891b2 100%)',
-      glow: 'rgba(8, 145, 178, 0.3)',
+      accentColor: '#0891b2',
+      bgGradient: 'linear-gradient(155deg, #ecfeff 0%, #ffffff 65%)',
+      borderColor: '#a5f3fc',
+      iconGradient: 'linear-gradient(135deg, #22d3ee 0%, #0891b2 100%)',
+      glow: 'rgba(8, 145, 178, 0.28)',
       action: onOpenApk
     },
   ];
@@ -201,20 +219,39 @@ export default function HomeScreen({
                 className="service-modern-card"
                 onClick={item.action}
                 id={`service-${item.id}`}
+                style={{
+                  background: item.bgGradient,
+                  borderColor: item.borderColor
+                }}
               >
+                {/* Deeply Integrated Ghost Watermark Icon */}
+                <div
+                  className="service-ghost-icon-wrap"
+                  style={{ color: item.accentColor }}
+                  aria-hidden="true"
+                >
+                  <Icon size={76} strokeWidth={1.3} />
+                </div>
+
                 <div className="service-card-top-row">
                   <div
                     className="service-icon-box"
-                    style={{ background: item.gradient, boxShadow: `0 4px 14px ${item.glow}` }}
+                    style={{ background: item.iconGradient, boxShadow: `0 4px 14px ${item.glow}` }}
                   >
-                    <Icon size={20} strokeWidth={2.3} color="#ffffff" />
+                    <Icon size={20} strokeWidth={2.4} color="#ffffff" />
                   </div>
-                  <span className="service-status-pill">{item.tag}</span>
+                  <span
+                    className="service-status-pill"
+                    style={{ color: item.accentColor, borderColor: item.borderColor }}
+                  >
+                    {item.tag}
+                  </span>
                 </div>
+
                 <div className="service-card-body">
                   <div className="service-title-row">
                     <span className="service-card-title">{item.title}</span>
-                    <ArrowUpRight size={14} className="service-arrow-glyph" />
+                    <ArrowUpRight size={14} className="service-arrow-glyph" style={{ color: item.accentColor }} />
                   </div>
                   <span className="service-card-desc">{item.desc}</span>
                 </div>
