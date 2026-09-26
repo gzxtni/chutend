@@ -747,7 +747,7 @@ export default function DeviceDetailPage({
       </header>
 
       {/* ── Native Device Capsule Hero (Shown on Hub) ── */}
-      {!activeSection ? (
+      {!activeSection && (
         <div className="mobile-hero-capsule">
           <div className="hero-capsule-left">
             <div className="hero-img-box">
@@ -796,21 +796,6 @@ export default function DeviceDetailPage({
               <span className="fg-app-name">{device.foreground_app}</span>
             </div>
           )}
-        </div>
-      ) : (
-        /* Subpage Header Breadcrumb */
-        <div className="subpage-nav-bar animate-fade-in">
-          <button
-            type="button"
-            className="subpage-back-pill"
-            onClick={() => setActiveSection(null)}
-          >
-            <ArrowLeft size={13} />
-            <span>← Device Hub</span>
-          </button>
-          <div className="subpage-active-label">
-            <span>{getSectionTitle(activeSection)}</span>
-          </div>
         </div>
       )}
 
@@ -1639,11 +1624,16 @@ export default function DeviceDetailPage({
                 <Search size={14} className="search-ico" />
                 <input
                   type="text"
-                  placeholder="Search notifications..."
+                  placeholder="Search notifications, apps..."
                   value={notifsSearch}
                   onChange={(e) => setNotifsSearch(e.target.value)}
                   className="toolbar-search-input"
                 />
+                {notifsSearch && (
+                  <button className="clear-search-btn" onClick={() => setNotifsSearch('')}>
+                    <X size={12} />
+                  </button>
+                )}
               </div>
               <button
                 type="button"
@@ -1662,33 +1652,76 @@ export default function DeviceDetailPage({
               <div className="empty-state">
                 <Bell size={32} style={{ opacity: 0.3 }} />
                 <p>No notifications captured yet</p>
-                <span className="empty-hint">Enable Notification Access on the device</span>
+                <span className="empty-hint">Enable Notification Access on the device to stream live alerts</span>
               </div>
             ) : (
-              <div className="sms-feed">
-                {filteredNotifs.map((n, idx) => (
-                  <div key={n.id || idx} className="sms-bubble-row notif-row">
-                    <div className="sms-avatar-col">
-                      <div className="sms-avatar" style={{ background: `hsl(${(n.app_name || '').length * 37 % 360}, 55%, 50%)` }}>
-                        {(n.app_name || '?')[0].toUpperCase()}
+              <div className="notifications-feed">
+                <div className="notifs-header-meta">
+                  <span className="notifs-count-pill">{filteredNotifs.length} Alerts</span>
+                  <span className="notifs-hint-text">Real-time incoming notifications from device</span>
+                </div>
+                {filteredNotifs.map((n, idx) => {
+                  const pkg = (n.app_package || '').toLowerCase();
+                  const isWhatsApp = pkg.includes('whatsapp');
+                  const isSystem = pkg.includes('android');
+                  const isTelegram = pkg.includes('telegram');
+                  const isInstagram = pkg.includes('instagram');
+                  const isGmail = pkg.includes('gm') || pkg.includes('mail');
+                  const isMessages = pkg.includes('messaging') || pkg.includes('sms');
+
+                  const initial = (n.app_name || n.app_package || '?')[0].toUpperCase();
+
+                  let avatarClass = 'default';
+                  let customBg = '';
+                  if (isWhatsApp) {
+                    avatarClass = 'whatsapp';
+                  } else if (isSystem) {
+                    avatarClass = 'system';
+                  } else if (isTelegram) {
+                    avatarClass = 'telegram';
+                  } else if (isInstagram) {
+                    avatarClass = 'instagram';
+                  } else if (isGmail) {
+                    avatarClass = 'gmail';
+                  } else if (isMessages) {
+                    avatarClass = 'messages';
+                  } else {
+                    const hue = ((n.app_name || '').length * 47) % 360;
+                    customBg = `linear-gradient(135deg, hsl(${hue}, 70%, 50%), hsl(${(hue + 35) % 360}, 75%, 40%))`;
+                  }
+
+                  const timeStr = n.timestamp
+                    ? new Date(n.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+                    : 'Just now';
+
+                  return (
+                    <div key={n.id || idx} className="notif-modern-card">
+                      <div className="notif-card-top">
+                        <div className="notif-app-identity">
+                          <div
+                            className={`notif-app-icon ${avatarClass}`}
+                            style={customBg ? { background: customBg } : undefined}
+                          >
+                            {initial}
+                          </div>
+                          <div className="notif-app-meta">
+                            <span className="notif-app-title">{n.app_name || 'System'}</span>
+                            <span className="notif-pkg-pill">
+                              <Smartphone size={9} />
+                              <span>{n.app_package}</span>
+                            </span>
+                          </div>
+                        </div>
+                        <span className="notif-timestamp-tag">{timeStr}</span>
+                      </div>
+
+                      <div className="notif-card-main">
+                        {n.title && <h5 className="notif-alert-title">{n.title}</h5>}
+                        {n.content && <p className="notif-alert-body">{n.content}</p>}
                       </div>
                     </div>
-                    <div className="sms-content-col">
-                      <div className="sms-header-row">
-                        <span className="sms-sender-name">{n.app_name}</span>
-                        <span className="sms-timestamp">
-                          {new Date(n.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      </div>
-                      {n.title && <div className="notif-title">{n.title}</div>}
-                      {n.content && <div className="sms-body-text">{n.content}</div>}
-                      <div className="notif-app-badge">
-                        <Smartphone size={10} />
-                        <span>{n.app_package}</span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
