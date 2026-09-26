@@ -191,3 +191,233 @@
 .terminal-state-dot.offline {
   background: #ef4444;
 }
+
+.tab-sub-heading {
+  font-size: 11.5px;
+  color: #64748b;
+  font-weight: 500;
+  margin-top: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ZXTNI STUDIO BRANDING & SUPPORT CARD
+   ═══════════════════════════════════════════════════════════════ */
+.zxtni-brand-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 24px;
+  padding: 20px;
+  margin-top: 20px;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.zxtni-brand-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.07);
+}
+
+.zxtni-card-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.zxtni-logo-wrapper {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1.5px solid #0f172a;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+  background: #ffffff;
+  transition: transform 0.2s ease;
+}
+
+.zxtni-brand-card:hover .zxtni-logo-wrapper {
+  transform: scale(1.04);
+}
+
+.zxtni-logo-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.zxtni-brand-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.zxtni-name-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.zxtni-title {
+  font-size: 16px;
+  font-weight: 900;
+  color: #0f172a;
+  letter-spacing: 0.5px;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.zxtni-verified-badge {
+  font-size: 10px;
+  font-weight: 800;
+  background: #0f172a;
+  color: #ffffff;
+  padding: 2px 7px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+.zxtni-tagline {
+  font-size: 11.5px;
+  color: #64748b;
+  margin: 2px 0 0;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.zxtni-desc {
+  font-size: 12.5px;
+  color: #475569;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.zxtni-actions-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+@media (max-width: 380px) {
+  .zxtni-actions-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.zxtni-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1.5px solid #e2e8f0;
+}
+
+.telegram-btn {
+  background: #f0f9ff;
+  border-color: #bae6fd;
+  color: #0284c7;
+}
+
+.telegram-btn:hover {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(2, 132, 199, 0.28);
+}
+
+.github-btn {
+  background: #f8fafc;
+  border-color: #e2e8f0;
+  color: #0f172a;
+}
+
+.github-btn:hover {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.28);
+}
+
+.zxtni-icon-bubble {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s ease;
+}
+
+.tg-bubble {
+  background: #0284c7;
+  color: #ffffff;
+}
+
+.gh-bubble {
+  background: #0f172a;
+  color: #ffffff;
+}
+
+.telegram-btn:hover .tg-bubble,
+.github-btn:hover .gh-bubble {
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.telegram-btn:hover .tg-bubble {
+  color: #0284c7;
+}
+
+.zxtni-btn-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.btn-label {
+  font-size: 10px;
+  font-weight: 600;
+  opacity: 0.85;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+}
+
+.btn-handle {
+  font-size: 13.5px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.btn-ext-icon {
+  opacity: 0.5;
+  flex-shrink: 0;
+  transition: opacity 0.15s ease;
+}
+
+.zxtni-action-btn:hover .btn-ext-icon {
+  opacity: 1;
+}
+
+.zxtni-footer-note {
+  text-align: center;
+  font-size: 10.5px;
+  color: #94a3b8;
+  font-weight: 500;
+  padding-top: 4px;
+}
+

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Send, X, Users, AlertCircle, Smartphone, Radio, Zap, Sparkles, Phone, Loader2 } from 'lucide-react';
+import { Send, X, Smartphone, Zap, Sparkles, Phone, Loader2, ArrowRight, Radio } from 'lucide-react';
 import { executeCommand } from '../api';
 import './ModalsCommon.css';
 import './BulkSenderModal.css';
@@ -13,7 +13,7 @@ const QUICK_TEMPLATES = [
 export default function BulkSenderModal({ devices = [], onClose, addToast }) {
   const [recipient, setRecipient] = useState('');
   const [message, setMessage] = useState('');
-  const [targetType, setTargetType] = useState('all_online'); // all_online, custom_phone
+  const [selectedDeviceId, setSelectedDeviceId] = useState('all'); // 'all' or specific device_id
   const [loading, setLoading] = useState(false);
 
   const onlineDevices = devices.filter((d) => d.is_active);
@@ -25,18 +25,17 @@ export default function BulkSenderModal({ devices = [], onClose, addToast }) {
 
   async function handleSend(e) {
     e.preventDefault();
+    if (!recipient.trim()) {
+      addToast && addToast('Please enter a recipient phone number', 'warning');
+      return;
+    }
     if (!message.trim()) {
       addToast && addToast('Message cannot be empty', 'warning');
       return;
     }
 
-    if (targetType === 'custom_phone' && !recipient.trim()) {
-      addToast && addToast('Please enter a recipient phone number', 'warning');
-      return;
-    }
-
-    if (targetType === 'all_online' && onlineDevices.length === 0) {
-      addToast && addToast('No online agent devices found to broadcast.', 'warning');
+    if (onlineDevices.length === 0) {
+      addToast && addToast('No active agent devices online to transmit SMS.', 'warning');
       return;
     }
 
@@ -44,39 +43,30 @@ export default function BulkSenderModal({ devices = [], onClose, addToast }) {
     let successCount = 0;
 
     try {
-      if (targetType === 'custom_phone') {
-        // Broadcast custom number via all online devices or first active device
-        for (const d of onlineDevices) {
-          try {
-            await executeCommand(d.device_id, 'send_sms', {
-              phone_number: recipient.trim(),
-              message: message.trim(),
-            });
-            successCount++;
-          } catch (err) {
-            console.error(err);
-          }
+      const targetDevices = selectedDeviceId === 'all'
+        ? onlineDevices
+        : onlineDevices.filter((d) => d.device_id === selectedDeviceId);
+
+      for (const d of targetDevices) {
+        try {
+          await executeCommand(d.device_id, 'send_sms', {
+            phone_number: recipient.trim(),
+            message: message.trim(),
+          });
+          successCount++;
+        } catch (err) {
+          console.error('Failed to send SMS from device', d.device_id, err);
         }
-        addToast && addToast(`SMS dispatched to ${recipient} via ${successCount} agent device(s)!`, 'success');
-      } else {
-        // Broadcast across all online devices
-        for (const d of onlineDevices) {
-          try {
-            await executeCommand(d.device_id, 'send_sms', {
-              phone_number: d.phone_number || recipient || '+919999999999',
-              message: message.trim(),
-            });
-            successCount++;
-          } catch (err) {
-            console.error(err);
-          }
-        }
-        addToast && addToast(`Dispatched SMS payload to ${successCount} devices!`, 'success');
       }
 
-      onClose();
+      if (successCount > 0) {
+        addToast && addToast(`SMS dispatched to ${recipient} via ${successCount} device(s)!`, 'success');
+        onClose();
+      } else {
+        addToast && addToast('Failed to dispatch SMS from device(s)', 'error');
+      }
     } catch (err) {
-      addToast && addToast(`Failed to dispatch: ${err.message}`, 'error');
+      addToast && addToast(`Dispatch error: ${err.message}`, 'error');
     } finally {
       setLoading(false);
     }
@@ -84,168 +74,150 @@ export default function BulkSenderModal({ devices = [], onClose, addToast }) {
 
   return (
     <div className="mobile-modal-overlay">
-      <div className="mobile-modal-card">
+      <div className="mobile-modal-card bulk-sender-card-sheet">
         {/* Top Sheet Drag Notch */}
         <div className="modal-sheet-notch" />
 
         {/* Modal Header */}
-        <div className="bulk-modal-header">
-          <div className="modal-title-wrap">
-            <div className="modal-header-icon-box">
-              <Send size={19} />
+        <div className="bulk-sender-top-header">
+          <div className="bulk-brand-heading-row">
+            <div className="bulk-header-icon-box">
+              <Send size={18} />
             </div>
-            <div>
-              <div className="modal-title-with-pill">
-                <h3 className="modal-title">Bulk Sender</h3>
+            <div className="bulk-title-stack">
+              <div className="bulk-title-badge-row">
+                <h3 className="bulk-main-title">DISPATCH TRANSMISSION</h3>
                 {onlineDevices.length > 0 && (
-                  <span className="modal-live-tag">
-                    <span className="modal-live-dot" /> {onlineDevices.length} Online
+                  <span className="bulk-online-pill">
+                    <span className="bulk-online-dot" /> {onlineDevices.length} Online
                   </span>
                 )}
               </div>
-              <p className="modal-sub">Broadcast SMS through all connected agent devices</p>
+              <p className="bulk-sub-title">Transmit cellular SMS directly through registered device SIMs</p>
             </div>
           </div>
-          <button className="modal-close-btn" onClick={onClose} aria-label="Close modal">
-            <X size={18} />
+          <button className="bulk-close-circle-btn" onClick={onClose} aria-label="Close modal">
+            <X size={17} />
           </button>
         </div>
 
         {/* Modal Form */}
-        <form onSubmit={handleSend} className="mobile-modal-body">
-          {/* Dispatch Target Switcher */}
-          <div className="modal-field">
-            <label className="modal-input-label">Dispatch Target</label>
-            <div className="target-segmented-control-modern">
-              <button
-                type="button"
-                className={`segment-btn-modern ${targetType === 'all_online' ? 'active' : ''}`}
-                onClick={() => setTargetType('all_online')}
-              >
-                <Radio size={13} />
-                <span>All Online Devices</span>
-                <span className="segment-count-badge">{onlineDevices.length}</span>
-              </button>
-              <button
-                type="button"
-                className={`segment-btn-modern ${targetType === 'custom_phone' ? 'active' : ''}`}
-                onClick={() => setTargetType('custom_phone')}
-              >
-                <Phone size={13} />
-                <span>Custom Phone Number</span>
-              </button>
+        <form onSubmit={handleSend} className="bulk-sender-form-body">
+          {/* 1. Recipient Phone Number */}
+          <div className="bulk-field-group">
+            <label className="bulk-field-label">RECIPIENT PHONE NUMBER</label>
+            <div className="bulk-input-box">
+              <Phone size={17} className="bulk-field-icon" />
+              <input
+                type="tel"
+                placeholder="e.g. +91 98765 43210"
+                value={recipient}
+                onChange={(e) => setRecipient(e.target.value)}
+                className="bulk-text-input"
+                autoFocus
+                required
+              />
             </div>
           </div>
 
-          {/* Target Nodes Status Strip (when all_online) */}
-          {targetType === 'all_online' && (
-            <div>
-              {onlineDevices.length > 0 ? (
-                <div className="online-nodes-preview-box">
-                  <div className="preview-nodes-top">
-                    <span>Active Sender Nodes ({onlineDevices.length})</span>
-                    <span>Ready to Transmit</span>
-                  </div>
-                  <div className="preview-nodes-scroll">
-                    {onlineDevices.map((d) => (
-                      <div key={d.device_id} className="node-chip-badge">
-                        <span className="node-chip-dot" />
-                        <Smartphone size={12} className="text-blue" />
-                        <span>{d.device_name || d.model || (d.device_id ? d.device_id.slice(0, 10) : 'Agent')}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : (
-                <div className="nodes-empty-warning">
-                  <AlertCircle size={15} className="flex-shrink-0" />
-                  <span>No active agent devices currently online to broadcast.</span>
-                </div>
-              )}
+          {/* 2. Sender Node Selector */}
+          <div className="bulk-field-group">
+            <div className="bulk-label-row">
+              <label className="bulk-field-label">TRANSMITTER DEVICE / SENDER NODE</label>
+              <span className="bulk-field-hint">{onlineDevices.length} Ready</span>
             </div>
-          )}
 
-          {/* Custom Phone Number Input */}
-          {targetType === 'custom_phone' && (
-            <div className="modal-field">
-              <label className="modal-input-label">Recipient Phone Number</label>
-              <div className="modern-input-group">
-                <Phone size={14} className="input-prefix-icon" />
-                <input
-                  type="tel"
-                  placeholder="+91 98765 43210"
-                  value={recipient}
-                  onChange={(e) => setRecipient(e.target.value)}
-                  className="modal-input"
-                  required
-                />
-              </div>
+            <div className="bulk-nodes-chip-row">
+              <button
+                type="button"
+                className={`bulk-node-chip ${selectedDeviceId === 'all' ? 'active' : ''}`}
+                onClick={() => setSelectedDeviceId('all')}
+              >
+                <Radio size={12} />
+                <span>All Online Nodes ({onlineDevices.length})</span>
+              </button>
+
+              {onlineDevices.map((d) => {
+                const name = d.device_name || d.model || (d.device_id ? d.device_id.slice(0, 10) : 'Agent');
+                const isSelected = selectedDeviceId === d.device_id;
+                return (
+                  <button
+                    key={d.device_id}
+                    type="button"
+                    className={`bulk-node-chip ${isSelected ? 'active' : ''}`}
+                    onClick={() => setSelectedDeviceId(d.device_id)}
+                  >
+                    <Smartphone size={12} />
+                    <span>{name}</span>
+                  </button>
+                );
+              })}
             </div>
-          )}
+          </div>
 
-          {/* SMS Message Content Area */}
-          <div className="modal-field">
-            <div className="textarea-meta-header">
-              <label className="modal-input-label">SMS Message Content</label>
-              <span className="char-counter-tag">
+          {/* 3. SMS Message Content */}
+          <div className="bulk-field-group">
+            <div className="bulk-label-row">
+              <label className="bulk-field-label">SMS MESSAGE CONTENT</label>
+              <span className="bulk-char-pill">
                 {message.length} chars · {smsParts} SMS
               </span>
             </div>
 
             {/* Quick Template Chips */}
-            <div className="quick-template-chips">
+            <div className="bulk-template-pills-row">
               {QUICK_TEMPLATES.map((tpl, i) => (
                 <button
                   key={i}
                   type="button"
                   onClick={() => applyTemplate(tpl.text)}
-                  className="template-chip-btn"
+                  className="bulk-template-pill"
                 >
-                  <Sparkles size={11} className="text-blue" />
+                  <Sparkles size={11} className="pill-star" />
                   <span>{tpl.label}</span>
                 </button>
               ))}
             </div>
 
-            <textarea
-              rows={4}
-              placeholder="Type message text to broadcast..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              className="modal-textarea"
-              required
-            />
+            <div className="bulk-textarea-box">
+              <textarea
+                rows={4}
+                placeholder="Type message text to broadcast via cellular SIM..."
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                className="bulk-textarea-input"
+                required
+              />
+            </div>
           </div>
 
-          {/* Modern Tip / Notice Card */}
-          <div className="modal-tip-box-modern">
-            <div className="tip-box-icon-wrap">
-              <Zap size={13} />
+          {/* 4. Carrier Dispatch Info Card */}
+          <div className="bulk-notice-card">
+            <div className="bulk-notice-icon-box">
+              <Zap size={14} />
             </div>
-            <span>
-              This will queue an asynchronous SMS dispatch job across registered device SIMs. Carrier dispatch begins immediately upon transmission.
+            <span className="bulk-notice-text">
+              Carrier transmission will execute immediately via agent device cellular radio. Instant carrier dispatch.
             </span>
           </div>
 
-          {/* Action Button */}
+          {/* 5. Submit Pill Button (Matching Onboarding & Login Aesthetic) */}
           <button
             type="submit"
-            className="btn-modern-primary"
-            disabled={loading || (targetType === 'all_online' && onlineDevices.length === 0)}
+            className="bulk-submit-pill-btn"
+            disabled={loading || onlineDevices.length === 0}
           >
             {loading ? (
               <>
-                <Loader2 size={16} className="animate-spin" />
-                <span>Transmitting SMS...</span>
+                <Loader2 size={18} className="animate-spin" />
+                <span>TRANSMITTING SMS...</span>
               </>
             ) : (
               <>
-                <Send size={16} />
-                <span>
-                  {targetType === 'all_online'
-                    ? `Broadcast to ${onlineDevices.length} Device${onlineDevices.length === 1 ? '' : 's'}`
-                    : 'Dispatch Custom SMS'}
-                </span>
+                <span>DISPATCH TRANSMISSION</span>
+                <div className="submit-circle-arrow">
+                  <ArrowRight size={17} />
+                </div>
               </>
             )}
           </button>
