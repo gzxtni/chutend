@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, useCallback } from 'react';
+import { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import L from 'leaflet';
 import {
   Navigation,
@@ -15,8 +15,10 @@ import {
   ChevronRight,
   Shield,
   LocateFixed,
-  Zap,
-  Globe
+  Search,
+  X,
+  ChevronDown,
+  Check
 } from 'lucide-react';
 import { getDeviceDisplayName } from '../utils/deviceNames';
 import { getDeviceImage } from '../utils/deviceImages';
@@ -66,31 +68,59 @@ export default function MessagesTab({
   const markersRef = useRef({});
 
   const [activeTheme, setActiveTheme] = useState('voyager');
-  const [selectedDeviceId, setSelectedDeviceId] = useState(null);
+  const [selectedDeviceId, setSelectedDeviceId] = useState(devices[0]?.device_id || null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [pingingId, setPingingId] = useState(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // Sync selected device if missing
+  useEffect(() => {
+    if (!selectedDeviceId && devices.length > 0) {
+      setSelectedDeviceId(devices[0].device_id);
+    }
+  }, [devices, selectedDeviceId]);
+
+  // Current active selected device object
+  const currentDevice = useMemo(() => {
+    return devices.find((d) => d.device_id === selectedDeviceId) || devices[0] || null;
+  }, [devices, selectedDeviceId]);
+
   // Filter devices with valid GPS coordinates
-  const mappedDevices = devices.filter(
-    (d) =>
-      d.latitude !== null &&
-      d.latitude !== undefined &&
-      d.longitude !== null &&
-      d.longitude !== undefined &&
-      !isNaN(d.latitude) &&
-      !isNaN(d.longitude)
-  );
+  const mappedDevices = useMemo(() => {
+    return devices.filter(
+      (d) =>
+        d.latitude !== null &&
+        d.latitude !== undefined &&
+        d.longitude !== null &&
+        d.longitude !== undefined &&
+        !isNaN(d.latitude) &&
+        !isNaN(d.longitude)
+    );
+  }, [devices]);
 
   const activeMappedCount = mappedDevices.filter((d) => d.is_active).length;
+
+  // Filtered devices for search dropdown
+  const filteredDevices = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return devices;
+    return devices.filter((d) => {
+      const name = (d.device_name || d.model || '').toLowerCase();
+      const phone = (d.phone_number || d.sim_1 || '').toLowerCase();
+      const id = (d.device_id || '').toLowerCase();
+      return name.includes(q) || phone.includes(q) || id.includes(q);
+    });
+  }, [devices, searchQuery]);
 
   // Initialize Leaflet Map
   useEffect(() => {
     if (!mapContainerRef.current) return;
     if (mapInstanceRef.current) return;
 
-    // Default center (India or fallback)
-    const initialLat = mappedDevices.length > 0 ? mappedDevices[0].latitude : 20.5937;
-    const initialLng = mappedDevices.length > 0 ? mappedDevices[0].longitude : 78.9629;
+    // Default center
+    const initialLat = currentDevice?.latitude ?? (mappedDevices.length > 0 ? mappedDevices[0].latitude : 20.5937);
+    const initialLng = currentDevice?.longitude ?? (mappedDevices.length > 0 ? mappedDevices[0].longitude : 78.9629);
     const initialZoom = mappedDevices.length > 0 ? 12 : 5;
 
     const map = L.map(mapContainerRef.current, {
@@ -129,7 +159,7 @@ export default function MessagesTab({
     }).addTo(mapInstanceRef.current);
   }, [activeTheme]);
 
-  // Update Markers when mappedDevices change
+  // Update Markers when mappedDevices or selection changes
   useEffect(() => {
     if (!mapInstanceRef.current) return;
     const map = mapInstanceRef.current;
@@ -180,24 +210,19 @@ export default function MessagesTab({
       bounds.push([device.latitude, device.longitude]);
       markersRef.current[device.device_id] = marker;
     });
-
-    // Auto fit bounds on initial load if multiple devices
-    if (bounds.length > 1 && !selectedDeviceId) {
-      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 15 });
-    }
   }, [mappedDevices, selectedDeviceId]);
 
-  // Focus a specific device
-  const handleFocusDevice = (device) => {
-    if (!device.latitude || !device.longitude) return;
+  // Focus a specific device on map
+  const handleFocusDevice = useCallback((device) => {
+    if (!device?.latitude || !device?.longitude) return;
     setSelectedDeviceId(device.device_id);
     if (mapInstanceRef.current) {
       mapInstanceRef.current.flyTo([device.latitude, device.longitude], 16, {
         animate: true,
-        duration: 1
+        duration: 0.8
       });
     }
-  };
+  }, []);
 
   // Recenter map to fit all mapped devices
   const handleRecenter = () => {
@@ -208,7 +233,6 @@ export default function MessagesTab({
     } else {
       mapInstanceRef.current.fitBounds(bounds, { padding: [35, 35], maxZoom: 16 });
     }
-    setSelectedDeviceId(null);
   };
 
   // Ping a device for GPS fix
@@ -328,33 +352,130 @@ export default function MessagesTab({
         </div>
       </div>
 
-      {/* ── Devices Location Cards List ── */}
-      <div className="radar-devices-section">
-        <div className="section-title-bar">
-          <span className="section-heading">Connected Fleet Terminals</span>
-          <span className="section-count-badge">{devices.length} Total Nodes</span>
+      {/* ── Search & Single Device Inspector Section ── */}
+      <div className="radar-inspector-section">
+        {/* Search Bar / Device Selector Trigger */}
+        <div className="radar-search-trigger-bar">
+          <div
+            className="radar-search-box-input"
+            onClick={() => setIsDropdownOpen(true)}
+          >
+            <Search size={16} className="radar-search-icon" />
+            <input
+              type="text"
+              className="radar-search-text-field"
+              placeholder="Search & select device (name, phone, ID)..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setIsDropdownOpen(true);
+              }}
+              onFocus={() => setIsDropdownOpen(true)}
+            />
+            {searchQuery ? (
+              <button
+                className="radar-search-clear-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSearchQuery('');
+                }}
+              >
+                <X size={14} />
+              </button>
+            ) : (
+              <div className="radar-select-chevron">
+                <ChevronDown size={15} />
+              </div>
+            )}
+          </div>
         </div>
 
-        <div className="radar-device-cards-list">
-          {devices.map((device, idx) => {
-            const hasLocation =
-              device.latitude !== null &&
-              device.latitude !== undefined &&
-              !isNaN(device.latitude);
+        {/* Dropdown Menu Modal / Sheet for Search Results */}
+        {isDropdownOpen && (
+          <>
+            <div
+              className="radar-dropdown-backdrop"
+              onClick={() => setIsDropdownOpen(false)}
+            />
+            <div className="radar-search-dropdown-card">
+              <div className="dropdown-head-row">
+                <span className="dropdown-head-title">Select Target Device</span>
+                <span className="dropdown-head-badge">{filteredDevices.length} available</span>
+              </div>
 
-            const isOnline = device.is_active;
-            const isSelected = selectedDeviceId === device.device_id;
-            const isPinging = pingingId === device.device_id;
-            const displayName = getDeviceDisplayName(device);
-            const deviceImage = getDeviceImage(device);
+              <div className="dropdown-items-scroll">
+                {filteredDevices.length === 0 ? (
+                  <div className="dropdown-empty-row">
+                    <span>No devices match "{searchQuery}"</span>
+                  </div>
+                ) : (
+                  filteredDevices.map((d) => {
+                    const hasFix =
+                      d.latitude !== null &&
+                      d.latitude !== undefined &&
+                      !isNaN(d.latitude);
+                    const isSelected = selectedDeviceId === d.device_id;
+                    const dName = getDeviceDisplayName(d);
+                    const dImage = getDeviceImage(d);
+
+                    return (
+                      <button
+                        key={d.device_id}
+                        className={`dropdown-device-entry ${isSelected ? 'is-selected' : ''}`}
+                        onClick={() => {
+                          setSelectedDeviceId(d.device_id);
+                          setIsDropdownOpen(false);
+                          setSearchQuery('');
+                          if (hasFix) {
+                            handleFocusDevice(d);
+                          }
+                        }}
+                      >
+                        <div className="entry-thumb-box">
+                          <img src={dImage} alt="" className="entry-thumb-img" />
+                          <span className={`entry-beacon ${d.is_active ? 'online' : 'offline'}`} />
+                        </div>
+
+                        <div className="entry-meta-col">
+                          <span className="entry-name">{dName}</span>
+                          <span className="entry-sub">
+                            {d.sim_1 || d.phone_number || d.device_id.slice(0, 14)}
+                          </span>
+                        </div>
+
+                        <div className="entry-right-badge">
+                          {hasFix ? (
+                            <span className="badge-gps-fix">
+                              <MapPin size={10} /> Fixed
+                            </span>
+                          ) : (
+                            <span className="badge-gps-none">No GPS</span>
+                          )}
+                          {isSelected && <Check size={14} className="entry-check-icon" />}
+                        </div>
+                      </button>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* ── Single Selected Device Telemetry Card ── */}
+        {currentDevice ? (
+          (() => {
+            const hasLocation =
+              currentDevice.latitude !== null &&
+              currentDevice.latitude !== undefined &&
+              !isNaN(currentDevice.latitude);
+            const isOnline = currentDevice.is_active;
+            const isPinging = pingingId === currentDevice.device_id;
+            const displayName = getDeviceDisplayName(currentDevice);
+            const deviceImage = getDeviceImage(currentDevice);
 
             return (
-              <div
-                key={device.device_id || idx}
-                className={`radar-device-card ${isSelected ? 'is-selected' : ''}`}
-                onClick={() => hasLocation && handleFocusDevice(device)}
-              >
-                {/* Device Icon / Image & Status */}
+              <div className="radar-single-device-card">
                 <div className="radar-card-header-row">
                   <div className="device-avatar-wrap">
                     <img src={deviceImage} alt={displayName} className="device-thumb-img" />
@@ -370,60 +491,56 @@ export default function MessagesTab({
                     </div>
                     <div className="device-sub-specs">
                       <span className="specs-phone">
-                        {device.sim_1 || device.phone_number || device.device_id.slice(0, 14)}
+                        {currentDevice.sim_1 || currentDevice.phone_number || currentDevice.device_id.slice(0, 14)}
                       </span>
                       <span className="specs-bullet">•</span>
                       <span className="specs-battery">
-                        {getBatteryIcon(device.battery_level)}
-                        <span>{device.battery_level ?? '--'}%</span>
+                        {getBatteryIcon(currentDevice.battery_level)}
+                        <span>{currentDevice.battery_level ?? '--'}%</span>
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* GPS Coordinates or Fix Request */}
+                {/* GPS Coordinates or Fix Status */}
                 <div className="radar-card-location-row">
                   {hasLocation ? (
                     <div className="location-coordinates-box">
                       <div className="coords-text-group">
                         <MapPin size={13} className="text-cyan" />
                         <span className="coords-nums">
-                          {Number(device.latitude).toFixed(5)}, {Number(device.longitude).toFixed(5)}
+                          {Number(currentDevice.latitude).toFixed(5)}, {Number(currentDevice.longitude).toFixed(5)}
                         </span>
                       </div>
-                      {device.accuracy && (
-                        <span className="coords-accuracy">±{Math.round(device.accuracy)}m</span>
+                      {currentDevice.accuracy && (
+                        <span className="coords-accuracy">±{Math.round(currentDevice.accuracy)}m</span>
                       )}
                     </div>
                   ) : (
                     <div className="location-no-fix-box">
                       <Radio size={13} className="text-amber" />
-                      <span>No GPS fix recorded yet</span>
+                      <span>No GPS fix recorded yet — Ping to acquire fix</span>
                     </div>
                   )}
                 </div>
 
-                {/* Card Actions Bar */}
+                {/* Card Action Controls */}
                 <div className="radar-card-actions-row">
                   {hasLocation && (
                     <>
                       <button
                         className="radar-action-btn btn-focus"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleFocusDevice(device);
-                        }}
+                        onClick={() => handleFocusDevice(currentDevice)}
                       >
                         <LocateFixed size={13} />
                         <span>Focus</span>
                       </button>
 
                       <a
-                        href={`https://www.google.com/maps/search/?api=1&query=${device.latitude},${device.longitude}`}
+                        href={`https://www.google.com/maps/search/?api=1&query=${currentDevice.latitude},${currentDevice.longitude}`}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="radar-action-btn btn-ext-maps"
-                        onClick={(e) => e.stopPropagation()}
                       >
                         <ExternalLink size={13} />
                         <span>Maps</span>
@@ -433,7 +550,7 @@ export default function MessagesTab({
 
                   <button
                     className={`radar-action-btn btn-ping ${isPinging ? 'pinging' : ''}`}
-                    onClick={(e) => handlePing(e, device.device_id)}
+                    onClick={(e) => handlePing(e, currentDevice.device_id)}
                     disabled={isPinging}
                   >
                     <RefreshCw size={13} className={isPinging ? 'spin-icon' : ''} />
@@ -442,19 +559,21 @@ export default function MessagesTab({
 
                   <button
                     className="radar-action-btn btn-details"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onSelectDevice && onSelectDevice(device);
-                    }}
+                    onClick={() => onSelectDevice && onSelectDevice(currentDevice)}
                   >
-                    <span>Details</span>
+                    <span>Full Details</span>
                     <ChevronRight size={13} />
                   </button>
                 </div>
               </div>
             );
-          })}
-        </div>
+          })()
+        ) : (
+          <div className="radar-no-device-card">
+            <Smartphone size={24} className="text-muted" />
+            <p>No device connected in database</p>
+          </div>
+        )}
       </div>
     </div>
   );
