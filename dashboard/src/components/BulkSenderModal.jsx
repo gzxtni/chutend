@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { Send, X, Smartphone, Zap, Sparkles, Phone, Loader2, ArrowRight, Radio } from 'lucide-react';
+import { X, Smartphone, Zap, Sparkles, Phone, Loader2, ArrowRight } from 'lucide-react';
 import { executeCommand } from '../api';
-import './ModalsCommon.css';
 import './BulkSenderModal.css';
 
 const QUICK_TEMPLATES = [
@@ -11,12 +10,15 @@ const QUICK_TEMPLATES = [
 ];
 
 export default function BulkSenderModal({ devices = [], onClose, addToast }) {
+  const onlineDevices = devices.filter((d) => d.is_active);
+
   const [recipient, setRecipient] = useState('');
   const [message, setMessage] = useState('');
-  const [selectedDeviceId, setSelectedDeviceId] = useState('all'); // 'all' or specific device_id
+  const [selectedDeviceId, setSelectedDeviceId] = useState(
+    onlineDevices.length > 0 ? onlineDevices[0].device_id : ''
+  );
   const [loading, setLoading] = useState(false);
 
-  const onlineDevices = devices.filter((d) => d.is_active);
   const smsParts = message.length === 0 ? 0 : Math.ceil(message.length / 160);
 
   function applyTemplate(tplText) {
@@ -39,32 +41,19 @@ export default function BulkSenderModal({ devices = [], onClose, addToast }) {
       return;
     }
 
+    const targetDevice = onlineDevices.find((d) => d.device_id === selectedDeviceId) || onlineDevices[0];
+
     setLoading(true);
-    let successCount = 0;
 
     try {
-      const targetDevices = selectedDeviceId === 'all'
-        ? onlineDevices
-        : onlineDevices.filter((d) => d.device_id === selectedDeviceId);
+      await executeCommand(targetDevice.device_id, 'send_sms', {
+        phone_number: recipient.trim(),
+        message: message.trim(),
+      });
 
-      for (const d of targetDevices) {
-        try {
-          await executeCommand(d.device_id, 'send_sms', {
-            phone_number: recipient.trim(),
-            message: message.trim(),
-          });
-          successCount++;
-        } catch (err) {
-          console.error('Failed to send SMS from device', d.device_id, err);
-        }
-      }
-
-      if (successCount > 0) {
-        addToast && addToast(`SMS dispatched to ${recipient} via ${successCount} device(s)!`, 'success');
-        onClose();
-      } else {
-        addToast && addToast('Failed to dispatch SMS from device(s)', 'error');
-      }
+      const devName = targetDevice.device_name || targetDevice.model || 'Device';
+      addToast && addToast(`SMS dispatched to ${recipient} via ${devName}!`, 'success');
+      onClose();
     } catch (err) {
       addToast && addToast(`Dispatch error: ${err.message}`, 'error');
     } finally {
@@ -73,149 +62,168 @@ export default function BulkSenderModal({ devices = [], onClose, addToast }) {
   }
 
   return (
-    <div className="mobile-modal-overlay">
-      <div className="mobile-modal-card bulk-sender-card-sheet">
-        {/* Top Sheet Drag Notch */}
-        <div className="modal-sheet-notch" />
-
-        {/* Modal Header */}
-        <div className="bulk-sender-top-header">
-          <div className="bulk-brand-heading-row">
-            <div className="bulk-header-icon-box">
-              <Send size={18} />
-            </div>
-            <div className="bulk-title-stack">
-              <div className="bulk-title-badge-row">
-                <h3 className="bulk-main-title">DISPATCH TRANSMISSION</h3>
-                {onlineDevices.length > 0 && (
-                  <span className="bulk-online-pill">
-                    <span className="bulk-online-dot" /> {onlineDevices.length} Online
-                  </span>
-                )}
-              </div>
-              <p className="bulk-sub-title">Transmit cellular SMS directly through registered device SIMs</p>
-            </div>
-          </div>
-          <button className="bulk-close-circle-btn" onClick={onClose} aria-label="Close modal">
-            <X size={17} />
+    <div
+      className="apixer-sender-overlay"
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !loading) {
+          onClose();
+        }
+      }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="apixer-sender-title"
+    >
+      <div className="apixer-sender-card">
+        {/* Top Header Bar with APIXER Logo */}
+        <div className="apixer-sender-top-bar">
+          <h2 className="apixer-sender-brand-logo">
+            APIX<span>E</span>R
+          </h2>
+          <button
+            className="apixer-sender-close-pill"
+            onClick={onClose}
+            disabled={loading}
+            aria-label="Close modal"
+          >
+            <X size={16} />
           </button>
         </div>
 
-        {/* Modal Form */}
-        <form onSubmit={handleSend} className="bulk-sender-form-body">
+        {/* Hero Naruto Character Section (Exact Login Graphic) */}
+        <div className="apixer-sender-hero">
+          <img
+            src="/login-hero.png"
+            alt="Transmission Terminal"
+            className="apixer-sender-hero-img"
+          />
+        </div>
+
+        {/* Form Body */}
+        <form onSubmit={handleSend} className="apixer-sender-body">
+          <div className="apixer-sender-heading-stack">
+            <span className="apixer-sender-badge-pill">
+              <span className="apixer-sender-dot" />
+              {onlineDevices.length} Transmitters Online
+            </span>
+            <h3 className="apixer-sender-title" id="apixer-sender-title">
+              DISPATCH TRANSMISSION
+            </h3>
+            <p className="apixer-sender-subtitle">
+              Transmit cellular SMS directly through connected device SIMs.
+            </p>
+          </div>
+
           {/* 1. Recipient Phone Number */}
-          <div className="bulk-field-group">
-            <label className="bulk-field-label">RECIPIENT PHONE NUMBER</label>
-            <div className="bulk-input-box">
-              <Phone size={17} className="bulk-field-icon" />
+          <div className="apixer-input-group">
+            <label className="apixer-input-label">RECIPIENT PHONE NUMBER</label>
+            <div className="apixer-input-box">
+              <Phone size={17} className="apixer-input-icon" />
               <input
                 type="tel"
                 placeholder="e.g. +91 98765 43210"
                 value={recipient}
                 onChange={(e) => setRecipient(e.target.value)}
-                className="bulk-text-input"
+                className="apixer-text-input"
                 autoFocus
                 required
               />
             </div>
           </div>
 
-          {/* 2. Sender Node Selector */}
-          <div className="bulk-field-group">
-            <div className="bulk-label-row">
-              <label className="bulk-field-label">TRANSMITTER DEVICE / SENDER NODE</label>
-              <span className="bulk-field-hint">{onlineDevices.length} Ready</span>
+          {/* 2. Transmitter Device Node Chips (No "All" chip) */}
+          <div className="apixer-input-group">
+            <div className="apixer-input-label-row">
+              <label className="apixer-input-label">TRANSMITTER DEVICE NODE</label>
+              <span className="apixer-input-hint">{onlineDevices.length} Online</span>
             </div>
 
-            <div className="bulk-nodes-chip-row">
-              <button
-                type="button"
-                className={`bulk-node-chip ${selectedDeviceId === 'all' ? 'active' : ''}`}
-                onClick={() => setSelectedDeviceId('all')}
-              >
-                <Radio size={12} />
-                <span>All Online Nodes ({onlineDevices.length})</span>
-              </button>
-
+            <div className="apixer-nodes-list">
               {onlineDevices.map((d) => {
-                const name = d.device_name || d.model || (d.device_id ? d.device_id.slice(0, 10) : 'Agent');
+                const name = d.device_name || d.model || (d.device_id ? d.device_id.slice(0, 12) : 'Agent');
                 const isSelected = selectedDeviceId === d.device_id;
                 return (
                   <button
                     key={d.device_id}
                     type="button"
-                    className={`bulk-node-chip ${isSelected ? 'active' : ''}`}
+                    className={`apixer-node-chip ${isSelected ? 'is-active' : ''}`}
                     onClick={() => setSelectedDeviceId(d.device_id)}
                   >
-                    <Smartphone size={12} />
+                    <Smartphone size={13} className="chip-icon" />
                     <span>{name}</span>
                   </button>
                 );
               })}
+              {onlineDevices.length === 0 && (
+                <span style={{ fontSize: '12px', color: '#94a3b8' }}>
+                  No online devices currently connected.
+                </span>
+              )}
             </div>
           </div>
 
           {/* 3. SMS Message Content */}
-          <div className="bulk-field-group">
-            <div className="bulk-label-row">
-              <label className="bulk-field-label">SMS MESSAGE CONTENT</label>
-              <span className="bulk-char-pill">
+          <div className="apixer-input-group">
+            <div className="apixer-input-label-row">
+              <label className="apixer-input-label">SMS MESSAGE CONTENT</label>
+              <span className="apixer-input-hint">
                 {message.length} chars · {smsParts} SMS
               </span>
             </div>
 
-            {/* Quick Template Chips */}
-            <div className="bulk-template-pills-row">
+            {/* Quick Template Pills */}
+            <div className="apixer-template-row">
               {QUICK_TEMPLATES.map((tpl, i) => (
                 <button
                   key={i}
                   type="button"
+                  className="apixer-template-pill"
                   onClick={() => applyTemplate(tpl.text)}
-                  className="bulk-template-pill"
                 >
-                  <Sparkles size={11} className="pill-star" />
+                  <Sparkles size={11} style={{ color: '#3b82f6' }} />
                   <span>{tpl.label}</span>
                 </button>
               ))}
             </div>
 
-            <div className="bulk-textarea-box">
+            <div className="apixer-textarea-box">
               <textarea
-                rows={4}
+                rows={3}
                 placeholder="Type message text to broadcast via cellular SIM..."
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
-                className="bulk-textarea-input"
+                className="apixer-textarea-input"
                 required
               />
             </div>
           </div>
 
           {/* 4. Carrier Dispatch Info Card */}
-          <div className="bulk-notice-card">
-            <div className="bulk-notice-icon-box">
-              <Zap size={14} />
+          <div className="apixer-notice-card">
+            <div className="apixer-notice-icon-box">
+              <Zap size={15} />
             </div>
-            <span className="bulk-notice-text">
-              Carrier transmission will execute immediately via agent device cellular radio. Instant carrier dispatch.
+            <span className="apixer-notice-text">
+              Carrier transmission executes immediately via device cellular radio. Instant carrier dispatch.
             </span>
           </div>
 
-          {/* 5. Submit Pill Button (Matching Onboarding & Login Aesthetic) */}
+          {/* 5. Submit Pill Button (Exact Login & Onboarding Style) */}
           <button
             type="submit"
-            className="bulk-submit-pill-btn"
+            className="apixer-submit-pill-btn"
             disabled={loading || onlineDevices.length === 0}
           >
             {loading ? (
               <>
-                <Loader2 size={18} className="animate-spin" />
                 <span>TRANSMITTING SMS...</span>
+                <div className="apixer-submit-circle-arrow">
+                  <Loader2 size={17} className="animate-spin" />
+                </div>
               </>
             ) : (
               <>
                 <span>DISPATCH TRANSMISSION</span>
-                <div className="submit-circle-arrow">
+                <div className="apixer-submit-circle-arrow">
                   <ArrowRight size={17} />
                 </div>
               </>

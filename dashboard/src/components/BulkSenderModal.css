@@ -1,203 +1,225 @@
 /* ═══════════════════════════════════════════════════════════════
-   Bulk Sender Modal — Onboarding & Login Aesthetic Design System
-   Matches APIXER Minimal Dark & Clean White Layout
+   Bulk Sender Modal — APIXER Login & Onboarding Theme
+   Matches the exact Naruto Hero, Typography & Pill Button aesthetic
    ═══════════════════════════════════════════════════════════════ */
 
-/* Modal Card Container */
-.bulk-sender-card-sheet {
-  background: #ffffff;
-  border-radius: 32px 32px 0 0;
-  box-shadow: 0 -8px 36px rgba(15, 23, 42, 0.18);
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  max-width: 480px;
-  width: 100%;
-  animation: sheetSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-  overflow: hidden;
-}
-
-@media (min-width: 480px) {
-  .bulk-sender-card-sheet {
-    border-radius: 28px;
-    box-shadow: 0 20px 50px -10px rgba(15, 23, 42, 0.28);
-  }
-}
-
-/* Modal Drag Notch */
-.modal-sheet-notch {
-  width: 42px;
-  height: 4.5px;
-  background: #cbd5e1;
-  border-radius: 9999px;
-  margin: 12px auto 4px;
-  flex-shrink: 0;
-  transition: background-color 0.2s ease;
-}
-
-/* Header Section */
-.bulk-sender-top-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 16px 22px 14px;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.bulk-brand-heading-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-
-.bulk-header-icon-box {
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
-  background: #0f172a;
-  color: #ffffff;
+.apixer-sender-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.65);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.25);
+  padding: 16px;
+  animation: apixerSenderOverlayFade 0.2s ease-out forwards;
 }
 
-.bulk-title-stack {
+@keyframes apixerSenderOverlayFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.apixer-sender-card {
+  width: 100%;
+  max-width: 440px;
+  max-height: 90vh;
+  background: #ffffff;
+  border-radius: 36px;
+  box-shadow: 0 25px 65px -12px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(226, 232, 240, 0.9);
+  overflow-y: auto;
+  overflow-x: hidden;
+  animation: apixerSenderCardPop 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   display: flex;
   flex-direction: column;
-  min-width: 0;
+  position: relative;
+  scrollbar-width: none;
 }
 
-.bulk-title-badge-row {
+.apixer-sender-card::-webkit-scrollbar {
+  display: none;
+}
+
+@keyframes apixerSenderCardPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.92) translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Top Navigation Bar */
+.apixer-sender-top-bar {
+  padding: 16px 22px 10px;
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  background: #e9f3f0;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+  flex-shrink: 0;
 }
 
-.bulk-main-title {
-  font-size: 16px;
-  font-weight: 800;
-  color: #0f172a;
-  letter-spacing: -0.3px;
-  text-transform: uppercase;
+.apixer-sender-brand-logo {
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 4px;
+  color: #111827;
   margin: 0;
-  line-height: 1.25;
+  font-family: inherit;
 }
 
-.bulk-online-pill {
+.apixer-sender-brand-logo span {
+  display: inline-block;
+  letter-spacing: 2px;
+}
+
+.apixer-sender-close-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.apixer-sender-close-pill:hover:not(:disabled) {
+  background: #f1f5f9;
+  color: #0f172a;
+  transform: scale(1.05);
+}
+
+/* Hero Section with Login Character Graphic */
+.apixer-sender-hero {
+  background: linear-gradient(180deg, #e9f3f0 0%, #ffffff 100%);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 10px 16px 0;
+  position: relative;
+  overflow: hidden;
+  height: 120px;
+  flex-shrink: 0;
+}
+
+.apixer-sender-hero-img {
+  height: 120px;
+  width: auto;
+  object-fit: contain;
+  object-position: bottom center;
+  display: block;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.09));
+  animation: apixerSenderHeroSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes apixerSenderHeroSlide {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Body Form Content */
+.apixer-sender-body {
+  padding: 14px 22px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.apixer-sender-heading-stack {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.apixer-sender-badge-pill {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  font-weight: 700;
-  background: #ecfdf5;
+  gap: 5px;
+  font-size: 10.5px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
   color: #059669;
+  background: #ecfdf5;
   border: 1px solid #a7f3d0;
-  border-radius: 9999px;
-  padding: 2px 8px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  margin-bottom: 6px;
 }
 
-.bulk-online-dot {
+.apixer-sender-dot {
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: #10b981;
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
-  animation: liveDotPulse 1.8s infinite;
 }
 
-@keyframes liveDotPulse {
-  0% {
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
-  }
-  70% {
-    box-shadow: 0 0 0 5px rgba(16, 185, 129, 0);
-  }
-  100% {
-    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
-  }
-}
-
-.bulk-sub-title {
-  font-size: 12px;
-  color: #64748b;
-  margin: 2px 0 0;
-  line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.bulk-close-circle-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #f1f5f9;
-  border: none;
-  color: #64748b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  flex-shrink: 0;
-}
-
-.bulk-close-circle-btn:hover {
-  background: #e2e8f0;
+.apixer-sender-title {
+  font-size: 20px;
+  font-weight: 900;
   color: #0f172a;
+  letter-spacing: -0.4px;
+  margin: 0 0 4px;
+  text-transform: uppercase;
 }
 
-/* Modal Form Body */
-.bulk-sender-form-body {
-  padding: 20px 22px 24px;
+.apixer-sender-subtitle {
+  font-size: 12.5px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Field Groups (Matching Login Page) */
+.apixer-input-group {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  overflow-y: auto;
-  max-height: calc(90vh - 100px);
+  gap: 6px;
+  text-align: left;
 }
 
-/* Field Groups */
-.bulk-field-group {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.bulk-label-row {
+.apixer-input-label-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.bulk-field-label {
+.apixer-input-label {
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 800;
   color: #475569;
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
 
-.bulk-field-hint {
+.apixer-input-hint {
   font-size: 11px;
+  color: #94a3b8;
   font-weight: 600;
-  color: #059669;
 }
 
-.bulk-char-pill {
-  font-size: 11px;
-  font-weight: 600;
-  color: #64748b;
-  background: #f1f5f9;
-  padding: 2px 7px;
-  border-radius: 6px;
-}
-
-/* Input Box (Matching Login Page) */
-.bulk-input-box {
-  position: relative;
+.apixer-input-box {
   display: flex;
   align-items: center;
   background: #f8fafc;
@@ -208,62 +230,57 @@
   transition: all 0.15s ease;
 }
 
-.bulk-input-box:focus-within {
+.apixer-input-box:focus-within {
   border-color: #0f172a;
   background: #ffffff;
   box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.06);
 }
 
-.bulk-field-icon {
+.apixer-input-icon {
   color: #94a3b8;
   margin-right: 10px;
   flex-shrink: 0;
-  transition: color 0.15s ease;
 }
 
-.bulk-input-box:focus-within .bulk-field-icon {
-  color: #0f172a;
-}
-
-.bulk-text-input {
+.apixer-text-input {
   flex: 1;
   background: transparent;
   border: none;
   outline: none;
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   color: #0f172a;
   font-family: inherit;
 }
 
-.bulk-text-input::placeholder {
+.apixer-text-input::placeholder {
   color: #94a3b8;
   font-weight: 400;
 }
 
-/* Transmitter Nodes Selector */
-.bulk-nodes-chip-row {
+/* Device Selector Node Chips (No "All" button, clean node pills) */
+.apixer-nodes-list {
   display: flex;
   gap: 8px;
   overflow-x: auto;
-  padding: 2px 0 6px;
+  padding-bottom: 2px;
   scrollbar-width: none;
 }
 
-.bulk-nodes-chip-row::-webkit-scrollbar {
+.apixer-nodes-list::-webkit-scrollbar {
   display: none;
 }
 
-.bulk-node-chip {
+.apixer-node-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
   padding: 8px 14px;
   background: #f8fafc;
   border: 1.5px solid #e2e8f0;
-  border-radius: 9999px;
+  border-radius: 999px;
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   color: #475569;
   cursor: pointer;
   white-space: nowrap;
@@ -271,21 +288,25 @@
   transition: all 0.15s ease;
 }
 
-.bulk-node-chip:hover {
+.apixer-node-chip:hover {
   background: #f1f5f9;
   border-color: #cbd5e1;
   color: #0f172a;
 }
 
-.bulk-node-chip.active {
+.apixer-node-chip.is-active {
   background: #0f172a;
   border-color: #0f172a;
   color: #ffffff;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.2);
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.22);
 }
 
-/* Quick Template Pills */
-.bulk-template-pills-row {
+.apixer-node-chip.is-active .chip-icon {
+  color: #60a5fa;
+}
+
+/* Template Pills */
+.apixer-template-row {
   display: flex;
   gap: 6px;
   overflow-x: auto;
@@ -293,18 +314,18 @@
   scrollbar-width: none;
 }
 
-.bulk-template-pills-row::-webkit-scrollbar {
+.apixer-template-row::-webkit-scrollbar {
   display: none;
 }
 
-.bulk-template-pill {
+.apixer-template-pill {
   display: inline-flex;
   align-items: center;
   gap: 5px;
   padding: 5px 11px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 9999px;
+  border-radius: 999px;
   font-size: 11px;
   font-weight: 600;
   color: #475569;
@@ -314,94 +335,85 @@
   transition: all 0.15s ease;
 }
 
-.bulk-template-pill:hover {
+.apixer-template-pill:hover {
   background: #0f172a;
   color: #ffffff;
   border-color: #0f172a;
   transform: translateY(-1px);
 }
 
-.pill-star {
-  color: #3b82f6;
-  transition: color 0.15s ease;
-}
-
-.bulk-template-pill:hover .pill-star {
-  color: #ffffff;
-}
-
-/* Textarea Box (Matching Login Form) */
-.bulk-textarea-box {
+/* Textarea Box */
+.apixer-textarea-box {
   background: #f8fafc;
   border: 1.5px solid #e2e8f0;
-  border-radius: 16px;
+  border-radius: 18px;
   padding: 12px 14px;
   transition: all 0.15s ease;
 }
 
-.bulk-textarea-box:focus-within {
+.apixer-textarea-box:focus-within {
   border-color: #0f172a;
   background: #ffffff;
   box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.06);
 }
 
-.bulk-textarea-input {
+.apixer-textarea-input {
   width: 100%;
-  border: none;
   background: transparent;
+  border: none;
   outline: none;
-  resize: vertical;
-  min-height: 85px;
   font-size: 13.5px;
   font-weight: 500;
   color: #0f172a;
+  resize: none;
   line-height: 1.45;
   font-family: inherit;
 }
 
-.bulk-textarea-input::placeholder {
+.apixer-textarea-input::placeholder {
   color: #94a3b8;
   font-weight: 400;
 }
 
-/* Carrier Notice Card */
-.bulk-notice-card {
+/* Notice Card */
+.apixer-notice-card {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 14px;
+  background: #eff6ff;
+  border: 1px solid #dbeafe;
+  border-radius: 16px;
   padding: 10px 14px;
 }
 
-.bulk-notice-icon-box {
+.apixer-notice-icon-box {
   width: 28px;
   height: 28px;
-  border-radius: 8px;
-  background: #eff6ff;
-  color: #2563eb;
+  border-radius: 999px;
+  background: #3b82f6;
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
 }
 
-.bulk-notice-text {
+.apixer-notice-text {
   font-size: 11.5px;
-  color: #64748b;
+  color: #1e40af;
   line-height: 1.35;
+  text-align: left;
 }
 
 /* Submit Pill Button (Exact Login & Onboarding Style) */
-.bulk-submit-pill-btn {
+.apixer-submit-pill-btn {
   width: 100%;
   height: 56px;
   background: #0f172a;
   color: #ffffff;
   border: none;
   border-radius: 999px;
-  padding: 0 10px 0 24px;
+  padding: 0 8px 0 24px;
   font-size: 15px;
   font-weight: 800;
   letter-spacing: 0.3px;
@@ -409,27 +421,28 @@
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.22);
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.22);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   margin-top: 4px;
+  -webkit-tap-highlight-color: transparent;
 }
 
-.bulk-submit-pill-btn:hover:not(:disabled) {
+.apixer-submit-pill-btn:hover:not(:disabled) {
   background: #1e293b;
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
 }
 
-.bulk-submit-pill-btn:active:not(:disabled) {
+.apixer-submit-pill-btn:active:not(:disabled) {
   transform: translateY(0);
 }
 
-.bulk-submit-pill-btn:disabled {
+.apixer-submit-pill-btn:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.submit-circle-arrow {
+.apixer-submit-circle-arrow {
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -441,7 +454,7 @@
   transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
-.bulk-submit-pill-btn:hover:not(:disabled) .submit-circle-arrow {
+.apixer-submit-pill-btn:hover:not(:disabled) .apixer-submit-circle-arrow {
   transform: translateX(3px);
   background: rgba(255, 255, 255, 0.25);
 }
