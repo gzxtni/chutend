@@ -1,30 +1,28 @@
-import { ExternalLink, ShieldCheck, Heart, Terminal, Sparkles } from 'lucide-react';
+import { ExternalLink } from 'lucide-react';
 import './DataTab.css';
 
 export default function DataTab() {
   return (
     <div className="data-tab-page attribution-page" id="data-tab-page">
-      <div className="data-header-row">
-        <div>
-          <h3 className="tab-main-heading">Support & Attribution</h3>
-          <p className="tab-sub-heading">Official Engineering & Infrastructure Hub</p>
-        </div>
-        <span className="tab-pill-badge-official">
-          <Sparkles size={12} />
-          <span>Official Hub</span>
-        </span>
+      {/* Background Watermark Emblem */}
+      <div className="watermark-bg-container" aria-hidden="true">
+        <img
+          src="/watermark.png"
+          alt="Watermark"
+          className="watermark-bg-img"
+        />
       </div>
 
-      {/* ── ZXTNI STUDIO BRANDING & SUPPORT CARD ── */}
-      <div className="zxtni-brand-card">
-        <div className="zxtni-card-header">
+      {/* Page Content directly on page — no boxed wrapper */}
+      <div className="attribution-content">
+        <div className="zxtni-brand-header">
           <div className="zxtni-logo-wrapper">
-            <img src="/zxtni-logo.jpg" alt="Zxtni Studio Logo" className="zxtni-logo-image" />
+            <img src="/zxtni-logo.jpg" alt="Zxtni Studio" className="zxtni-logo-image" />
           </div>
           <div className="zxtni-brand-info">
             <div className="zxtni-name-row">
-              <h4 className="zxtni-title">ZXTNI STUDIO</h4>
-              <span className="zxtni-verified-badge">Official</span>
+              <h2 className="zxtni-title">ZXTNI STUDIO</h2>
+              <span className="zxtni-verified-badge">OFFICIAL</span>
             </div>
             <p className="zxtni-tagline">Advanced Fleet & Mobile Systems Engineering</p>
           </div>
@@ -47,7 +45,7 @@ export default function DataTab() {
               </svg>
             </div>
             <div className="zxtni-btn-text">
-              <span className="btn-label">Telegram Channel</span>
+              <span className="btn-label">TELEGRAM CHANNEL</span>
               <span className="btn-handle">@zxtni</span>
             </div>
             <ExternalLink size={14} className="btn-ext-icon" />
@@ -65,56 +63,12 @@ export default function DataTab() {
               </svg>
             </div>
             <div className="zxtni-btn-text">
-              <span className="btn-label">GitHub Support</span>
+              <span className="btn-label">GITHUB SUPPORT</span>
               <span className="btn-handle">@zxtni</span>
             </div>
             <ExternalLink size={14} className="btn-ext-icon" />
           </a>
         </div>
-      </div>
-
-      {/* ── System & Maintenance Specs ── */}
-      <div className="attribution-specs-card">
-        <h5 className="specs-card-title">Platform & Support Architecture</h5>
-        
-        <div className="specs-row">
-          <span className="specs-label">Engineering Lead</span>
-          <span className="specs-value">Zxtni Studio</span>
-        </div>
-        <div className="specs-divider" />
-        
-        <div className="specs-row">
-          <span className="specs-label">Community & Inquiries</span>
-          <a href="https://t.me/zxtni" target="_blank" rel="noopener noreferrer" className="specs-link">
-            t.me/zxtni
-          </a>
-        </div>
-        <div className="specs-divider" />
-
-        <div className="specs-row">
-          <span className="specs-label">Repository & Code</span>
-          <a href="https://github.com/zxtni" target="_blank" rel="noopener noreferrer" className="specs-link">
-            github.com/zxtni
-          </a>
-        </div>
-        <div className="specs-divider" />
-
-        <div className="specs-row">
-          <span className="specs-label">Architecture</span>
-          <span className="specs-value">Enterprise Telemetry & Fleet Matrix</span>
-        </div>
-        <div className="specs-divider" />
-
-        <div className="specs-row">
-          <span className="specs-label">Status</span>
-          <span className="specs-status-badge">
-            <span className="specs-dot" /> Verified Production
-          </span>
-        </div>
-      </div>
-
-      <div className="zxtni-footer-note">
-        <span>Crafted with precision by Zxtni Studio • All rights reserved</span>
       </div>
     </div>
   );
