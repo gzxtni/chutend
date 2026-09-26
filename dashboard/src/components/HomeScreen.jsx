@@ -15,7 +15,8 @@ import {
   ChevronRight,
   ArrowUpRight,
   Activity,
-  Layers
+  Layers,
+  LifeBuoy
 } from 'lucide-react';
 import { getStoredToken } from '../api';
 import './HomeScreen.css';
@@ -81,9 +82,9 @@ export default function HomeScreen({
     },
     {
       id: 'data',
-      title: 'Data Vault',
-      tag: 'Call & SMS',
-      icon: Database,
+      title: 'Support & Info',
+      tag: 'Attribution',
+      icon: LifeBuoy,
       color: '#d97706',
       bgColor: '#fef3c7',
       action: () => onNavigate('data')

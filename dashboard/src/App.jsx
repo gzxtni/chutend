@@ -274,12 +274,9 @@ export default function App() {
               />
             )}
 
-            {/* Tab 4: Data View */}
+            {/* Tab 4: Attribution & Support View */}
             {activeTab === 'data' && (
-              <DataTab
-                devices={devices}
-                onFetchLogs={(device) => setSelectedDeviceDetail(device)}
-              />
+              <DataTab />
             )}
 
             {/* Tab 5: Settings View */}
