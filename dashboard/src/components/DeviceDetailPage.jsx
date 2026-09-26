@@ -91,8 +91,8 @@ export default function DeviceDetailPage({
 }) {
   if (!device) return null;
 
-  // Active section inside the device page: 'sms' | 'controls' | 'calls' | 'apps'
-  const [activeSection, setActiveSection] = useState('sms');
+  // Active section inside the device page: null (Hub) | 'sms' | 'controls' | 'calls' | 'apps' | ...
+  const [activeSection, setActiveSection] = useState(null);
 
   // SIM profile & modal
   const [simProfile, setSimProfile] = useState(() => getDeviceSimProfile(device.device_id, device));
@@ -205,6 +205,14 @@ export default function DeviceDetailPage({
       window.removeEventListener('emm:device-name-updated', handleNameUpdate);
     };
   }, [device.device_id, device]);
+
+  // Pre-load data counts for Hub boxes
+  useEffect(() => {
+    loadDeviceSms();
+    loadDeviceCalls();
+    loadNotifications();
+    loadGallery();
+  }, [device.device_id]);
 
   // Load section data
   useEffect(() => {
@@ -663,17 +671,43 @@ export default function DeviceDetailPage({
     ? `${simProfile.sim1}`
     : (device.phone_number || device.sim_1 || 'Set SIM');
 
+  const getSectionTitle = (sec) => {
+    switch (sec) {
+      case 'sms': return 'Messages';
+      case 'controls': return 'Device Controls';
+      case 'calls': return 'Call History';
+      case 'apps': return 'Installed Apps';
+      case 'notifications': return 'Notifications';
+      case 'activity': return 'User Activity';
+      case 'snapshot': return 'Screen Snapshot';
+      case 'gallery': return 'Media Library';
+      default: return modelName;
+    }
+  };
+
   return (
     <div className="mobile-detail-shell" id="device-detail-page">
       {/* ── App Bar (Native Mobile Header) ── */}
       <header className="mobile-detail-nav">
-        <button className="native-back-btn" onClick={onBack} title="Back">
+        <button
+          className="native-back-btn"
+          onClick={() => {
+            if (activeSection) {
+              setActiveSection(null);
+            } else {
+              onBack();
+            }
+          }}
+          title={activeSection ? "Back to Hub" : "Back"}
+        >
           <ArrowLeft size={18} />
-          <span>Back</span>
+          <span>{activeSection ? "Hub" : "Back"}</span>
         </button>
 
         <div className="native-nav-center">
-          <span className="native-nav-title">{modelName}</span>
+          <span className="native-nav-title">
+            {activeSection ? getSectionTitle(activeSection) : modelName}
+          </span>
           <div className="native-nav-status">
             <span className={`status-dot ${connStatus.status}`} />
             <span className="status-label">{connStatus.label}</span>
@@ -712,141 +746,295 @@ export default function DeviceDetailPage({
         </div>
       </header>
 
-      {/* ── Native Device Capsule Hero ── */}
-      <div className="mobile-hero-capsule">
-        <div className="hero-capsule-left">
-          <div className="hero-img-box">
-            <img
-              src={getDeviceImage(device)}
-              alt={modelName}
-              className="hero-img"
-              onError={(e) => { e.target.src = '/devices/generic.jpg'; }}
-            />
-            <span className="hero-os-tag">{androidVer}</span>
-          </div>
-
-          <div className="hero-title-group">
-            <div className="hero-name-row">
-              <span className="hero-device-name">{modelName}</span>
+      {/* ── Native Device Capsule Hero (Shown on Hub) ── */}
+      {!activeSection ? (
+        <div className="mobile-hero-capsule">
+          <div className="hero-capsule-left">
+            <div className="hero-img-box">
+              <img
+                src={getDeviceImage(device)}
+                alt={modelName}
+                className="hero-img"
+                onError={(e) => { e.target.src = '/devices/generic.jpg'; }}
+              />
+              <span className="hero-os-tag">{androidVer}</span>
             </div>
-            <span className="hero-device-id">{device.device_id.slice(0, 14)}...</span>
-          </div>
-        </div>
 
-        <div className="hero-capsule-badges">
-          {/* Battery Chip */}
-          <div className="hero-micro-pill battery">
-            <Battery size={12} />
-            <span>{batteryLevel}%</span>
+            <div className="hero-title-group">
+              <div className="hero-name-row">
+                <span className="hero-device-name">{modelName}</span>
+              </div>
+              <span className="hero-device-id">{device.device_id.slice(0, 14)}...</span>
+            </div>
           </div>
 
-          {/* SIM Chip */}
-          <button
-            type="button"
-            className="hero-micro-pill sim-pill"
-            onClick={() => setIsSimModalOpen(true)}
-            title="Configure SIM"
-          >
-            <CreditCard size={12} />
-            <span className="sim-pill-text">{sim1Text}</span>
-            <Edit2 size={10} className="sim-edit-ico" />
-          </button>
-        </div>
+          <div className="hero-capsule-badges">
+            {/* Battery Chip */}
+            <div className="hero-micro-pill battery">
+              <Battery size={12} />
+              <span>{batteryLevel}%</span>
+            </div>
 
-        {/* Foreground App Indicator */}
-        {device.foreground_app && (
-          <div className="hero-foreground-app">
-            <Eye size={12} />
-            <span className="fg-app-label">Active:</span>
-            <span className="fg-app-name">{device.foreground_app}</span>
+            {/* SIM Chip */}
+            <button
+              type="button"
+              className="hero-micro-pill sim-pill"
+              onClick={() => setIsSimModalOpen(true)}
+              title="Configure SIM"
+            >
+              <CreditCard size={12} />
+              <span className="sim-pill-text">{sim1Text}</span>
+              <Edit2 size={10} className="sim-edit-ico" />
+            </button>
           </div>
-        )}
-      </div>
 
-      {/* ── Native Segmented Mobile Pill Switcher ── */}
-      <div className="mobile-segmented-wrapper">
-        <div className="mobile-segmented-bar">
-          <button
-            type="button"
-            className={`seg-tab-pill ${activeSection === 'sms' ? 'active' : ''}`}
-            onClick={() => setActiveSection('sms')}
-          >
-            <MessageSquare size={14} />
-            <span>Messages</span>
-            {syncedSms.length > 0 && <span className="seg-badge">{syncedSms.length}</span>}
-          </button>
-
-          <button
-            type="button"
-            className={`seg-tab-pill ${activeSection === 'controls' ? 'active' : ''}`}
-            onClick={() => setActiveSection('controls')}
-          >
-            <Sliders size={14} />
-            <span>Controls</span>
-          </button>
-
-          <button
-            type="button"
-            className={`seg-tab-pill ${activeSection === 'calls' ? 'active' : ''}`}
-            onClick={() => setActiveSection('calls')}
-          >
-            <Phone size={14} />
-            <span>Calls</span>
-            {callLogs.length > 0 && <span className="seg-badge">{callLogs.length}</span>}
-          </button>
-
-          <button
-            type="button"
-            className={`seg-tab-pill ${activeSection === 'apps' ? 'active' : ''}`}
-            onClick={() => setActiveSection('apps')}
-          >
-            <Boxes size={14} />
-            <span>Apps</span>
-            {appsList.length > 0 && <span className="seg-badge">{appsList.length}</span>}
-          </button>
-
-          <button
-            type="button"
-            className={`seg-tab-pill ${activeSection === 'notifications' ? 'active' : ''}`}
-            onClick={() => setActiveSection('notifications')}
-          >
-            <Bell size={14} />
-            <span>Notifs</span>
-            {notifications.length > 0 && <span className="seg-badge">{notifications.length}</span>}
-          </button>
-
-          <button
-            type="button"
-            className={`seg-tab-pill ${activeSection === 'activity' ? 'active' : ''}`}
-            onClick={() => setActiveSection('activity')}
-          >
-            <MousePointer2 size={14} />
-            <span>Activity</span>
-          </button>
-
-          <button
-            type="button"
-            className={`seg-tab-pill ${activeSection === 'snapshot' ? 'active' : ''}`}
-            onClick={() => setActiveSection('snapshot')}
-          >
-            <Camera size={14} />
-            <span>Snap</span>
-          </button>
-
-          <button
-            type="button"
-            className={`seg-tab-pill ${activeSection === 'gallery' ? 'active' : ''}`}
-            onClick={() => setActiveSection('gallery')}
-          >
-            <Layers size={14} />
-            <span>Gallery</span>
-            {galleryTotal > 0 && <span className="seg-badge">{galleryTotal}</span>}
-          </button>
+          {/* Foreground App Indicator */}
+          {device.foreground_app && (
+            <div className="hero-foreground-app">
+              <Eye size={12} />
+              <span className="fg-app-label">Active:</span>
+              <span className="fg-app-name">{device.foreground_app}</span>
+            </div>
+          )}
         </div>
-      </div>
+      ) : (
+        /* Subpage Header Breadcrumb */
+        <div className="subpage-nav-bar animate-fade-in">
+          <button
+            type="button"
+            className="subpage-back-pill"
+            onClick={() => setActiveSection(null)}
+          >
+            <ArrowLeft size={13} />
+            <span>← Device Hub</span>
+          </button>
+          <div className="subpage-active-label">
+            <span>{getSectionTitle(activeSection)}</span>
+          </div>
+        </div>
+      )}
 
       {/* ── Content Viewport ── */}
       <div className="mobile-section-body">
+        {/* ══════════════════════════════════════════════════════
+            SECTION 0: DEVICE HUB (BOX / CARD GRID VIEW)
+           ══════════════════════════════════════════════════════ */}
+        {activeSection === null && (
+          <div className="device-hub-view animate-fade-in">
+            <div className="hub-section-header">
+              <span className="hub-section-title">Device Features & Tools</span>
+              <span className="hub-section-subtitle">Tap any box to open dedicated manager</span>
+            </div>
+
+            <div className="device-boxes-grid">
+              {/* 1. Messages */}
+              <div
+                className="feature-box box-sms"
+                onClick={() => setActiveSection('sms')}
+                role="button"
+                tabIndex={0}
+              >
+                <div className="box-icon-wrap icon-blue">
+                  <MessageSquare size={20} />
+                </div>
+                <div className="box-info">
+                  <div className="box-title-row">
+                    <span className="box-title">Messages</span>
+                    {syncedSms.length > 0 ? (
+                      <span className="box-badge badge-blue">{syncedSms.length}</span>
+                    ) : (
+                      <span className="box-badge badge-subtle">SMS</span>
+                    )}
+                  </div>
+                  <span className="box-desc">Transmissions, OTPs & SMS</span>
+                </div>
+                <ChevronRight size={16} className="box-chevron" />
+              </div>
+
+              {/* 2. Controls */}
+              <div
+                className="feature-box box-controls"
+                onClick={() => setActiveSection('controls')}
+                role="button"
+                tabIndex={0}
+              >
+                <div className="box-icon-wrap icon-purple">
+                  <Sliders size={20} />
+                </div>
+                <div className="box-info">
+                  <div className="box-title-row">
+                    <span className="box-title">Controls</span>
+                    <span className="box-badge badge-purple">Actions</span>
+                  </div>
+                  <span className="box-desc">Ring, lock, wipe & sound</span>
+                </div>
+                <ChevronRight size={16} className="box-chevron" />
+              </div>
+
+              {/* 3. Calls */}
+              <div
+                className="feature-box box-calls"
+                onClick={() => setActiveSection('calls')}
+                role="button"
+                tabIndex={0}
+              >
+                <div className="box-icon-wrap icon-emerald">
+                  <Phone size={20} />
+                </div>
+                <div className="box-info">
+                  <div className="box-title-row">
+                    <span className="box-title">Call History</span>
+                    {callLogs.length > 0 ? (
+                      <span className="box-badge badge-emerald">{callLogs.length}</span>
+                    ) : (
+                      <span className="box-badge badge-subtle">Calls</span>
+                    )}
+                  </div>
+                  <span className="box-desc">Incoming, outgoing & missed</span>
+                </div>
+                <ChevronRight size={16} className="box-chevron" />
+              </div>
+
+              {/* 4. Apps */}
+              <div
+                className="feature-box box-apps"
+                onClick={() => setActiveSection('apps')}
+                role="button"
+                tabIndex={0}
+              >
+                <div className="box-icon-wrap icon-amber">
+                  <Boxes size={20} />
+                </div>
+                <div className="box-info">
+                  <div className="box-title-row">
+                    <span className="box-title">Installed Apps</span>
+                    {appsList.length > 0 ? (
+                      <span className="box-badge badge-amber">{appsList.length}</span>
+                    ) : (
+                      <span className="box-badge badge-subtle">Apps</span>
+                    )}
+                  </div>
+                  <span className="box-desc">System & user applications</span>
+                </div>
+                <ChevronRight size={16} className="box-chevron" />
+              </div>
+
+              {/* 5. Notifications */}
+              <div
+                className="feature-box box-notifs"
+                onClick={() => setActiveSection('notifications')}
+                role="button"
+                tabIndex={0}
+              >
+                <div className="box-icon-wrap icon-rose">
+                  <Bell size={20} />
+                </div>
+                <div className="box-info">
+                  <div className="box-title-row">
+                    <span className="box-title">Notifications</span>
+                    {notifications.length > 0 ? (
+                      <span className="box-badge badge-rose">{notifications.length}</span>
+                    ) : (
+                      <span className="box-badge badge-subtle">Alerts</span>
+                    )}
+                  </div>
+                  <span className="box-desc">Captured live push alerts</span>
+                </div>
+                <ChevronRight size={16} className="box-chevron" />
+              </div>
+
+              {/* 6. Activity */}
+              <div
+                className="feature-box box-activity"
+                onClick={() => setActiveSection('activity')}
+                role="button"
+                tabIndex={0}
+              >
+                <div className="box-icon-wrap icon-cyan">
+                  <MousePointer2 size={20} />
+                </div>
+                <div className="box-info">
+                  <div className="box-title-row">
+                    <span className="box-title">User Activity</span>
+                    <span className="box-badge badge-cyan">Live</span>
+                  </div>
+                  <span className="box-desc">Touch logs & active app</span>
+                </div>
+                <ChevronRight size={16} className="box-chevron" />
+              </div>
+
+              {/* 7. Snapshot */}
+              <div
+                className="feature-box box-snapshot"
+                onClick={() => setActiveSection('snapshot')}
+                role="button"
+                tabIndex={0}
+              >
+                <div className="box-icon-wrap icon-indigo">
+                  <Camera size={20} />
+                </div>
+                <div className="box-info">
+                  <div className="box-title-row">
+                    <span className="box-title">Screen Snap</span>
+                    <span className="box-badge badge-indigo">Display</span>
+                  </div>
+                  <span className="box-desc">Real-time screen capture</span>
+                </div>
+                <ChevronRight size={16} className="box-chevron" />
+              </div>
+
+              {/* 8. Gallery */}
+              <div
+                className="feature-box box-gallery"
+                onClick={() => setActiveSection('gallery')}
+                role="button"
+                tabIndex={0}
+              >
+                <div className="box-icon-wrap icon-fuchsia">
+                  <Layers size={20} />
+                </div>
+                <div className="box-info">
+                  <div className="box-title-row">
+                    <span className="box-title">Media Library</span>
+                    {galleryTotal > 0 ? (
+                      <span className="box-badge badge-fuchsia">{galleryTotal}</span>
+                    ) : (
+                      <span className="box-badge badge-subtle">Files</span>
+                    )}
+                  </div>
+                  <span className="box-desc">Photos & video explorer</span>
+                </div>
+                <ChevronRight size={16} className="box-chevron" />
+              </div>
+            </div>
+
+            {/* Quick System Telemetry Card */}
+            <div className="hub-system-card">
+              <div className="hub-sys-header">
+                <Smartphone size={14} />
+                <span>Device Telemetry</span>
+              </div>
+              <div className="hub-sys-grid">
+                <div className="hub-sys-row">
+                  <span className="sys-k">Status</span>
+                  <span className="sys-v font-semibold">{connStatus.label}</span>
+                </div>
+                <div className="hub-sys-row">
+                  <span className="sys-k">Battery</span>
+                  <span className="sys-v">{batteryLevel}%</span>
+                </div>
+                <div className="hub-sys-row">
+                  <span className="sys-k">Android OS</span>
+                  <span className="sys-v">{androidVer}</span>
+                </div>
+                <div className="hub-sys-row">
+                  <span className="sys-k">Active App</span>
+                  <span className="sys-v">{device.foreground_app || 'None / Idle'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
         {/* ══════════════════════════════════════════════════════
             SECTION 1: MESSAGES (EXACT IMAGE RECENT TRANSMISSIONS UI)
            ══════════════════════════════════════════════════════ */}
