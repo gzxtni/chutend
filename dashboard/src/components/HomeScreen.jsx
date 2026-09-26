@@ -55,56 +55,62 @@ export default function HomeScreen({
   const services = [
     {
       id: 'devices',
-      title: 'Device Matrix',
+      title: 'Devices',
       tag: `${totalDevices} Nodes`,
+      desc: 'Fleet Matrix',
       icon: Smartphone,
-      color: '#0284c7',
-      bgColor: '#e0f2fe',
+      gradient: 'linear-gradient(135deg, #38bdf8 0%, #0284c7 100%)',
+      glow: 'rgba(2, 132, 199, 0.3)',
       action: () => onNavigate('devices')
     },
     {
       id: 'messages',
       title: 'SMS Center',
-      tag: 'Live inbox',
+      tag: 'Live Inbox',
+      desc: 'Real-time Feed',
       icon: MessageSquare,
-      color: '#059669',
-      bgColor: '#dcfce7',
+      gradient: 'linear-gradient(135deg, #34d399 0%, #059669 100%)',
+      glow: 'rgba(5, 150, 105, 0.3)',
       action: () => onNavigate('messages')
     },
     {
       id: 'bulk',
       title: 'Bulk Sender',
       tag: 'Broadcast',
+      desc: 'Multi-node SMS',
       icon: Send,
-      color: '#7c3aed',
-      bgColor: '#ede9fe',
+      gradient: 'linear-gradient(135deg, #a78bfa 0%, #7c3aed 100%)',
+      glow: 'rgba(124, 58, 237, 0.3)',
       action: onOpenBulkSender
     },
     {
       id: 'data',
-      title: 'Support & Info',
-      tag: 'Attribution',
+      title: 'Support',
+      tag: 'Official',
+      desc: 'Zxtni Studio Hub',
       icon: LifeBuoy,
-      color: '#d97706',
-      bgColor: '#fef3c7',
+      gradient: 'linear-gradient(135deg, #fbbf24 0%, #d97706 100%)',
+      glow: 'rgba(217, 119, 6, 0.3)',
       action: () => onNavigate('data')
     },
     {
       id: 'sessions',
       title: 'Security',
       tag: 'Controls',
+      desc: 'Remote Protection',
       icon: Shield,
-      color: '#e11d48',
-      bgColor: '#ffe4e6',
+      gradient: 'linear-gradient(135deg, #fb7185 0%, #e11d48 100%)',
+      glow: 'rgba(225, 29, 72, 0.3)',
       action: onOpenSessions
     },
     {
       id: 'apk',
       title: 'Client APK',
-      tag: 'v2.4 Agent',
+      tag: 'v0.1 Agent',
+      desc: 'Download Package',
       icon: Download,
-      color: '#0891b2',
-      bgColor: '#cffafe',
+      gradient: 'linear-gradient(135deg, #22d3ee 0%, #0891b2 100%)',
+      glow: 'rgba(8, 145, 178, 0.3)',
       action: onOpenApk
     },
   ];
@@ -179,32 +185,38 @@ export default function HomeScreen({
         </div>
       </div>
 
-      {/* 2. Services Grid (3x2 Bento Cards) */}
+      {/* 2. Management Services (Modern 2-Column OS Widgets) */}
       <div className="dashboard-section">
         <div className="section-header-row">
           <span className="section-title-label">Management Services</span>
           <span className="section-tag-pill">6 Modules</span>
         </div>
 
-        <div className="services-bento-grid">
+        <div className="services-modern-grid">
           {services.map((item) => {
             const Icon = item.icon;
             return (
               <button
                 key={item.id}
-                className="service-bento-card"
+                className="service-modern-card"
                 onClick={item.action}
                 id={`service-${item.id}`}
               >
-                <div
-                  className="service-icon-squircle"
-                  style={{ backgroundColor: item.bgColor, color: item.color }}
-                >
-                  <Icon size={22} strokeWidth={2.2} />
+                <div className="service-card-top-row">
+                  <div
+                    className="service-icon-box"
+                    style={{ background: item.gradient, boxShadow: `0 4px 14px ${item.glow}` }}
+                  >
+                    <Icon size={20} strokeWidth={2.3} color="#ffffff" />
+                  </div>
+                  <span className="service-status-pill">{item.tag}</span>
                 </div>
-                <div className="service-text-group">
-                  <span className="service-bento-title">{item.title}</span>
-                  <span className="service-bento-tag">{item.tag}</span>
+                <div className="service-card-body">
+                  <div className="service-title-row">
+                    <span className="service-card-title">{item.title}</span>
+                    <ArrowUpRight size={14} className="service-arrow-glyph" />
+                  </div>
+                  <span className="service-card-desc">{item.desc}</span>
                 </div>
               </button>
             );
