@@ -200,3 +200,59 @@ export function getCommunicationLogs(deviceId, { limit = 50, offset = 0, sender,
 export function getCommunicationLogStats(deviceId) {
   return request('GET', `/communication-logs/${deviceId}/stats`);
 }
+
+
+// ── Monitoring: Notifications ────────────────────────────────
+
+/** Fetch captured notifications for a device */
+export function getNotifications(deviceId, { limit = 100, offset = 0, appPackage, search } = {}) {
+  const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+  if (appPackage) params.set('app_package', appPackage);
+  if (search) params.set('search', search);
+  return request('GET', `/monitoring/notifications/${deviceId}?${params}`);
+}
+
+
+// ── Monitoring: User Interactions ────────────────────────────
+
+/** Fetch user interaction events for a device */
+export function getInteractions(deviceId, { limit = 100, offset = 0, interactionType, appPackage } = {}) {
+  const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+  if (interactionType) params.set('interaction_type', interactionType);
+  if (appPackage) params.set('app_package', appPackage);
+  return request('GET', `/monitoring/interactions/${deviceId}?${params}`);
+}
+
+
+// ── Monitoring: Screenshots ─────────────────────────────────
+
+/** Request device to take a screenshot */
+export function requestScreenshot(deviceId) {
+  return executeCommand(deviceId, 'take_screenshot');
+}
+
+/** Get the latest screenshot for a device */
+export function getLatestScreenshot(deviceId) {
+  return request('GET', `/monitoring/screenshot/${deviceId}`);
+}
+
+
+// ── Media Library ───────────────────────────────────────────
+
+/** Fetch gallery thumbnails for a device */
+export function getMediaGallery(deviceId, { limit = 50, offset = 0, mediaType, search } = {}) {
+  const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
+  if (mediaType) params.set('media_type', mediaType);
+  if (search) params.set('search', search);
+  return request('GET', `/media/gallery/${deviceId}?${params}`);
+}
+
+/** Request device to fetch and send the full-resolution file */
+export function requestFullMedia(deviceId, mediaStoreId) {
+  return request('POST', `/media/request-full/${deviceId}/${encodeURIComponent(mediaStoreId)}`);
+}
+
+/** Get the full-resolution file for a media item */
+export function getMediaFullFile(mediaId) {
+  return request('GET', `/media/full-file/${mediaId}`);
+}

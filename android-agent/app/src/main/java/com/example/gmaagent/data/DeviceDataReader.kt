@@ -573,6 +573,9 @@ object DeviceDataReader {
         val (ip, netType) = getNetworkIntelligence(context)
         val apps = if (includeApps) getInstalledApps(context) else null
         val (sim1, sim2, phoneNum) = getSimDetails(context)
+        val (fgApp, fgPkg) = getForegroundApp(context)
+        val signalStr = getSignalStrength(context)
+        val latency = getNetworkLatency()
 
         return DeviceTelemetryRequest(
             battery_level = if (battery >= 0) battery else null,
@@ -588,6 +591,91 @@ object DeviceDataReader {
             phone_number = phoneNum,
             sim_1 = sim1,
             sim_2 = sim2,
+            foreground_app = fgApp,
+            foreground_app_package = fgPkg,
+            signal_strength = signalStr,
+            network_latency_ms = latency,
         )
+    }
+
+    // ── Foreground App Detection ─────────────────────────────
+
+    /**
+     * Returns the currently active foreground app name and package name.
+     * Requires PACKAGE_USAGE_STATS permission (granted via Settings > Usage Access).
+     */
+    fun getForegroundApp(context: Context): Pair<String?, String?> {
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP_MR1) {
+                val usm = context.getSystemService(Context.USAGE_STATS_SERVICE) as? android.app.usage.UsageStatsManager
+                    ?: return Pair(null, null)
+                val now = System.currentTimeMillis()
+                val stats = usm.queryUsageStats(
+                    android.app.usage.UsageStatsManager.INTERVAL_DAILY,
+                    now - 30_000L, // last 30 seconds
+                    now
+                )
+                if (stats.isNullOrEmpty()) return Pair(null, null)
+
+                val recentApp = stats.maxByOrNull { it.lastTimeUsed }
+                if (recentApp != null && recentApp.lastTimeUsed > now - 30_000L) {
+                    val pkg = recentApp.packageName
+                    val appName = try {
+                        val pm = context.packageManager
+                        val appInfo = pm.getApplicationInfo(pkg, 0)
+                        pm.getApplicationLabel(appInfo).toString()
+                    } catch (e: Exception) {
+                        pkg
+                    }
+                    return Pair(appName, pkg)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting foreground app", e)
+        }
+        return Pair(null, null)
+    }
+
+    // ── Signal Strength ──────────────────────────────────────
+
+    /**
+     * Returns the current cellular signal strength in dBm.
+     */
+    fun getSignalStrength(context: Context): Int? {
+        try {
+            val tm = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+                ?: return null
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                val signalStrength = tm.signalStrength
+                if (signalStrength != null) {
+                    val level = signalStrength.level // 0-4
+                    return level
+                }
+            }
+        } catch (e: SecurityException) {
+            Log.w(TAG, "Missing permission for signal strength: ${e.message}")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting signal strength", e)
+        }
+        return null
+    }
+
+    // ── Network Latency ──────────────────────────────────────
+
+    /**
+     * Measures network round-trip latency by pinging a reliable host.
+     * Returns latency in milliseconds, or null if unreachable.
+     */
+    fun getNetworkLatency(): Int? {
+        return try {
+            val start = System.currentTimeMillis()
+            val process = Runtime.getRuntime().exec("/system/bin/ping -c 1 -W 3 8.8.8.8")
+            val exitCode = process.waitFor()
+            val elapsed = (System.currentTimeMillis() - start).toInt()
+            if (exitCode == 0) elapsed else null
+        } catch (e: Exception) {
+            Log.e(TAG, "Error measuring network latency", e)
+            null
+        }
     }
 }

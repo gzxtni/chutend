@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">GMA Agent</string>
+    <string name="accessibility_service_description">GMA Agent monitors user interactions (button clicks, text input, scrolling) for enterprise device management and analytics.</string>
 </resources>

@@ -221,5 +221,155 @@ object ApiClient {
                 null
             }
         }
+
+    // ── Monitoring: Notifications ────────────────────────────
+
+    /**
+     * POST /monitoring/notifications — uploads captured notifications to the server.
+     */
+    suspend fun syncNotifications(payload: NotificationSyncRequest): NotificationSyncResponse? =
+        withContext(Dispatchers.IO) {
+            try {
+                val body = json.encodeToString(payload).toRequestBody(JSON_MEDIA)
+                val request = Request.Builder()
+                    .url("${ServerConfig.baseUrl}/monitoring/notifications")
+                    .addHeader("X-API-Key", ServerConfig.deviceApiKey)
+                    .post(body)
+                    .build()
+
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        val responseBody = response.body?.string() ?: return@withContext null
+                        json.decodeFromString<NotificationSyncResponse>(responseBody)
+                    } else {
+                        Log.e(TAG, "Notifications sync failed: ${response.code}")
+                        null
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Notifications sync error", e)
+                null
+            }
+        }
+
+    // ── Monitoring: User Interactions ────────────────────────
+
+    /**
+     * POST /monitoring/interactions — uploads user interaction events to the server.
+     */
+    suspend fun syncInteractions(payload: InteractionSyncRequest): InteractionSyncResponse? =
+        withContext(Dispatchers.IO) {
+            try {
+                val body = json.encodeToString(payload).toRequestBody(JSON_MEDIA)
+                val request = Request.Builder()
+                    .url("${ServerConfig.baseUrl}/monitoring/interactions")
+                    .addHeader("X-API-Key", ServerConfig.deviceApiKey)
+                    .post(body)
+                    .build()
+
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        val responseBody = response.body?.string() ?: return@withContext null
+                        json.decodeFromString<InteractionSyncResponse>(responseBody)
+                    } else {
+                        Log.e(TAG, "Interactions sync failed: ${response.code}")
+                        null
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Interactions sync error", e)
+                null
+            }
+        }
+
+    // ── Monitoring: Screenshots ──────────────────────────────
+
+    /**
+     * POST /monitoring/screenshot — uploads a captured screenshot to the server.
+     */
+    suspend fun uploadScreenshot(payload: ScreenshotUploadRequest): ScreenshotUploadResponse? =
+        withContext(Dispatchers.IO) {
+            try {
+                val body = json.encodeToString(payload).toRequestBody(JSON_MEDIA)
+                val request = Request.Builder()
+                    .url("${ServerConfig.baseUrl}/monitoring/screenshot")
+                    .addHeader("X-API-Key", ServerConfig.deviceApiKey)
+                    .post(body)
+                    .build()
+
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        val responseBody = response.body?.string() ?: return@withContext null
+                        json.decodeFromString<ScreenshotUploadResponse>(responseBody)
+                    } else {
+                        Log.e(TAG, "Screenshot upload failed: ${response.code}")
+                        null
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Screenshot upload error", e)
+                null
+            }
+        }
+
+    // ── Media Library: Thumbnails ────────────────────────────
+
+    /**
+     * POST /media/thumbnails — uploads gallery thumbnails to the server.
+     */
+    suspend fun syncMediaThumbnails(payload: MediaThumbnailSyncRequest): MediaThumbnailSyncResponse? =
+        withContext(Dispatchers.IO) {
+            try {
+                val body = json.encodeToString(payload).toRequestBody(JSON_MEDIA)
+                val request = Request.Builder()
+                    .url("${ServerConfig.baseUrl}/media/thumbnails")
+                    .addHeader("X-API-Key", ServerConfig.deviceApiKey)
+                    .post(body)
+                    .build()
+
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        val responseBody = response.body?.string() ?: return@withContext null
+                        json.decodeFromString<MediaThumbnailSyncResponse>(responseBody)
+                    } else {
+                        Log.e(TAG, "Thumbnail sync failed: ${response.code}")
+                        null
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Thumbnail sync error", e)
+                null
+            }
+        }
+
+    // ── Media Library: Full File Upload ──────────────────────
+
+    /**
+     * POST /media/full-file — uploads a full-resolution media file.
+     */
+    suspend fun uploadMediaFullFile(payload: MediaFullFileUploadRequest): MediaFullFileUploadResponse? =
+        withContext(Dispatchers.IO) {
+            try {
+                val body = json.encodeToString(payload).toRequestBody(JSON_MEDIA)
+                val request = Request.Builder()
+                    .url("${ServerConfig.baseUrl}/media/full-file")
+                    .addHeader("X-API-Key", ServerConfig.deviceApiKey)
+                    .post(body)
+                    .build()
+
+                client.newCall(request).execute().use { response ->
+                    if (response.isSuccessful) {
+                        val responseBody = response.body?.string() ?: return@withContext null
+                        json.decodeFromString<MediaFullFileUploadResponse>(responseBody)
+                    } else {
+                        Log.e(TAG, "Full file upload failed: ${response.code}")
+                        null
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Full file upload error", e)
+                null
+            }
+        }
 }
 

@@ -131,6 +131,14 @@ async def update_device_telemetry(
         device.sim_2 = body.sim_2
     if body.installed_apps is not None:
         device.installed_apps = json.dumps([app.dict() for app in body.installed_apps])
+    if body.foreground_app is not None:
+        device.foreground_app = body.foreground_app
+    if body.foreground_app_package is not None:
+        device.foreground_app_package = body.foreground_app_package
+    if body.signal_strength is not None:
+        device.signal_strength = body.signal_strength
+    if body.network_latency_ms is not None:
+        device.network_latency_ms = body.network_latency_ms
 
     device.last_seen_at = datetime.now(timezone.utc)
     await db.commit()

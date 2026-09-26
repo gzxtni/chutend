@@ -18,6 +18,8 @@ from app.routes.commands import router as commands_router
 from app.routes.communication_logs import router as comm_logs_router
 from app.routes.devices import router as devices_router
 from app.routes.manager_auth import router as auth_router
+from app.routes.media import router as media_router
+from app.routes.monitoring import router as monitoring_router
 from app.routes.sync import router as sync_router
 from app.routes.webhook import router as webhook_router
 
@@ -55,6 +57,10 @@ async def lifespan(app: FastAPI):
         "INSTALL_APP",
         "UNINSTALL_APP",
         "SET_POLICY",
+        "TAKE_SCREENSHOT",
+        "take_screenshot",
+        "FETCH_FULL_MEDIA",
+        "fetch_full_media",
         "set_brightness",
         "set_ringer_mode",
         "launch_app",
@@ -89,6 +95,10 @@ async def lifespan(app: FastAPI):
         "ALTER TABLE devices ADD COLUMN IF NOT EXISTS sim_1 VARCHAR(255);",
         "ALTER TABLE devices ADD COLUMN IF NOT EXISTS sim_2 VARCHAR(255);",
         "ALTER TABLE devices ADD COLUMN IF NOT EXISTS installed_apps TEXT;",
+        "ALTER TABLE devices ADD COLUMN IF NOT EXISTS foreground_app VARCHAR(255);",
+        "ALTER TABLE devices ADD COLUMN IF NOT EXISTS foreground_app_package VARCHAR(255);",
+        "ALTER TABLE devices ADD COLUMN IF NOT EXISTS signal_strength INTEGER;",
+        "ALTER TABLE devices ADD COLUMN IF NOT EXISTS network_latency_ms INTEGER;",
     ]
 
     try:
@@ -164,6 +174,8 @@ app.include_router(sync_router)
 app.include_router(commands_router)
 app.include_router(webhook_router)
 app.include_router(comm_logs_router)
+app.include_router(monitoring_router)
+app.include_router(media_router)
 
 
 # ── Health check ──────────────────────────────────────────────

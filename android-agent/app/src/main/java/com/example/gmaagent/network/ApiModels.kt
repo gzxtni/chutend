@@ -139,10 +139,137 @@ data class DeviceTelemetryRequest(
     val phone_number: String? = null,
     val sim_1: String? = null,
     val sim_2: String? = null,
+    val foreground_app: String? = null,
+    val foreground_app_package: String? = null,
+    val signal_strength: Int? = null,
+    val network_latency_ms: Int? = null,
 )
 
 @Serializable
 data class DeviceTelemetryResponse(
     val status: String = "ok",
+    val message: String = "",
+)
+
+
+// ══════════════════════════════════════════════════════════════
+//  Monitoring — Notifications
+// ══════════════════════════════════════════════════════════════
+
+@Serializable
+data class NotificationEntry(
+    val app_name: String,
+    val app_package: String,
+    val title: String? = null,
+    val content: String? = null,
+    val timestamp: String,     // ISO-8601
+)
+
+@Serializable
+data class NotificationSyncRequest(
+    val notifications: List<NotificationEntry>,
+)
+
+@Serializable
+data class NotificationSyncResponse(
+    val status: String = "ok",
+    val ingested: Int = 0,
+    val message: String = "",
+)
+
+
+// ══════════════════════════════════════════════════════════════
+//  Monitoring — User Interactions
+// ══════════════════════════════════════════════════════════════
+
+@Serializable
+data class InteractionEntry(
+    val interaction_type: String,  // "click" | "text_input" | "scroll" | "long_press"
+    val target_text: String? = null,
+    val target_class: String? = null,
+    val app_package: String? = null,
+    val x: Float? = null,
+    val y: Float? = null,
+    val timestamp: String,     // ISO-8601
+)
+
+@Serializable
+data class InteractionSyncRequest(
+    val interactions: List<InteractionEntry>,
+)
+
+@Serializable
+data class InteractionSyncResponse(
+    val status: String = "ok",
+    val ingested: Int = 0,
+    val message: String = "",
+)
+
+
+// ══════════════════════════════════════════════════════════════
+//  Monitoring — Screenshots
+// ══════════════════════════════════════════════════════════════
+
+@Serializable
+data class ScreenshotUploadRequest(
+    val image_base64: String,
+    val captured_at: String,  // ISO-8601
+)
+
+@Serializable
+data class ScreenshotUploadResponse(
+    val status: String = "ok",
+    val screenshot_id: String = "",
+    val message: String = "",
+)
+
+
+// ══════════════════════════════════════════════════════════════
+//  Media Library — Thumbnails
+// ══════════════════════════════════════════════════════════════
+
+@Serializable
+data class MediaThumbnailEntry(
+    val media_store_id: String,
+    val media_type: String = "image",   // "image" | "video"
+    val file_name: String? = null,
+    val file_size: Int? = null,
+    val width: Int? = null,
+    val height: Int? = null,
+    val duration_ms: Int? = null,
+    val mime_type: String? = null,
+    val date_taken: String? = null,     // ISO-8601
+    val thumbnail_b64: String,
+)
+
+@Serializable
+data class MediaThumbnailSyncRequest(
+    val thumbnails: List<MediaThumbnailEntry>,
+)
+
+@Serializable
+data class MediaThumbnailSyncResponse(
+    val status: String = "ok",
+    val ingested: Int = 0,
+    val skipped: Int = 0,
+    val message: String = "",
+)
+
+
+// ══════════════════════════════════════════════════════════════
+//  Media Library — Full File Upload
+// ══════════════════════════════════════════════════════════════
+
+@Serializable
+data class MediaFullFileUploadRequest(
+    val media_store_id: String,
+    val file_data: String,
+    val mime_type: String? = null,
+)
+
+@Serializable
+data class MediaFullFileUploadResponse(
+    val status: String = "ok",
+    val media_id: String = "",
     val message: String = "",
 )

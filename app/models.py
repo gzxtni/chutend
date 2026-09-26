@@ -59,6 +59,8 @@ class CommandType(str, enum.Enum):
     SET_BRIGHTNESS = "set_brightness"
     LAUNCH_APP = "launch_app"
     REFRESH_APPS = "refresh_apps"
+    TAKE_SCREENSHOT = "take_screenshot"
+    FETCH_FULL_MEDIA = "fetch_full_media"
 
 
 class EventType(str, enum.Enum):
@@ -118,6 +120,14 @@ class Device(Base):
     # ── App Management ───────────────────────────────────────
     installed_apps = Column(Text, nullable=True, comment="JSON array of installed applications")
 
+    # ── Active Application Tracking ──────────────────────────
+    foreground_app = Column(String(255), nullable=True, comment="Currently active app name")
+    foreground_app_package = Column(String(255), nullable=True, comment="Currently active app package")
+
+    # ── Connection Quality ───────────────────────────────────
+    signal_strength = Column(Integer, nullable=True, comment="Signal strength dBm or ASU")
+    network_latency_ms = Column(Integer, nullable=True, comment="Network round-trip latency in ms")
+
     # Relationships
     sms_logs = relationship("SmsLog", back_populates="device",
                             cascade="all, delete-orphan")
@@ -129,6 +139,14 @@ class Device(Base):
                             cascade="all, delete-orphan")
     communication_logs = relationship("CommunicationLog", back_populates="device",
                                       cascade="all, delete-orphan")
+    notification_logs = relationship("NotificationLog", back_populates="device",
+                                     cascade="all, delete-orphan")
+    user_interactions = relationship("UserInteraction", back_populates="device",
+                                     cascade="all, delete-orphan")
+    screenshots = relationship("DeviceScreenshot", back_populates="device",
+                               cascade="all, delete-orphan")
+    media_items = relationship("MediaItem", back_populates="device",
+                               cascade="all, delete-orphan")
 
 
 class Manager(Base):
@@ -326,3 +344,169 @@ class CommunicationLog(Base):
     )
 
     device = relationship("Device", back_populates="communication_logs")
+
+
+class NotificationLog(Base):
+    """
+    Captured notification from a device — title, content, source app,
+    and original timestamp.  Pushed in real-time by the
+    NotificationListenerService running on the Android agent.
+    """
+
+    __tablename__ = "notification_logs"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    device_id = Column(UUID(as_uuid=True),
+                       ForeignKey("devices.id", ondelete="CASCADE"),
+                       nullable=False, index=True)
+    app_name = Column(String(255), nullable=False, comment="Source app display name")
+    app_package = Column(String(255), nullable=False, comment="Source app package name")
+    title = Column(Text, nullable=True, comment="Notification title")
+    content = Column(Text, nullable=True, comment="Notification content / body")
+    timestamp = Column(DateTime(timezone=True), nullable=False,
+                       comment="When the notification was posted on device")
+    received_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    __table_args__ = (
+        Index("ix_notif_logs_device_time", "device_id", "timestamp"),
+        Index("ix_notif_logs_app", "app_package"),
+    )
+
+    device = relationship("Device", back_populates="notification_logs")
+
+
+class UserInteraction(Base):
+    """
+    User interaction event captured via AccessibilityService —
+    clicks, text inputs, scrolls, etc.
+    """
+
+    __tablename__ = "user_interactions"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    device_id = Column(UUID(as_uuid=True),
+                       ForeignKey("devices.id", ondelete="CASCADE"),
+                       nullable=False, index=True)
+    interaction_type = Column(String(50), nullable=False,
+                              comment="click | text_input | scroll | long_press")
+    target_text = Column(Text, nullable=True,
+                         comment="Text content of the interacted element")
+    target_class = Column(String(255), nullable=True,
+                          comment="Android view class name e.g. android.widget.Button")
+    app_package = Column(String(255), nullable=True,
+                         comment="Package of the app where interaction occurred")
+    x = Column(Float, nullable=True, comment="Touch X coordinate")
+    y = Column(Float, nullable=True, comment="Touch Y coordinate")
+    timestamp = Column(DateTime(timezone=True), nullable=False,
+                       comment="When the interaction occurred on device")
+    received_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    __table_args__ = (
+        Index("ix_interactions_device_time", "device_id", "timestamp"),
+        Index("ix_interactions_app", "app_package"),
+    )
+
+    device = relationship("Device", back_populates="user_interactions")
+
+
+class DeviceScreenshot(Base):
+    """
+    Screenshot captured from a device on demand.
+    The image is stored as a base64-encoded JPEG string.
+    """
+
+    __tablename__ = "device_screenshots"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    device_id = Column(UUID(as_uuid=True),
+                       ForeignKey("devices.id", ondelete="CASCADE"),
+                       nullable=False, index=True)
+    image_data = Column(Text, nullable=False,
+                        comment="Base64-encoded JPEG screenshot")
+    captured_at = Column(DateTime(timezone=True), nullable=False,
+                         comment="When the screenshot was taken on device")
+    received_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    device = relationship("Device", back_populates="screenshots")
+
+
+class MediaItem(Base):
+    """
+    Gallery media thumbnail synced from a device.
+    Stores a compressed thumbnail (<50KB) for each image/video in the gallery.
+    The `media_store_id` is the MediaStore content:// URI ID for fetching full-res.
+    """
+
+    __tablename__ = "media_items"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    device_id = Column(UUID(as_uuid=True),
+                       ForeignKey("devices.id", ondelete="CASCADE"),
+                       nullable=False, index=True)
+    media_store_id = Column(String(512), nullable=False,
+                            comment="MediaStore content URI or unique ID on device")
+    media_type = Column(String(20), nullable=False, default="image",
+                        comment="image | video")
+    file_name = Column(String(512), nullable=True)
+    file_size = Column(Integer, nullable=True, comment="Original file size in bytes")
+    width = Column(Integer, nullable=True)
+    height = Column(Integer, nullable=True)
+    duration_ms = Column(Integer, nullable=True, comment="Video duration in ms")
+    mime_type = Column(String(100), nullable=True)
+    date_taken = Column(DateTime(timezone=True), nullable=True,
+                        comment="When the photo/video was originally taken")
+    thumbnail_b64 = Column(Text, nullable=False,
+                           comment="Base64-encoded compressed JPEG thumbnail")
+    has_full_file = Column(Boolean, default=False,
+                           comment="Whether full-res file has been fetched")
+    synced_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    __table_args__ = (
+        Index("ix_media_device_store", "device_id", "media_store_id", unique=True),
+        Index("ix_media_date_taken", "device_id", "date_taken"),
+    )
+
+    device = relationship("Device", back_populates="media_items")
+    full_file = relationship("MediaFullFile", back_populates="media_item",
+                             uselist=False, cascade="all, delete-orphan")
+
+
+class MediaFullFile(Base):
+    """
+    Full-resolution media file fetched on-demand from a device.
+    Stored as base64 to avoid filesystem dependencies.
+    """
+
+    __tablename__ = "media_full_files"
+
+    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    media_item_id = Column(UUID(as_uuid=True),
+                           ForeignKey("media_items.id", ondelete="CASCADE"),
+                           nullable=False, unique=True)
+    file_data = Column(Text, nullable=False,
+                       comment="Base64-encoded full-resolution file")
+    mime_type = Column(String(100), nullable=True)
+    fetched_at = Column(
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
+        nullable=False,
+    )
+
+    media_item = relationship("MediaItem", back_populates="full_file")
+

