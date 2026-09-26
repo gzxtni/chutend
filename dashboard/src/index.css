@@ -71,7 +71,7 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   background: var(--bg-desktop);
-  height: 100%;
+  min-height: 100%;
   -ms-overflow-style: none !important;
   scrollbar-width: none !important;
 }
@@ -82,12 +82,14 @@ body {
   color: var(--text-main);
   line-height: 1.5;
   min-height: 100vh;
+  min-height: 100dvh;
   overflow-x: hidden;
 }
 
 #root {
   position: relative;
   min-height: 100vh;
+  min-height: 100dvh;
 }
 
 /* Desktop centering container to simulate native mobile viewport */

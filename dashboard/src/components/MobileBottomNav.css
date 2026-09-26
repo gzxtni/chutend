@@ -1,18 +1,23 @@
 /* ═══════════════════════════════════════════════════════════════
-   Minimal Floating Pill Navigation Bar
+   Minimal Floating Pill Navigation Bar (Properly Fixed Dock)
    ═══════════════════════════════════════════════════════════════ */
 
 .minimal-bottom-wrapper {
-  position: fixed;
-  bottom: 0;
+  position: fixed !important;
+  bottom: max(20px, env(safe-area-inset-bottom, 20px)) !important;
   left: 0;
   right: 0;
-  z-index: 100;
+  margin: 0 auto;
+  max-width: 440px;
+  width: 100%;
+  z-index: 1000 !important;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   pointer-events: none;
-  padding-bottom: 6px;
+  transform: translateZ(0); /* Hardware accelerated to prevent scroll lag/jitter */
+  -webkit-transform: translateZ(0);
 }
 
 .minimal-bottom-nav-container {
@@ -20,7 +25,6 @@
   align-items: center;
   gap: 12px;
   pointer-events: auto;
-  margin-bottom: 6px;
 }
 
 /* Floating Capsule Bar */
@@ -28,13 +32,11 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.96);
   border: 1.5px solid #e2e8f0;
   border-radius: 999px;
   padding: 6px 12px;
-  box-shadow: 0 8px 32px rgba(15, 23, 42, 0.08);
+  box-shadow: 0 8px 30px rgba(15, 23, 42, 0.12), 0 2px 8px rgba(15, 23, 42, 0.06);
 }
 
 .capsule-tab-btn {
@@ -81,7 +83,7 @@
   justify-content: center;
   cursor: pointer;
   transition: transform 0.15s ease, background 0.15s ease;
-  box-shadow: 0 6px 18px rgba(15, 23, 42, 0.22);
+  box-shadow: 0 6px 20px rgba(15, 23, 42, 0.25);
   -webkit-tap-highlight-color: transparent;
 }
 
