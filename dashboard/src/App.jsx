@@ -17,6 +17,7 @@ import FleetMap from './components/FleetMap';
 import SmsModal from './components/SmsModal';
 import SystemControlsModal from './components/SystemControlsModal';
 import AppManagementModal from './components/AppManagementModal';
+import DeleteConfirmModal from './components/DeleteConfirmModal';
 import Toast from './components/Toast';
 import LoginPage from './components/LoginPage';
 import OnboardingPage from './components/OnboardingPage';
@@ -61,6 +62,7 @@ export default function App() {
   const [smsDevice, setSmsDevice] = useState(null);
   const [controlsDevice, setControlsDevice] = useState(null);
   const [appsDevice, setAppsDevice] = useState(null);
+  const [deviceToDelete, setDeviceToDelete] = useState(null);
 
   // Toasts
   const [toasts, setToasts] = useState([]);
@@ -138,23 +140,25 @@ export default function App() {
     }
   }
 
-  async function handleDeleteDevice(device) {
+  function handleDeleteDevice(device) {
     if (!device?.device_id) return;
-    const name = device.device_name || device.device_id;
-    const confirmed = window.confirm(
-      `Permanently delete "${name}" from the database?\n\nThis will remove the device and all associated data, calls, SMS, notifications, and logs. This cannot be undone.`
-    );
-    if (!confirmed) return;
+    setDeviceToDelete(device);
+  }
 
+  async function handleConfirmDelete(device) {
+    if (!device?.device_id) return;
+    const name = device.device_name || device.model || device.device_id;
     try {
       await deleteDevice(device.device_id);
       setDevices((prev) => prev.filter((d) => d.device_id !== device.device_id));
       if (selectedDeviceDetail?.device_id === device.device_id) {
         setSelectedDeviceDetail(null);
       }
+      setDeviceToDelete(null);
       addToast(`Device "${name}" permanently removed from database`, 'success');
     } catch (err) {
       addToast(`Failed to delete device: ${err.message}`, 'error');
+      throw err;
     }
   }
 
@@ -377,6 +381,15 @@ export default function App() {
           device={appsDevice}
           onClose={() => setAppsDevice(null)}
           addToast={addToast}
+        />
+      )}
+
+      {/* On-Site Centered Delete Confirmation Dialog */}
+      {deviceToDelete && (
+        <DeleteConfirmModal
+          device={deviceToDelete}
+          onConfirm={handleConfirmDelete}
+          onCancel={() => setDeviceToDelete(null)}
         />
       )}
 

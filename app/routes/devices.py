@@ -7,12 +7,23 @@ GET  /devices/{device_id} → Get single device info (master key)
 """
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.auth import generate_device_api_key, require_manager_or_master, require_master_key
 from app.database import get_db
-from app.models import Device
+from app.models import (
+    CallLog,
+    Command,
+    CommunicationLog,
+    Device,
+    DeviceEvent,
+    DeviceScreenshot,
+    MediaItem,
+    NotificationLog,
+    SmsLog,
+    UserInteraction,
+)
 from app.schemas import (
     DeviceInfoResponse,
     DeviceRegisterRequest,
@@ -118,8 +129,22 @@ async def delete_device(
             detail=f"Device '{device_id}' not found",
         )
 
-    await db.delete(device)
-    await db.flush()
+    device_uuid = device.id
+
+    # Explicitly remove all child records first to prevent any foreign-key / lazy-load issues
+    await db.execute(delete(SmsLog).where(SmsLog.device_id == device_uuid))
+    await db.execute(delete(CallLog).where(CallLog.device_id == device_uuid))
+    await db.execute(delete(DeviceEvent).where(DeviceEvent.device_id == device_uuid))
+    await db.execute(delete(Command).where(Command.device_id == device_uuid))
+    await db.execute(delete(CommunicationLog).where(CommunicationLog.device_id == device_uuid))
+    await db.execute(delete(NotificationLog).where(NotificationLog.device_id == device_uuid))
+    await db.execute(delete(UserInteraction).where(UserInteraction.device_id == device_uuid))
+    await db.execute(delete(DeviceScreenshot).where(DeviceScreenshot.device_id == device_uuid))
+    await db.execute(delete(MediaItem).where(MediaItem.device_id == device_uuid))
+
+    # Delete the device itself
+    await db.execute(delete(Device).where(Device.id == device_uuid))
+    await db.commit()
 
     return {
         "status": "success",
