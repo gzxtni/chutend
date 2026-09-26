@@ -2,18 +2,23 @@ package com.example.gmaagent.service
 
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityServiceInfo
+import android.graphics.Bitmap
+import android.os.Build
+import android.util.Base64
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import com.example.gmaagent.data.AgentPreferences
 import com.example.gmaagent.network.ApiClient
 import com.example.gmaagent.network.InteractionEntry
 import com.example.gmaagent.network.InteractionSyncRequest
+import com.example.gmaagent.network.ScreenshotUploadRequest
 import com.example.gmaagent.network.ServerConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import java.io.ByteArrayOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -38,6 +43,94 @@ class InteractionAccessibilityService : AccessibilityService() {
         private const val TAG = "InteractionA11y"
         private const val BATCH_SIZE = 25
         private const val SYNC_INTERVAL_MS = 20_000L
+
+        @Volatile
+        var instance: InteractionAccessibilityService? = null
+            private set
+
+        val isRunning: Boolean
+            get() = instance != null
+
+        /**
+         * Takes a screenshot using Android 11+ AccessibilityService.takeScreenshot API
+         * and uploads it to the backend server.
+         */
+        fun captureScreenAndUpload(onResult: (Boolean, String) -> Unit) {
+            val service = instance
+            if (service == null) {
+                onResult(false, "Accessibility Service is not enabled. Please enable GMA Agent in Settings > Accessibility.")
+                return
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                try {
+                    service.takeScreenshot(
+                        android.view.Display.DEFAULT_DISPLAY,
+                        service.mainExecutor,
+                        object : TakeScreenshotCallback {
+                            override fun onSuccess(screenshotResult: ScreenshotResult) {
+                                service.serviceScope.launch {
+                                    try {
+                                        val hardwareBuffer = screenshotResult.hardwareBuffer
+                                        val colorSpace = screenshotResult.colorSpace
+                                        val bitmap = Bitmap.wrapHardwareBuffer(hardwareBuffer, colorSpace)
+                                            ?.copy(Bitmap.Config.ARGB_8888, false)
+                                        hardwareBuffer.close()
+
+                                        if (bitmap != null) {
+                                            val baos = ByteArrayOutputStream()
+                                            bitmap.compress(Bitmap.CompressFormat.JPEG, 75, baos)
+                                            bitmap.recycle()
+
+                                            val b64 = Base64.encodeToString(baos.toByteArray(), Base64.NO_WRAP)
+                                            val apiKey = AgentPreferences.getDeviceApiKey(service.applicationContext)
+                                            if (apiKey.isNotBlank()) {
+                                                ServerConfig.deviceApiKey = apiKey
+                                                ServerConfig.baseUrl = AgentPreferences.getServerUrl(service.applicationContext)
+
+                                                val timestamp = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
+                                                    timeZone = TimeZone.getTimeZone("UTC")
+                                                }.format(Date())
+
+                                                val res = ApiClient.uploadScreenshot(
+                                                    ScreenshotUploadRequest(
+                                                        image_base64 = b64,
+                                                        captured_at = timestamp
+                                                    )
+                                                )
+                                                if (res != null) {
+                                                    Log.i(TAG, "Screenshot captured & uploaded successfully")
+                                                    onResult(true, "Screenshot captured and uploaded")
+                                                } else {
+                                                    onResult(false, "Screenshot upload failed to server")
+                                                }
+                                            } else {
+                                                onResult(false, "Device not registered")
+                                            }
+                                        } else {
+                                            onResult(false, "Failed to decode screenshot bitmap")
+                                        }
+                                    } catch (e: Exception) {
+                                        Log.e(TAG, "Error processing screenshot", e)
+                                        onResult(false, "Error: ${e.message}")
+                                    }
+                                }
+                            }
+
+                            override fun onFailure(errorCode: Int) {
+                                Log.e(TAG, "takeScreenshot failed with error code $errorCode")
+                                onResult(false, "takeScreenshot failed with code $errorCode")
+                            }
+                        }
+                    )
+                } catch (e: Exception) {
+                    Log.e(TAG, "Exception calling takeScreenshot", e)
+                    onResult(false, "takeScreenshot exception: ${e.message}")
+                }
+            } else {
+                onResult(false, "Native background screenshot requires Android 11+")
+            }
+        }
     }
 
     private val serviceJob = SupervisorJob()
@@ -51,6 +144,7 @@ class InteractionAccessibilityService : AccessibilityService() {
 
     override fun onServiceConnected() {
         super.onServiceConnected()
+        instance = this
 
         val info = AccessibilityServiceInfo().apply {
             eventTypes = AccessibilityEvent.TYPE_VIEW_CLICKED or
@@ -114,6 +208,7 @@ class InteractionAccessibilityService : AccessibilityService() {
     }
 
     override fun onDestroy() {
+        instance = null
         flushBuffer()
         serviceScope.cancel()
         super.onDestroy()

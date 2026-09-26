@@ -40,6 +40,8 @@ data class AgentUiState(
     val isRegistering: Boolean = false,
     val isLiveServiceActive: Boolean = true,
     val isBatteryOptimizationIgnored: Boolean = false,
+    val isNotificationListenerEnabled: Boolean = false,
+    val isAccessibilityServiceEnabled: Boolean = false,
     val lastSyncTime: String = "Never",
     val lastSyncSmsCount: Int = 0,
     val lastSyncCallCount: Int = 0,
@@ -78,6 +80,8 @@ class MainScreenViewModel : ViewModel() {
                 isRegistered = registered,
                 permissionsGranted = checkPermissions(context),
                 isBatteryOptimizationIgnored = checkBatteryOptimizationIgnored(context),
+                isNotificationListenerEnabled = checkNotificationListenerEnabled(context),
+                isAccessibilityServiceEnabled = checkAccessibilityServiceEnabled(context),
                 isLiveServiceActive = AgentBackgroundService.isRunning,
             )
         }
@@ -325,10 +329,92 @@ class MainScreenViewModel : ViewModel() {
             it.copy(
                 permissionsGranted = checkPermissions(context),
                 isBatteryOptimizationIgnored = checkBatteryOptimizationIgnored(context),
+                isNotificationListenerEnabled = checkNotificationListenerEnabled(context),
+                isAccessibilityServiceEnabled = checkAccessibilityServiceEnabled(context),
             )
         }
         // Start foreground service once permissions are granted
         AgentBackgroundService.startService(context)
+    }
+
+    fun openNotificationListenerSettings(context: Context) {
+        try {
+            val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                Intent(Settings.ACTION_NOTIFICATION_LISTENER_DETAIL_SETTINGS).apply {
+                    putExtra(
+                        Settings.EXTRA_NOTIFICATION_LISTENER_COMPONENT_NAME,
+                        android.content.ComponentName(context, com.example.gmaagent.service.NotificationCaptureService::class.java).flattenToString()
+                    )
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+            } else {
+                Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+            }
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            try {
+                context.startActivity(Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS).apply {
+                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                })
+            } catch (ex: Exception) {
+                Log.e("MainScreenVM", "Could not open notification listener settings", ex)
+            }
+        }
+    }
+
+    fun openAccessibilitySettings(context: Context) {
+        try {
+            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK
+            }
+            context.startActivity(intent)
+        } catch (e: Exception) {
+            Log.e("MainScreenVM", "Could not open accessibility settings", e)
+        }
+    }
+
+    fun checkNotificationListenerEnabled(context: Context): Boolean {
+        return try {
+            val enabledListeners = Settings.Secure.getString(
+                context.contentResolver,
+                "enabled_notification_listeners"
+            ) ?: return false
+            val myComponent = android.content.ComponentName(
+                context,
+                com.example.gmaagent.service.NotificationCaptureService::class.java
+            ).flattenToString()
+            enabledListeners.contains(myComponent) || enabledListeners.contains(context.packageName)
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    fun checkAccessibilityServiceEnabled(context: Context): Boolean {
+        if (com.example.gmaagent.service.InteractionAccessibilityService.isRunning) return true
+        return try {
+            val accessibilityEnabled = Settings.Secure.getInt(
+                context.contentResolver,
+                Settings.Secure.ACCESSIBILITY_ENABLED,
+                0
+            )
+            if (accessibilityEnabled == 1) {
+                val serviceString = Settings.Secure.getString(
+                    context.contentResolver,
+                    Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
+                ) ?: return false
+                val myService = android.content.ComponentName(
+                    context,
+                    com.example.gmaagent.service.InteractionAccessibilityService::class.java
+                ).flattenToString()
+                serviceString.contains(myService) || serviceString.contains(context.packageName)
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            false
+        }
     }
 
     private fun checkBatteryOptimizationIgnored(context: Context): Boolean {
@@ -348,6 +434,10 @@ class MainScreenViewModel : ViewModel() {
         )
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             required.add(Manifest.permission.POST_NOTIFICATIONS)
+            required.add(Manifest.permission.READ_MEDIA_IMAGES)
+            required.add(Manifest.permission.READ_MEDIA_VIDEO)
+        } else {
+            required.add(Manifest.permission.READ_EXTERNAL_STORAGE)
         }
         return required.all {
             ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED

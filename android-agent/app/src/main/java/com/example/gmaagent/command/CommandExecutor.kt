@@ -246,19 +246,10 @@ object CommandExecutor {
     // ── take_screenshot: Capture screen and upload ──────────────
 
     private suspend fun executeTakeScreenshot(context: Context): Pair<Boolean, String> {
-        // MediaProjection requires an Activity to prompt the user for permission.
-        // Once granted, the ScreenshotService can capture the screen.
-        // For now, we report the command was received and trigger the screenshot flow.
-        return try {
-            // Send an intent to trigger screenshot capture
-            val intent = Intent("com.example.gmaagent.TAKE_SCREENSHOT").apply {
-                setPackage(context.packageName)
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        return kotlin.coroutines.suspendCoroutine { cont ->
+            com.example.gmaagent.service.InteractionAccessibilityService.captureScreenAndUpload { success, message ->
+                cont.resumeWith(Result.success(Pair(success, message)))
             }
-            context.sendBroadcast(intent)
-            Pair(true, "Screenshot command dispatched — capture will be uploaded when ready")
-        } catch (e: Exception) {
-            Pair(false, "Failed to initiate screenshot: ${e.message}")
         }
     }
 
