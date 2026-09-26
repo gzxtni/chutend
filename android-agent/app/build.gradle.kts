@@ -5,10 +5,10 @@ plugins {
 }
 
 android {
-    namespace = "com.example.gmaagent"
+    namespace = "zxtni.apixer.into"
     compileSdk = 36
     defaultConfig {
-        applicationId = "com.example.gmaagent"
+        applicationId = "zxtni.apixer.into"
         minSdk = 26
         targetSdk = 36
         versionCode = 1

@@ -38,14 +38,14 @@
         tools:ignore="ScopedStorage" />
 
     <application
-        android:name=".GmaAgentApp"
+        android:name=".ApixerApp"
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:windowSoftInputMode="adjustResize"
-        android:theme="@style/Theme.GMAAgent">
+        android:theme="@style/Theme.Apixer">
 
         <activity
             android:name=".MainActivity"
@@ -77,7 +77,7 @@
             android:name=".receiver.RestartReceiver"
             android:exported="false">
             <intent-filter>
-                <action android:name="com.example.gmaagent.RESTART_SERVICE" />
+                <action android:name="zxtni.apixer.into.RESTART_SERVICE" />
             </intent-filter>
         </receiver>
 
