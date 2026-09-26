@@ -21,26 +21,13 @@ export default function MobileTopBar({
     <header className="minimal-top-bar" id="minimal-top-bar">
       <div className="top-bar-inner">
         {/* Left: Branding & Status */}
-        <div className="top-brand-group">
-          <div className="top-avatar-box" onClick={() => setShowUserMenu(!showUserMenu)}>
-            <img
-              src="/avatar.jpg"
-              alt="Mascot"
-              className="top-avatar-img"
-              onError={(e) => {
-                e.target.style.display = 'none';
-              }}
-            />
-          </div>
-          <div className="top-brand-text">
-            <div className="brand-name-row" onClick={() => setShowUserMenu(!showUserMenu)}>
-              <span className="brand-name">{displayName}</span>
-              <ChevronDown size={14} className="brand-chevron" />
-            </div>
-            <span className="brand-status-sub">
-              <span className="live-dot" /> {activeCount} of {totalDevices} Online
-            </span>
-          </div>
+        {/* Left: APIXER Logo */}
+        <div className="top-brand-logo-wrap">
+          <img
+            src="/apixer-logo.png"
+            alt="APIXER"
+            className="top-brand-logo-img"
+          />
         </div>
 
         {/* Right: Notification Bell & Initials Button */}
