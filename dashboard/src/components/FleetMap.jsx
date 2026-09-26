@@ -28,10 +28,7 @@ function getBatteryIcon(level) {
   return <Battery size={13} className="text-warning" />;
 }
 
-// Map Tile Layer Configurations (CARTO + Clean Tactical Dark + Satellite)
-const CARTO_API_BASE = import.meta.env.VITE_CARTO_API_BASE || 'https://gcp-asia-northeast1.api.carto.com';
-const CARTO_KEY = import.meta.env.VITE_CARTO_BASEMAP_KEY || import.meta.env.VITE_CARTO_ACCESS_TOKEN || 'eyJhbGciOiJIUzI1NiJ9.eyJhIjoiYWNfdWsyb3QybXoiLCJqdGkiOiI3MTFhOTUzNSJ9.F1euDbDt_HSeLmIKvZaYj3yhLCb5_BjZKTbPRNdVX9s';
-
+// Map Tile Layer Configurations (100% Free OpenStreetMap & Public Layers — No API Keys Required)
 const MAP_STYLES = {
   tactical: {
     id: 'tactical',
@@ -46,28 +43,28 @@ const MAP_STYLES = {
     id: 'satellite',
     name: 'Satellite',
     url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    attribution: '&copy; <a href="https://www.esri.com/" target="_blank" rel="noreferrer">Esri</a> &bull; Maxar, Earthstar Geographics',
+    attribution: '&copy; Esri &bull; Open Data',
     className: '',
     maxZoom: 19,
     subdomains: '',
   },
-  carto_dark: {
-    id: 'carto_dark',
-    name: 'CARTO Dark',
-    url: `https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png?key=${CARTO_KEY}`,
-    attribution: '&copy; <a href="https://carto.com/" target="_blank" rel="noreferrer">CARTO</a> &bull; OpenStreetMap',
+  osm: {
+    id: 'osm',
+    name: 'OpenStreetMap',
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a>',
     className: '',
-    maxZoom: 20,
-    subdomains: 'abcd',
+    maxZoom: 19,
+    subdomains: 'abc',
   },
-  carto_voyager: {
-    id: 'carto_voyager',
-    name: 'CARTO Voyager',
-    url: `https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png?key=${CARTO_KEY}`,
-    attribution: '&copy; <a href="https://carto.com/" target="_blank" rel="noreferrer">CARTO</a> &bull; OpenStreetMap',
+  terrain: {
+    id: 'terrain',
+    name: 'Terrain',
+    url: 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> &bull; Humanitarian',
     className: '',
-    maxZoom: 20,
-    subdomains: 'abcd',
+    maxZoom: 19,
+    subdomains: 'abc',
   }
 };
 

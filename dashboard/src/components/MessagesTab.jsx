@@ -24,14 +24,15 @@ import { getDeviceDisplayName } from '../utils/deviceNames';
 import { getDeviceImage } from '../utils/deviceImages';
 import './MessagesTab.css';
 
-// Tile Layer Definitions
+// 100% Free OpenStreetMap & Public Map Layers (No API Keys / Free Forever)
 const MAP_THEMES = {
-  voyager: {
-    id: 'voyager',
+  osm: {
+    id: 'osm',
     name: 'Street View',
-    url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     maxZoom: 19,
-    subdomains: 'abcd',
+    subdomains: 'abc',
+    className: '',
   },
   satellite: {
     id: 'satellite',
@@ -39,13 +40,15 @@ const MAP_THEMES = {
     url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     maxZoom: 19,
     subdomains: '',
+    className: '',
   },
   dark: {
     id: 'dark',
     name: 'Cyber Dark',
-    url: 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png',
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
     maxZoom: 19,
-    subdomains: 'abcd',
+    subdomains: 'abc',
+    className: 'leaflet-tile-tactical-dark',
   }
 };
 
@@ -67,7 +70,7 @@ export default function MessagesTab({
   const tileLayerRef = useRef(null);
   const markersRef = useRef({});
 
-  const [activeTheme, setActiveTheme] = useState('voyager');
+  const [activeTheme, setActiveTheme] = useState('osm');
   const [selectedDeviceId, setSelectedDeviceId] = useState(devices[0]?.device_id || null);
   const [searchQuery, setSearchQuery] = useState('');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -133,7 +136,8 @@ export default function MessagesTab({
     const theme = MAP_THEMES[activeTheme];
     tileLayerRef.current = L.tileLayer(theme.url, {
       maxZoom: theme.maxZoom,
-      subdomains: theme.subdomains
+      subdomains: theme.subdomains,
+      className: theme.className || ''
     }).addTo(map);
 
     mapInstanceRef.current = map;
@@ -155,7 +159,8 @@ export default function MessagesTab({
 
     tileLayerRef.current = L.tileLayer(theme.url, {
       maxZoom: theme.maxZoom,
-      subdomains: theme.subdomains
+      subdomains: theme.subdomains,
+      className: theme.className || ''
     }).addTo(mapInstanceRef.current);
   }, [activeTheme]);
 
@@ -276,8 +281,8 @@ export default function MessagesTab({
           {/* Map Layer Switcher */}
           <div className="radar-layer-segmented">
             <button
-              className={`layer-segment-btn ${activeTheme === 'voyager' ? 'active' : ''}`}
-              onClick={() => setActiveTheme('voyager')}
+              className={`layer-segment-btn ${activeTheme === 'osm' ? 'active' : ''}`}
+              onClick={() => setActiveTheme('osm')}
             >
               Street
             </button>
