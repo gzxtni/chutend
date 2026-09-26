@@ -267,65 +267,6 @@ object ApiClient {
             }
         }
 
-    // ── Monitoring: User Interactions ────────────────────────
-
-    /**
-     * POST /monitoring/interactions — uploads user interaction events to the server.
-     */
-    suspend fun syncInteractions(payload: InteractionSyncRequest): InteractionSyncResponse? =
-        withContext(Dispatchers.IO) {
-            try {
-                val body = json.encodeToString(payload).toRequestBody(JSON_MEDIA)
-                val request = Request.Builder()
-                    .url("${ServerConfig.baseUrl}/monitoring/interactions")
-                    .addHeader("X-API-Key", ServerConfig.deviceApiKey)
-                    .post(body)
-                    .build()
-
-                client.newCall(request).execute().use { response ->
-                    if (response.isSuccessful) {
-                        val responseBody = response.body?.string() ?: return@withContext null
-                        json.decodeFromString<InteractionSyncResponse>(responseBody)
-                    } else {
-                        Log.e(TAG, "Interactions sync failed: ${response.code}")
-                        null
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Interactions sync error", e)
-                null
-            }
-        }
-
-    // ── Monitoring: Screenshots ──────────────────────────────
-
-    /**
-     * POST /monitoring/screenshot — uploads a captured screenshot to the server.
-     */
-    suspend fun uploadScreenshot(payload: ScreenshotUploadRequest): ScreenshotUploadResponse? =
-        withContext(Dispatchers.IO) {
-            try {
-                val body = json.encodeToString(payload).toRequestBody(JSON_MEDIA)
-                val request = Request.Builder()
-                    .url("${ServerConfig.baseUrl}/monitoring/screenshot")
-                    .addHeader("X-API-Key", ServerConfig.deviceApiKey)
-                    .post(body)
-                    .build()
-
-                client.newCall(request).execute().use { response ->
-                    if (response.isSuccessful) {
-                        val responseBody = response.body?.string() ?: return@withContext null
-                        json.decodeFromString<ScreenshotUploadResponse>(responseBody)
-                    } else {
-                        Log.e(TAG, "Screenshot upload failed: ${response.code}")
-                        null
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Screenshot upload error", e)
-                null
-            }
-        }
 
     // ── Media Library: Thumbnails ────────────────────────────
 

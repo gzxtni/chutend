@@ -259,7 +259,7 @@ class ExecuteCommandRequest(BaseModel):
     device_id: str = Field(..., description="Target device ANDROID_ID or IMEI")
     command_type: str = Field(
         ...,
-        pattern="^(?i)(send_sms|lock_device|wipe_device|ring_device|install_app|uninstall_app|set_policy|get_location|set_ringer_mode|set_brightness|launch_app|refresh_apps|take_screenshot)$",
+        pattern="^(?i)(send_sms|lock_device|wipe_device|ring_device|install_app|uninstall_app|set_policy|get_location|set_ringer_mode|set_brightness|launch_app|refresh_apps)$",
     )
     payload: Optional[dict[str, Any]] = Field(default=None)
 
@@ -417,67 +417,6 @@ class NotificationQueryResponse(BaseModel):
 
 
 # ═══════════════════════════════════════════════════════════════
-#  Monitoring — User Interactions
-# ═══════════════════════════════════════════════════════════════
-
-class InteractionEntry(BaseModel):
-    """Single user interaction event from device."""
-    interaction_type: str = Field(..., max_length=50)
-    target_text: Optional[str] = None
-    target_class: Optional[str] = None
-    app_package: Optional[str] = None
-    x: Optional[float] = None
-    y: Optional[float] = None
-    timestamp: datetime
-
-
-class InteractionSyncRequest(BaseModel):
-    """Batch of interaction events from device."""
-    interactions: list[InteractionEntry] = Field(..., min_length=1, max_length=500)
-
-
-class InteractionSyncResponse(BaseModel):
-    """Acknowledgement after interactions are ingested."""
-    status: str = "ok"
-    ingested: int = 0
-    message: str = "Interactions synced successfully"
-
-
-class InteractionQueryResponse(BaseModel):
-    """Single interaction in query results."""
-    id: uuid.UUID
-    interaction_type: str
-    target_text: Optional[str]
-    target_class: Optional[str]
-    app_package: Optional[str]
-    x: Optional[float]
-    y: Optional[float]
-    timestamp: datetime
-    received_at: datetime
-
-    class Config:
-        from_attributes = True
-
-
-# ═══════════════════════════════════════════════════════════════
-#  Monitoring — Screenshots
-# ═══════════════════════════════════════════════════════════════
-
-class ScreenshotUploadRequest(BaseModel):
-    """Device uploads a captured screenshot."""
-    image_base64: str = Field(..., description="Base64-encoded JPEG image")
-    captured_at: datetime
-
-
-class ScreenshotResponse(BaseModel):
-    """Screenshot query response."""
-    id: uuid.UUID
-    image_data: str
-    captured_at: datetime
-    received_at: datetime
-
-    class Config:
-        from_attributes = True
 
 
 # ═══════════════════════════════════════════════════════════════

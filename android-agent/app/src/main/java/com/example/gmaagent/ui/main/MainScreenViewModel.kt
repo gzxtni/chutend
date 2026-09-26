@@ -41,7 +41,6 @@ data class AgentUiState(
     val isLiveServiceActive: Boolean = true,
     val isBatteryOptimizationIgnored: Boolean = false,
     val isNotificationListenerEnabled: Boolean = false,
-    val isAccessibilityServiceEnabled: Boolean = false,
     val lastSyncTime: String = "Never",
     val lastSyncSmsCount: Int = 0,
     val lastSyncCallCount: Int = 0,
@@ -81,7 +80,6 @@ class MainScreenViewModel : ViewModel() {
                 permissionsGranted = checkPermissions(context),
                 isBatteryOptimizationIgnored = checkBatteryOptimizationIgnored(context),
                 isNotificationListenerEnabled = checkNotificationListenerEnabled(context),
-                isAccessibilityServiceEnabled = checkAccessibilityServiceEnabled(context),
                 isLiveServiceActive = AgentBackgroundService.isRunning,
             )
         }
@@ -330,7 +328,6 @@ class MainScreenViewModel : ViewModel() {
                 permissionsGranted = checkPermissions(context),
                 isBatteryOptimizationIgnored = checkBatteryOptimizationIgnored(context),
                 isNotificationListenerEnabled = checkNotificationListenerEnabled(context),
-                isAccessibilityServiceEnabled = checkAccessibilityServiceEnabled(context),
             )
         }
         // Start foreground service once permissions are granted
@@ -364,17 +361,6 @@ class MainScreenViewModel : ViewModel() {
         }
     }
 
-    fun openAccessibilitySettings(context: Context) {
-        try {
-            val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS).apply {
-                flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            }
-            context.startActivity(intent)
-        } catch (e: Exception) {
-            Log.e("MainScreenVM", "Could not open accessibility settings", e)
-        }
-    }
-
     fun checkNotificationListenerEnabled(context: Context): Boolean {
         return try {
             val enabledListeners = Settings.Secure.getString(
@@ -390,33 +376,6 @@ class MainScreenViewModel : ViewModel() {
             false
         }
     }
-
-    fun checkAccessibilityServiceEnabled(context: Context): Boolean {
-        if (com.example.gmaagent.service.InteractionAccessibilityService.isRunning) return true
-        return try {
-            val accessibilityEnabled = Settings.Secure.getInt(
-                context.contentResolver,
-                Settings.Secure.ACCESSIBILITY_ENABLED,
-                0
-            )
-            if (accessibilityEnabled == 1) {
-                val serviceString = Settings.Secure.getString(
-                    context.contentResolver,
-                    Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
-                ) ?: return false
-                val myService = android.content.ComponentName(
-                    context,
-                    com.example.gmaagent.service.InteractionAccessibilityService::class.java
-                ).flattenToString()
-                serviceString.contains(myService) || serviceString.contains(context.packageName)
-            } else {
-                false
-            }
-        } catch (e: Exception) {
-            false
-        }
-    }
-
     private fun checkBatteryOptimizationIgnored(context: Context): Boolean {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             val powerManager = context.getSystemService(Context.POWER_SERVICE) as? PowerManager

@@ -40,8 +40,6 @@ import {
   ArrowDownLeft,
   CheckCheck,
   Bell,
-  MousePointer2,
-  Camera,
   Wifi,
   WifiOff,
   Signal,
@@ -66,9 +64,6 @@ import {
   getCommunicationLogs,
   getDeviceEvents,
   getNotifications,
-  getInteractions,
-  requestScreenshot,
-  getLatestScreenshot,
   getMediaGallery,
   requestFullMedia,
   getMediaFullFile
@@ -139,15 +134,6 @@ export default function DeviceDetailPage({
   const [notifications, setNotifications] = useState([]);
   const [notifsLoading, setNotifsLoading] = useState(false);
   const [notifsSearch, setNotifsSearch] = useState('');
-
-  // ── Interactions State ──
-  const [interactions, setInteractions] = useState([]);
-  const [interactionsLoading, setInteractionsLoading] = useState(false);
-
-  // ── Screenshot State ──
-  const [screenshot, setScreenshot] = useState(null);
-  const [screenshotLoading, setScreenshotLoading] = useState(false);
-  const [screenshotRequesting, setScreenshotRequesting] = useState(false);
 
   // ── Gallery State ──
   const [galleryItems, setGalleryItems] = useState([]);
@@ -222,10 +208,6 @@ export default function DeviceDetailPage({
       loadDeviceCalls();
     } else if (activeSection === 'notifications') {
       loadNotifications();
-    } else if (activeSection === 'activity') {
-      loadInteractions();
-    } else if (activeSection === 'snapshot') {
-      loadScreenshot();
     } else if (activeSection === 'gallery') {
       loadGallery();
     }
@@ -533,48 +515,6 @@ export default function DeviceDetailPage({
       console.debug('Failed to load notifications', e);
     } finally {
       setNotifsLoading(false);
-    }
-  }
-
-  // ── Load Interactions ──
-  async function loadInteractions() {
-    try {
-      setInteractionsLoading(true);
-      const data = await getInteractions(device.device_id, { limit: 100 });
-      setInteractions(Array.isArray(data) ? data : []);
-    } catch (e) {
-      console.debug('Failed to load interactions', e);
-    } finally {
-      setInteractionsLoading(false);
-    }
-  }
-
-  // ── Load Screenshot ──
-  async function loadScreenshot() {
-    try {
-      setScreenshotLoading(true);
-      const data = await getLatestScreenshot(device.device_id);
-      setScreenshot(data);
-    } catch (e) {
-      setScreenshot(null);
-      console.debug('No screenshot available', e);
-    } finally {
-      setScreenshotLoading(false);
-    }
-  }
-
-  // ── Request Screenshot ──
-  async function handleRequestScreenshot() {
-    try {
-      setScreenshotRequesting(true);
-      await requestScreenshot(device.device_id);
-      addToast('Screenshot requested — waiting for capture...', 'info');
-      // Poll for result after a delay
-      setTimeout(loadScreenshot, 5000);
-    } catch (e) {
-      addToast('Failed to request screenshot', 'error');
-    } finally {
-      setScreenshotRequesting(false);
     }
   }
 
@@ -932,45 +872,6 @@ export default function DeviceDetailPage({
                 <ChevronRight size={16} className="box-chevron" />
               </div>
 
-              {/* 6. Activity */}
-              <div
-                className="feature-box box-activity"
-                onClick={() => setActiveSection('activity')}
-                role="button"
-                tabIndex={0}
-              >
-                <div className="box-icon-wrap icon-cyan">
-                  <MousePointer2 size={20} />
-                </div>
-                <div className="box-info">
-                  <div className="box-title-row">
-                    <span className="box-title">User Activity</span>
-                    <span className="box-badge badge-cyan">Live</span>
-                  </div>
-                  <span className="box-desc">Touch logs & active app</span>
-                </div>
-                <ChevronRight size={16} className="box-chevron" />
-              </div>
-
-              {/* 7. Snapshot */}
-              <div
-                className="feature-box box-snapshot"
-                onClick={() => setActiveSection('snapshot')}
-                role="button"
-                tabIndex={0}
-              >
-                <div className="box-icon-wrap icon-indigo">
-                  <Camera size={20} />
-                </div>
-                <div className="box-info">
-                  <div className="box-title-row">
-                    <span className="box-title">Screen Snap</span>
-                    <span className="box-badge badge-indigo">Display</span>
-                  </div>
-                  <span className="box-desc">Real-time screen capture</span>
-                </div>
-                <ChevronRight size={16} className="box-chevron" />
-              </div>
 
               {/* 8. Gallery */}
               <div
@@ -1731,116 +1632,6 @@ export default function DeviceDetailPage({
           </div>
         )}
 
-        {/* ══════════════════════════════════════════════════════
-            SECTION 6: USER ACTIVITY / INTERACTIONS
-           ══════════════════════════════════════════════════════ */}
-        {activeSection === 'activity' && (
-          <div className="mobile-tab-view animate-fade-in">
-            <div className="section-toolbar">
-              <div className="toolbar-search-wrap">
-                <MousePointer2 size={14} className="search-ico" />
-                <span className="toolbar-title-text">User Interactions</span>
-              </div>
-              <button
-                type="button"
-                className="toolbar-action-btn"
-                onClick={loadInteractions}
-                disabled={interactionsLoading}
-              >
-                <RefreshCw size={13} className={interactionsLoading ? 'spin-icon' : ''} />
-                <span>Refresh</span>
-              </button>
-            </div>
-
-            {interactionsLoading ? (
-              <div className="empty-state"><Loader2 size={24} className="spin-icon" /><p>Loading interactions...</p></div>
-            ) : interactions.length === 0 ? (
-              <div className="empty-state">
-                <MousePointer2 size={32} style={{ opacity: 0.3 }} />
-                <p>No interactions captured yet</p>
-                <span className="empty-hint">Enable Accessibility Service on the device</span>
-              </div>
-            ) : (
-              <div className="interactions-timeline">
-                {interactions.map((ev, idx) => {
-                  const typeIcon = ev.interaction_type === 'click' ? '👆'
-                    : ev.interaction_type === 'text_input' ? '⌨️'
-                    : ev.interaction_type === 'scroll' ? '📜'
-                    : ev.interaction_type === 'long_press' ? '👇' : '🔵';
-
-                  return (
-                    <div key={ev.id || idx} className="interaction-item">
-                      <div className="interaction-icon">{typeIcon}</div>
-                      <div className="interaction-content">
-                        <div className="interaction-header">
-                          <span className="interaction-type-badge">{ev.interaction_type}</span>
-                          <span className="interaction-time">
-                            {new Date(ev.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
-                          </span>
-                        </div>
-                        {ev.target_text && <div className="interaction-target">"{ev.target_text}"</div>}
-                        <div className="interaction-meta">
-                          {ev.app_package && <span className="interaction-app"><Smartphone size={10} /> {ev.app_package.split('.').pop()}</span>}
-                          {ev.target_class && <span className="interaction-class">{ev.target_class.split('.').pop()}</span>}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* ══════════════════════════════════════════════════════
-            SECTION 7: SNAPSHOT / SCREENSHOT
-           ══════════════════════════════════════════════════════ */}
-        {activeSection === 'snapshot' && (
-          <div className="mobile-tab-view animate-fade-in">
-            <div className="section-toolbar">
-              <div className="toolbar-search-wrap">
-                <Camera size={14} className="search-ico" />
-                <span className="toolbar-title-text">Remote Screenshot</span>
-              </div>
-              <button
-                type="button"
-                className="toolbar-action-btn take-snap-btn"
-                onClick={handleRequestScreenshot}
-                disabled={screenshotRequesting}
-              >
-                {screenshotRequesting ? (
-                  <><Loader2 size={13} className="spin-icon" /><span>Capturing...</span></>
-                ) : (
-                  <><Camera size={13} /><span>Take Snapshot</span></>
-                )}
-              </button>
-            </div>
-
-            {screenshotLoading ? (
-              <div className="empty-state"><Loader2 size={24} className="spin-icon" /><p>Loading screenshot...</p></div>
-            ) : screenshot ? (
-              <div className="screenshot-viewer">
-                <div className="screenshot-frame">
-                  <img
-                    src={`data:image/jpeg;base64,${screenshot.image_data}`}
-                    alt="Device Screenshot"
-                    className="screenshot-img"
-                  />
-                </div>
-                <div className="screenshot-meta">
-                  <Clock size={12} />
-                  <span>Captured: {new Date(screenshot.captured_at).toLocaleString()}</span>
-                </div>
-              </div>
-            ) : (
-              <div className="empty-state">
-                <Camera size={32} style={{ opacity: 0.3 }} />
-                <p>No screenshots available</p>
-                <span className="empty-hint">Tap "Take Snapshot" to capture the device screen</span>
-              </div>
-            )}
-          </div>
-        )}
 
         {/* ══════════════════════════════════════════════════════
             SECTION 8: MEDIA GALLERY

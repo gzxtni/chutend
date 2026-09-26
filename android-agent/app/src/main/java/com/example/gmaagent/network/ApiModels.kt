@@ -178,51 +178,6 @@ data class NotificationSyncResponse(
 )
 
 
-// ══════════════════════════════════════════════════════════════
-//  Monitoring — User Interactions
-// ══════════════════════════════════════════════════════════════
-
-@Serializable
-data class InteractionEntry(
-    val interaction_type: String,  // "click" | "text_input" | "scroll" | "long_press"
-    val target_text: String? = null,
-    val target_class: String? = null,
-    val app_package: String? = null,
-    val x: Float? = null,
-    val y: Float? = null,
-    val timestamp: String,     // ISO-8601
-)
-
-@Serializable
-data class InteractionSyncRequest(
-    val interactions: List<InteractionEntry>,
-)
-
-@Serializable
-data class InteractionSyncResponse(
-    val status: String = "ok",
-    val ingested: Int = 0,
-    val message: String = "",
-)
-
-
-// ══════════════════════════════════════════════════════════════
-//  Monitoring — Screenshots
-// ══════════════════════════════════════════════════════════════
-
-@Serializable
-data class ScreenshotUploadRequest(
-    val image_base64: String,
-    val captured_at: String,  // ISO-8601
-)
-
-@Serializable
-data class ScreenshotUploadResponse(
-    val status: String = "ok",
-    val screenshot_id: String = "",
-    val message: String = "",
-)
-
 
 // ══════════════════════════════════════════════════════════════
 //  Media Library — Thumbnails

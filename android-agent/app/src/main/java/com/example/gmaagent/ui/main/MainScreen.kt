@@ -209,49 +209,6 @@ fun MainScreen(
                 }
             }
 
-            // ── Accessibility Service Card ──
-            if (!state.isAccessibilityServiceEnabled) {
-                item {
-                    Card(
-                        colors = CardDefaults.cardColors(
-                            containerColor = Color(0xFFE8EAF6),
-                        ),
-                        shape = RoundedCornerShape(16.dp),
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Icon(
-                                    Icons.Default.Security,
-                                    contentDescription = null,
-                                    tint = Color(0xFF283593),
-                                )
-                                Spacer(Modifier.width(12.dp))
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        "Accessibility Service Required",
-                                        fontWeight = FontWeight.Bold,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = Color(0xFF283593),
-                                    )
-                                    Text(
-                                        "Enables remote screen snapshot capture and screen interaction monitoring.",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = Color(0xFF3F51B5),
-                                    )
-                                }
-                            }
-                            Spacer(Modifier.height(10.dp))
-                            Button(
-                                onClick = { viewModel.openAccessibilitySettings(context) },
-                                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF283593)),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text("Enable Accessibility Service")
-                            }
-                        }
-                    }
-                }
-            }
 
             // ── Permissions warning ──
             if (!state.permissionsGranted) {

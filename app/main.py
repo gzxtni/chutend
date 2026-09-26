@@ -57,8 +57,6 @@ async def lifespan(app: FastAPI):
         "INSTALL_APP",
         "UNINSTALL_APP",
         "SET_POLICY",
-        "TAKE_SCREENSHOT",
-        "take_screenshot",
         "FETCH_FULL_MEDIA",
         "fetch_full_media",
         "set_brightness",

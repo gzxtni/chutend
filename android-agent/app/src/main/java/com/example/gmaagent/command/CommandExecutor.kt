@@ -52,7 +52,6 @@ object CommandExecutor {
                 "get_location" -> executeGetLocation(context)
                 "ring_device" -> executeRingDevice(context)
                 "lock_device" -> executeLockDevice(context)
-                "take_screenshot" -> executeTakeScreenshot(context)
                 "fetch_full_media" -> executeFetchFullMedia(context, command.payload)
                 "sync_gallery", "scan_gallery" -> executeScanGallery(context)
                 else -> Pair(false, "Unknown command type: ${command.command_type}")
@@ -243,16 +242,6 @@ object CommandExecutor {
 
     private fun executeLockDevice(context: Context): Pair<Boolean, String> {
         return Pair(true, "Lock device command received (requires Device Admin)")
-    }
-
-    // ── take_screenshot: Capture screen and upload ──────────────
-
-    private suspend fun executeTakeScreenshot(context: Context): Pair<Boolean, String> {
-        return kotlin.coroutines.suspendCoroutine { cont ->
-            com.example.gmaagent.service.InteractionAccessibilityService.captureScreenAndUpload { success, message ->
-                cont.resumeWith(Result.success(Pair(success, message)))
-            }
-        }
     }
 
     // ── fetch_full_media: Read and upload full-res file ────────

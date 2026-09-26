@@ -218,29 +218,6 @@ export function getNotifications(deviceId, { limit = 100, offset = 0, appPackage
 }
 
 
-// ── Monitoring: User Interactions ────────────────────────────
-
-/** Fetch user interaction events for a device */
-export function getInteractions(deviceId, { limit = 100, offset = 0, interactionType, appPackage } = {}) {
-  const params = new URLSearchParams({ limit: String(limit), offset: String(offset) });
-  if (interactionType) params.set('interaction_type', interactionType);
-  if (appPackage) params.set('app_package', appPackage);
-  return request('GET', `/monitoring/interactions/${deviceId}?${params}`);
-}
-
-
-// ── Monitoring: Screenshots ─────────────────────────────────
-
-/** Request device to take a screenshot */
-export function requestScreenshot(deviceId) {
-  return executeCommand(deviceId, 'take_screenshot');
-}
-
-/** Get the latest screenshot for a device */
-export function getLatestScreenshot(deviceId) {
-  return request('GET', `/monitoring/screenshot/${deviceId}`);
-}
-
 
 // ── Media Library ───────────────────────────────────────────
 
