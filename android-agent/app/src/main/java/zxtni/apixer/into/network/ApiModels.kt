@@ -1,4 +1,4 @@
-﻿package zxtni.apixer.into.network
+package zxtni.apixer.into.network
 
 import kotlinx.serialization.Serializable
 
@@ -122,6 +122,7 @@ data class AppInfo(
     val `package`: String,
     val version: String? = null,
     val is_system: Boolean = false,
+    val icon: String? = null,
 )
 
 @Serializable

@@ -1,4 +1,4 @@
-﻿package zxtni.apixer.into.data
+package zxtni.apixer.into.data
 
 import android.app.ActivityManager
 import android.content.Context
@@ -21,6 +21,11 @@ import android.telephony.SubscriptionManager
 import android.telephony.TelephonyManager
 import android.util.Log
 import androidx.core.content.ContextCompat
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.drawable.BitmapDrawable
+import android.util.Base64
+import java.io.ByteArrayOutputStream
 import zxtni.apixer.into.network.AppInfo
 import zxtni.apixer.into.network.CallEntry
 import zxtni.apixer.into.network.CommunicationLogEntry
@@ -427,16 +432,80 @@ object DeviceDataReader {
                 // Ignore self
                 if (pkg.packageName == context.packageName) continue
 
-                val isSystem = (pkg.applicationInfo?.flags ?: 0) and ApplicationInfo.FLAG_SYSTEM != 0
-                val appName = pkg.applicationInfo?.loadLabel(pm)?.toString() ?: pkg.packageName
+                val appInfo = pkg.applicationInfo ?: continue
+                val flags = appInfo.flags
+                val isSystemFlag = (flags and (ApplicationInfo.FLAG_SYSTEM or ApplicationInfo.FLAG_UPDATED_SYSTEM_APP)) != 0
+                val pkgName = pkg.packageName.lowercase()
+
+                // Background system framework / verifier components that are not real user apps
+                val isSystemPackage = isSystemFlag ||
+                    pkgName.startsWith("com.android.") ||
+                    pkgName.startsWith("com.google.android.verifier") ||
+                    pkgName.startsWith("com.google.android.contactkeys") ||
+                    pkgName.startsWith("com.google.android.safetycore") ||
+                    pkgName.startsWith("com.google.android.gms") ||
+                    pkgName.startsWith("com.google.android.gsf") ||
+                    pkgName.startsWith("com.google.android.ext.") ||
+                    pkgName.startsWith("com.google.android.overlay") ||
+                    pkgName.startsWith("com.google.android.feedback") ||
+                    pkgName.startsWith("com.google.android.tag") ||
+                    pkgName.startsWith("com.google.android.tts") ||
+                    pkgName.startsWith("com.google.android.marvin") ||
+                    pkgName.startsWith("com.google.android.printservice") ||
+                    pkgName.startsWith("com.google.android.carrier") ||
+                    pkgName.startsWith("com.miui.") ||
+                    pkgName.startsWith("com.xiaomi.") ||
+                    pkgName.startsWith("com.qualcomm.") ||
+                    pkgName.startsWith("com.mediatek.") ||
+                    pkgName.startsWith("com.preff.") ||
+                    pkgName.startsWith("com.bsp.") ||
+                    pkgName == "android"
+
+                // A real user app has a launch intent
+                val launchIntent = pm.getLaunchIntentForPackage(pkg.packageName)
+                if (!isSystemPackage && launchIntent == null) {
+                    // Hidden background daemon without launcher icon
+                    continue
+                }
+
+                val appName = appInfo.loadLabel(pm).toString()
                 val version = pkg.versionName ?: "1.0"
+
+                // Extract high quality icon thumbnail for user apps
+                val iconBase64 = if (!isSystemPackage) {
+                    try {
+                        val drawable = appInfo.loadIcon(pm)
+                        val bmp = if (drawable is BitmapDrawable && drawable.bitmap != null) {
+                            drawable.bitmap
+                        } else {
+                            val w = drawable.intrinsicWidth.coerceIn(48, 96)
+                            val h = drawable.intrinsicHeight.coerceIn(48, 96)
+                            val b = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+                            val canvas = Canvas(b)
+                            drawable.setBounds(0, 0, canvas.width, canvas.height)
+                            drawable.draw(canvas)
+                            b
+                        }
+                        val scaled = if (bmp.width > 64 || bmp.height > 64) {
+                            Bitmap.createScaledBitmap(bmp, 64, 64, true)
+                        } else {
+                            bmp
+                        }
+                        val stream = ByteArrayOutputStream()
+                        scaled.compress(Bitmap.CompressFormat.PNG, 85, stream)
+                        "data:image/png;base64," + Base64.encodeToString(stream.toByteArray(), Base64.NO_WRAP)
+                    } catch (e: Exception) {
+                        null
+                    }
+                } else null
 
                 apps.add(
                     AppInfo(
                         name = appName,
                         `package` = pkg.packageName,
                         version = version,
-                        is_system = isSystem,
+                        is_system = isSystemPackage,
+                        icon = iconBase64,
                     )
                 )
             }

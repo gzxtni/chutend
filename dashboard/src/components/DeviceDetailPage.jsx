@@ -52,6 +52,7 @@ import { getDeviceSimProfile } from '../utils/simStorage';
 import { getDeviceDisplayName } from '../utils/deviceNames';
 import { extractOtp } from '../utils/otpDetector';
 import SimEditModal from './SimEditModal';
+import { isUserDownloadedApp, AppIconView } from '../utils/appIcons';
 import {
   executeCommand,
   setDeviceRingerMode,
@@ -165,26 +166,26 @@ export default function DeviceDetailPage({
     }
   };
 
-  // Parse installed apps
-  let appsList = [];
+  // Parse installed apps (strictly filter for genuine user-downloaded applications)
+  let rawAppsList = [];
   if (device.installed_apps) {
     try {
-      appsList = Array.isArray(device.installed_apps)
+      rawAppsList = Array.isArray(device.installed_apps)
         ? device.installed_apps
         : JSON.parse(device.installed_apps);
     } catch {
-      appsList = [];
+      rawAppsList = [];
     }
   }
 
-  // Filter apps
+  // Only real user downloaded apps
+  const appsList = rawAppsList.filter(isUserDownloadedApp);
+
+  // Filter apps by search keyword
   const filteredApps = appsList.filter((app) => {
-    const q = appsSearch.toLowerCase();
-    const match = (app.name || '').toLowerCase().includes(q) || (app.package || '').toLowerCase().includes(q);
-    if (!match) return false;
-    if (appsFilter === 'user') return !app.is_system;
-    if (appsFilter === 'system') return !!app.is_system;
-    return true;
+    const q = appsSearch.toLowerCase().trim();
+    if (!q) return true;
+    return (app.name || '').toLowerCase().includes(q) || (app.package || '').toLowerCase().includes(q);
   });
 
   // Listen for SIM and Name updates
@@ -868,7 +869,7 @@ export default function DeviceDetailPage({
                 </div>
                 <div className="card-content-block">
                   <span className="card-title-text">Installed Apps</span>
-                  <span className="card-desc-text">System & user packages</span>
+                  <span className="card-desc-text">User downloaded packages</span>
                 </div>
                 <div className="card-foot-row">
                   <span className="card-action-hint">Explore</span>
@@ -1660,18 +1661,11 @@ export default function DeviceDetailPage({
               </div>
             </div>
 
-            {/* Filter Pills */}
-            <div className="mobile-filter-pills">
-              {['all', 'user', 'system'].map((f) => (
-                <button
-                  key={f}
-                  type="button"
-                  className={`filter-pill ${appsFilter === f ? 'active' : ''}`}
-                  onClick={() => setAppsFilter(f)}
-                >
-                  {f === 'user' ? 'User Apps' : f === 'system' ? 'System Apps' : 'All Apps'}
-                </button>
-              ))}
+            {/* Sub-header info pill */}
+            <div className="apps-sub-header">
+              <span className="apps-count-pill">
+                <strong>{filteredApps.length}</strong> User Downloaded Applications
+              </span>
             </div>
 
             {/* App List */}
@@ -1679,44 +1673,42 @@ export default function DeviceDetailPage({
               {filteredApps.length === 0 ? (
                 <div className="mobile-empty-state">
                   <Boxes size={28} className="empty-ico" />
-                  <p className="empty-title">No applications found</p>
-                  <p className="empty-sub">Tap the refresh icon to query installed apps from the device.</p>
+                  <p className="empty-title">No user applications found</p>
+                  <p className="empty-sub">
+                    {appsSearch ? 'No downloaded apps match your search.' : 'Tap the refresh icon to query installed apps from the phone.'}
+                  </p>
                 </div>
               ) : (
                 <div className="native-apps-list">
-                  {filteredApps.map((app, idx) => {
-                    const firstLetter = (app.name || 'A').charAt(0).toUpperCase();
-
-                    return (
-                      <div key={idx} className="native-app-row">
-                        <div className="app-icon-circle">
-                          <span>{firstLetter}</span>
-                        </div>
-
-                        <div className="app-info-col">
-                          <span className="app-display-name">{app.name}</span>
-                          <span className="app-package-name">{app.package}</span>
-                        </div>
-
-                        <button
-                          type="button"
-                          className="app-quick-launch-btn"
-                          onClick={() => handleLaunchApp(app.package)}
-                          disabled={launchingPkg === app.package}
-                          title="Open app on phone"
-                        >
-                          {launchingPkg === app.package ? (
-                            <Loader2 size={13} className="spin-icon" />
-                          ) : (
-                            <>
-                              <Play size={11} />
-                              <span>Launch</span>
-                            </>
-                          )}
-                        </button>
+                  {filteredApps.map((app, idx) => (
+                    <div key={app.package || idx} className="native-app-row">
+                      <div className="app-icon-slot">
+                        <AppIconView app={app} size={42} />
                       </div>
-                    );
-                  })}
+
+                      <div className="app-info-col">
+                        <span className="app-display-name">{app.name}</span>
+                        <span className="app-package-name">{app.package}</span>
+                      </div>
+
+                      <button
+                        type="button"
+                        className="app-quick-launch-btn"
+                        onClick={() => handleLaunchApp(app.package)}
+                        disabled={launchingPkg === app.package}
+                        title="Open app on phone"
+                      >
+                        {launchingPkg === app.package ? (
+                          <Loader2 size={13} className="spin-icon" />
+                        ) : (
+                          <>
+                            <Play size={11} />
+                            <span>Launch</span>
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
