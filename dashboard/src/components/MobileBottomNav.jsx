@@ -1,4 +1,4 @@
-import { Home, Clock, Repeat, LayoutGrid, Plus } from 'lucide-react';
+import { Home, Clock, Navigation, LayoutGrid, Plus } from 'lucide-react';
 import './MobileBottomNav.css';
 
 export default function MobileBottomNav({ activeTab, onTabChange, onQuickAction }) {
@@ -29,14 +29,14 @@ export default function MobileBottomNav({ activeTab, onTabChange, onQuickAction 
             </div>
           </button>
 
-          {/* Tab 3: Messages */}
+          {/* Tab 3: GPS Radar / Location */}
           <button
             className={`capsule-tab-btn ${activeTab === 'messages' ? 'active' : ''}`}
             onClick={() => onTabChange('messages')}
-            aria-label="Messages"
+            aria-label="GPS Radar"
           >
             <div className="capsule-icon-wrap">
-              <Repeat size={20} strokeWidth={2.2} />
+              <Navigation size={20} strokeWidth={2.2} />
             </div>
           </button>
 

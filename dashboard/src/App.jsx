@@ -265,12 +265,13 @@ export default function App() {
               />
             )}
 
-            {/* Tab 3: Messages View */}
+            {/* Tab 3: Device Location & GPS Radar View */}
             {activeTab === 'messages' && (
               <MessagesTab
                 devices={devices}
-                onSendSms={(device) => setSelectedDeviceDetail(device)}
-                onFetchLogs={(device) => setSelectedDeviceDetail(device)}
+                onSelectDevice={(device) => setSelectedDeviceDetail(device)}
+                onPingLocation={handlePingLocation}
+                onRefresh={fetchDevices}
               />
             )}
 
