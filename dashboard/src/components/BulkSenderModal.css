@@ -89,57 +89,37 @@
   background: rgba(15, 23, 42, 0.45);
 }
 
-/* Top Navigation Bar — Centered Brand Logo */
-.apixer-sender-top-bar {
-  padding: 2px 20px 8px;
+
+/* Hero Graffiti Logo Section */
+.apixer-sender-hero {
   display: flex;
   align-items: center;
   justify-content: center;
-  text-align: center;
-  flex-shrink: 0;
-}
-
-.apixer-sender-brand-logo {
-  font-size: 26px;
-  font-weight: 900;
-  letter-spacing: 6px;
-  color: #111827;
-  margin: 0;
-  font-family: inherit;
-  text-align: center;
-}
-
-.apixer-sender-brand-logo span {
-  display: inline-block;
-  letter-spacing: 3px;
-}
-
-/* Hero Naruto Character Image (Exact Login Hero) */
-.apixer-sender-hero {
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding: 6px 16px 0;
+  padding: 10px 20px 14px;
   position: relative;
-  height: 110px;
+  min-height: 90px;
   flex-shrink: 0;
-  margin-bottom: -1px;
 }
 
 .apixer-sender-hero-img {
-  height: 110px;
+  max-height: 82px;
   width: auto;
+  max-width: 85%;
   object-fit: contain;
-  object-position: bottom center;
   display: block;
-  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.08));
-  animation: apixerHeroPop 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.1));
+  animation: apixerHeroPop 0.32s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 0.2s ease;
+}
+
+.apixer-sender-hero-img:hover {
+  transform: scale(1.03);
 }
 
 @keyframes apixerHeroPop {
   from {
     opacity: 0;
-    transform: translateY(12px) scale(0.95);
+    transform: translateY(8px) scale(0.96);
   }
   to {
     opacity: 1;

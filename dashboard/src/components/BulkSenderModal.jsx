@@ -139,18 +139,11 @@ export default function BulkSenderModal({ devices = [], onClose, addToast }) {
           <div className="apixer-sheet-notch" />
         </div>
 
-        {/* Top Header Bar with Centered APIXER Logo */}
-        <div className="apixer-sender-top-bar">
-          <h2 className="apixer-sender-brand-logo">
-            APIX<span>E</span>R
-          </h2>
-        </div>
-
-        {/* Hero Naruto Character Section (Exact Login Hero on #e9f3f0) */}
+        {/* Brand Graffiti Logo Hero Section */}
         <div className="apixer-sender-hero">
           <img
-            src="/login-hero.png"
-            alt="Transmission Hero"
+            src="/apixer-logo.png"
+            alt="APIXER"
             className="apixer-sender-hero-img"
           />
         </div>
