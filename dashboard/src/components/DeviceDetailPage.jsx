@@ -598,10 +598,14 @@ export default function DeviceDetailPage({
   });
 
   // ── Gallery Functions ──
-  async function loadGallery() {
+  async function loadGallery(triggerDeviceScan = false) {
     try {
       setGalleryLoading(true);
-      const opts = { limit: 100 };
+      if (triggerDeviceScan) {
+        executeCommand(device.device_id, 'sync_gallery').catch(() => {});
+        addToast('Triggering device gallery rescan...', 'info');
+      }
+      const opts = { limit: 500 };
       if (galleryFilter !== 'all') opts.mediaType = galleryFilter;
       if (gallerySearch) opts.search = gallerySearch;
       const data = await getMediaGallery(device.device_id, opts);
@@ -1870,11 +1874,11 @@ export default function DeviceDetailPage({
               <button
                 type="button"
                 className="toolbar-action-btn"
-                onClick={loadGallery}
+                onClick={() => loadGallery(true)}
                 disabled={galleryLoading}
               >
                 <RefreshCw size={13} className={galleryLoading ? 'spin-icon' : ''} />
-                <span>Refresh</span>
+                <span>Rescan & Sync</span>
               </button>
             </div>
 

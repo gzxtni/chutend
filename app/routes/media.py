@@ -94,7 +94,7 @@ async def query_gallery(
     device_id: str,
     media_type: Optional[str] = Query(default=None, description="Filter: image | video"),
     search: Optional[str] = Query(default=None, description="Search file names"),
-    limit: int = Query(default=50, le=200),
+    limit: int = Query(default=100, le=5000),
     offset: int = Query(default=0, ge=0),
     _: str = Depends(require_manager_or_master),
     db: AsyncSession = Depends(get_db),

