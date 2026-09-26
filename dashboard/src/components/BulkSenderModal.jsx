@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { X, Smartphone, Zap, Sparkles, Phone, Loader2, ArrowRight } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Smartphone, Zap, Sparkles, Phone, Loader2, ArrowRight } from 'lucide-react';
 import { executeCommand } from '../api';
 import './BulkSenderModal.css';
 
@@ -19,10 +19,53 @@ export default function BulkSenderModal({ devices = [], onClose, addToast }) {
   );
   const [loading, setLoading] = useState(false);
 
+  // Gesture drag-to-dismiss states
+  const [dragY, setDragY] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const startYRef = useRef(0);
+  const hasMovedRef = useRef(false);
+
   const smsParts = message.length === 0 ? 0 : Math.ceil(message.length / 160);
 
   function applyTemplate(tplText) {
     setMessage(tplText);
+  }
+
+  function handlePointerDown(e) {
+    if (loading) return;
+    setIsDragging(true);
+    hasMovedRef.current = false;
+    startYRef.current = e.clientY - dragY;
+    e.currentTarget.setPointerCapture(e.pointerId);
+  }
+
+  function handlePointerMove(e) {
+    if (!isDragging || loading) return;
+    const currentY = e.clientY - startYRef.current;
+    if (currentY > 4) hasMovedRef.current = true;
+    const clampedY = Math.max(0, currentY);
+    setDragY(clampedY);
+
+    if (clampedY > 130) {
+      setIsDragging(false);
+      onClose();
+    }
+  }
+
+  function handlePointerUp() {
+    if (!isDragging || loading) return;
+    setIsDragging(false);
+    if (dragY > 60) {
+      onClose();
+    } else {
+      setDragY(0);
+    }
+  }
+
+  function handleHandleClick() {
+    if (!hasMovedRef.current && !loading) {
+      onClose();
+    }
   }
 
   async function handleSend(e) {
@@ -73,24 +116,34 @@ export default function BulkSenderModal({ devices = [], onClose, addToast }) {
       aria-modal="true"
       aria-labelledby="apixer-sender-title"
     >
-      <div className="apixer-sender-card">
-        {/* Drag Notch */}
-        <div className="apixer-sheet-notch" />
+      <div
+        className="apixer-sender-card"
+        style={{
+          transform: dragY > 0 ? `translateY(${dragY}px)` : undefined,
+          transition: isDragging ? 'none' : 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+        }}
+      >
+        {/* Interactive Drag Handle Zone — Tap or pull down to dismiss */}
+        <div
+          className="apixer-sheet-handle-zone"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerUp}
+          onClick={handleHandleClick}
+          title="Drag down or tap to dismiss"
+          role="button"
+          tabIndex={0}
+          aria-label="Drag down or tap to dismiss sheet"
+        >
+          <div className="apixer-sheet-notch" />
+        </div>
 
-        {/* Top Header Bar (Exact Login Top Bar) */}
+        {/* Top Header Bar with Centered APIXER Logo */}
         <div className="apixer-sender-top-bar">
           <h2 className="apixer-sender-brand-logo">
             APIX<span>E</span>R
           </h2>
-          <button
-            className="apixer-sender-back-pill"
-            onClick={onClose}
-            disabled={loading}
-            aria-label="Close modal"
-          >
-            <X size={15} />
-            <span>Close</span>
-          </button>
         </div>
 
         {/* Hero Naruto Character Section (Exact Login Hero on #e9f3f0) */}

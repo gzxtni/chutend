@@ -55,58 +55,63 @@
   }
 }
 
-/* Drag Notch */
-.apixer-sheet-notch {
-  width: 42px;
-  height: 5px;
-  background: rgba(15, 23, 42, 0.2);
-  border-radius: 9999px;
-  margin: 10px auto 2px;
-  flex-shrink: 0;
-}
-
-/* Top Navigation Bar (Exact Login Top Bar) */
-.apixer-sender-top-bar {
-  padding: 8px 20px 6px;
+/* Interactive Drag Notch Handle Zone */
+.apixer-sheet-handle-zone {
+  width: 100%;
+  height: 28px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
+  cursor: grab;
+  touch-action: none;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+  flex-shrink: 0;
+  padding-top: 4px;
+}
+
+.apixer-sheet-handle-zone:active {
+  cursor: grabbing;
+}
+
+.apixer-sheet-notch {
+  width: 44px;
+  height: 5px;
+  background: rgba(15, 23, 42, 0.28);
+  border-radius: 9999px;
+  transition: all 0.2s ease;
+  pointer-events: none;
+}
+
+.apixer-sheet-handle-zone:hover .apixer-sheet-notch {
+  width: 56px;
+  height: 6px;
+  background: rgba(15, 23, 42, 0.45);
+}
+
+/* Top Navigation Bar — Centered Brand Logo */
+.apixer-sender-top-bar {
+  padding: 2px 20px 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
   flex-shrink: 0;
 }
 
 .apixer-sender-brand-logo {
-  font-size: 22px;
+  font-size: 26px;
   font-weight: 900;
-  letter-spacing: 5px;
+  letter-spacing: 6px;
   color: #111827;
   margin: 0;
   font-family: inherit;
+  text-align: center;
 }
 
 .apixer-sender-brand-logo span {
   display: inline-block;
   letter-spacing: 3px;
-}
-
-.apixer-sender-back-pill {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  color: #0f172a;
-  font-size: 13px;
-  font-weight: 600;
-  padding: 6px 14px;
-  border-radius: 999px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-}
-
-.apixer-sender-back-pill:hover:not(:disabled) {
-  background: #f8fafc;
-  transform: scale(1.02);
 }
 
 /* Hero Naruto Character Image (Exact Login Hero) */
