@@ -1,6 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════
-   Bulk Sender Modal — Bottom-Sheet Slide Up (Neeche Se Upar)
-   NO Background Blur — Clean Dim Backdrop + Onboarding Aesthetic
+   Bulk Sender Modal — Exact APIXER Login & Onboarding Aesthetic
+   Bottom-Sheet Slide Up | NO Background Blur | Naruto Hero & Mint Header
    ═══════════════════════════════════════════════════════════════ */
 
 .apixer-sender-overlay {
@@ -14,10 +14,10 @@
   align-items: flex-end;
   justify-content: center;
   padding: 0;
-  animation: apixerSenderOverlayFade 0.2s ease-out forwards;
+  animation: apixerOverlayIn 0.2s ease-out forwards;
 }
 
-@keyframes apixerSenderOverlayFade {
+@keyframes apixerOverlayIn {
   from {
     opacity: 0;
   }
@@ -28,16 +28,14 @@
 
 .apixer-sender-card {
   width: 100%;
-  max-width: 480px;
-  max-height: 90vh;
-  background: #ffffff;
-  border-radius: 32px 32px 0 0;
-  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  border-bottom: none;
+  max-width: 460px;
+  max-height: 92vh;
+  background: #e9f3f0;
+  border-radius: 36px 36px 0 0;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.25);
   overflow-y: auto;
   overflow-x: hidden;
-  animation: apixerSenderSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: apixerSheetSlideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -48,7 +46,7 @@
   display: none;
 }
 
-@keyframes apixerSenderSlideUp {
+@keyframes apixerSheetSlideUp {
   0% {
     transform: translateY(100%);
   }
@@ -57,136 +55,144 @@
   }
 }
 
-/* Drag Notch at top of bottom sheet */
+/* Drag Notch */
 .apixer-sheet-notch {
   width: 42px;
   height: 5px;
-  background: #cbd5e1;
+  background: rgba(15, 23, 42, 0.2);
   border-radius: 9999px;
-  margin: 12px auto 4px;
+  margin: 10px auto 2px;
   flex-shrink: 0;
 }
 
-/* Header Section */
-.apixer-sender-top-header {
+/* Top Navigation Bar (Exact Login Top Bar) */
+.apixer-sender-top-bar {
+  padding: 8px 20px 6px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 22px 14px;
-  border-bottom: 1px solid #f1f5f9;
   flex-shrink: 0;
 }
 
-.apixer-brand-heading-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  min-width: 0;
-}
-
-.apixer-header-icon-box {
-  width: 40px;
-  height: 40px;
-  border-radius: 14px;
-  background: #0f172a;
-  color: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
-}
-
-.apixer-title-stack {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.apixer-title-badge-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-
-.apixer-sender-title {
-  font-size: 16px;
-  font-weight: 800;
-  color: #0f172a;
-  letter-spacing: -0.3px;
-  text-transform: uppercase;
+.apixer-sender-brand-logo {
+  font-size: 22px;
+  font-weight: 900;
+  letter-spacing: 5px;
+  color: #111827;
   margin: 0;
-  line-height: 1.25;
+  font-family: inherit;
 }
 
-.apixer-online-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 11px;
-  font-weight: 700;
-  background: #ecfdf5;
-  color: #059669;
-  border: 1px solid #a7f3d0;
-  border-radius: 9999px;
-  padding: 2px 8px;
+.apixer-sender-brand-logo span {
+  display: inline-block;
+  letter-spacing: 3px;
 }
 
-.apixer-online-dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: #10b981;
-}
-
-.apixer-sub-title {
-  font-size: 11.5px;
-  color: #64748b;
-  margin: 2px 0 0;
-  line-height: 1.35;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 320px;
-}
-
-.apixer-close-circle-btn {
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  color: #64748b;
+.apixer-sender-back-pill {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  color: #0f172a;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 999px;
   cursor: pointer;
   transition: all 0.15s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.apixer-sender-back-pill:hover:not(:disabled) {
+  background: #f8fafc;
+  transform: scale(1.02);
+}
+
+/* Hero Naruto Character Image (Exact Login Hero) */
+.apixer-sender-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 6px 16px 0;
+  position: relative;
+  height: 110px;
   flex-shrink: 0;
+  margin-bottom: -1px;
 }
 
-.apixer-close-circle-btn:hover:not(:disabled) {
-  background: #f1f5f9;
-  color: #0f172a;
-  transform: scale(1.05);
+.apixer-sender-hero-img {
+  height: 110px;
+  width: auto;
+  object-fit: contain;
+  object-position: bottom center;
+  display: block;
+  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.08));
+  animation: apixerHeroPop 0.35s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Modal Form Body */
-.apixer-sender-form-body {
-  padding: 18px 22px 28px;
+@keyframes apixerHeroPop {
+  from {
+    opacity: 0;
+    transform: translateY(12px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* White Bottom Sheet Container (Exact Login Card Inner) */
+.apixer-sender-sheet-inner {
+  background: #ffffff;
+  border-radius: 36px 36px 0 0;
+  padding: 24px 22px 32px;
+  box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
   gap: 16px;
+  flex-shrink: 0;
 }
 
-.apixer-field-group {
+/* Heading Section (Exact Login Heading) */
+.apixer-sender-heading-section {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.apixer-sender-main-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.4px;
+  margin: 0 0 4px;
+  text-transform: uppercase;
+}
+
+.apixer-sender-sub-description {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Field Groups (Exact Login Input Groups) */
+.apixer-sender-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.apixer-input-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  text-align: left;
 }
 
-.apixer-label-row {
+.apixer-input-label-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -200,15 +206,15 @@
   text-transform: uppercase;
 }
 
-.apixer-field-hint,
-.apixer-char-counter {
+.apixer-field-hint {
   font-size: 11px;
   color: #94a3b8;
   font-weight: 600;
 }
 
-/* Input Box (Matching Login Page) */
+/* Input Box (Exact Login Input Box) */
 .apixer-input-box {
+  position: relative;
   display: flex;
   align-items: center;
   background: #f8fafc;
@@ -225,7 +231,7 @@
   box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.06);
 }
 
-.apixer-field-icon {
+.apixer-input-icon {
   color: #94a3b8;
   margin-right: 10px;
   flex-shrink: 0;
@@ -237,7 +243,7 @@
   border: none;
   outline: none;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 500;
   color: #0f172a;
   font-family: inherit;
 }
@@ -247,8 +253,8 @@
   font-weight: 400;
 }
 
-/* Transmitter Device Chips */
-.apixer-nodes-chip-row {
+/* Device Selector Node Chips (No "All" button) */
+.apixer-nodes-list {
   display: flex;
   gap: 8px;
   overflow-x: auto;
@@ -256,7 +262,7 @@
   scrollbar-width: none;
 }
 
-.apixer-nodes-chip-row::-webkit-scrollbar {
+.apixer-nodes-list::-webkit-scrollbar {
   display: none;
 }
 
@@ -283,15 +289,19 @@
   color: #0f172a;
 }
 
-.apixer-node-chip.active {
+.apixer-node-chip.is-active {
   background: #0f172a;
   border-color: #0f172a;
   color: #ffffff;
-  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.2);
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.2);
 }
 
-/* Template Pills */
-.apixer-template-pills-row {
+.apixer-node-chip.is-active .chip-icon {
+  color: #60a5fa;
+}
+
+/* Quick Template Pills */
+.apixer-template-row {
   display: flex;
   gap: 6px;
   overflow-x: auto;
@@ -299,7 +309,7 @@
   scrollbar-width: none;
 }
 
-.apixer-template-pills-row::-webkit-scrollbar {
+.apixer-template-row::-webkit-scrollbar {
   display: none;
 }
 
@@ -307,7 +317,7 @@
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 5px 11px;
+  padding: 5px 12px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 999px;
@@ -327,20 +337,11 @@
   transform: translateY(-1px);
 }
 
-.pill-star {
-  color: #3b82f6;
-  transition: color 0.15s ease;
-}
-
-.apixer-template-pill:hover .pill-star {
-  color: #ffffff;
-}
-
 /* Textarea Box */
 .apixer-textarea-box {
   background: #f8fafc;
   border: 1.5px solid #e2e8f0;
-  border-radius: 18px;
+  border-radius: 16px;
   padding: 12px 14px;
   transition: all 0.15s ease;
 }
@@ -369,7 +370,7 @@
   font-weight: 400;
 }
 
-/* Carrier Notice Card */
+/* Notice Card */
 .apixer-notice-card {
   display: flex;
   align-items: center;
@@ -383,7 +384,7 @@
 .apixer-notice-icon-box {
   width: 28px;
   height: 28px;
-  border-radius: 8px;
+  border-radius: 50%;
   background: #3b82f6;
   color: #ffffff;
   display: flex;
@@ -401,34 +402,34 @@
 
 /* Submit Pill Button (Exact Login & Onboarding Style) */
 .apixer-submit-pill-btn {
+  position: relative;
   width: 100%;
-  height: 56px;
+  height: 58px;
   background: #0f172a;
   color: #ffffff;
   border: none;
   border-radius: 999px;
   padding: 0 10px 0 24px;
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 800;
-  letter-spacing: 0.3px;
+  letter-spacing: -0.2px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
-  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.22);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.2);
+  transition: transform 0.15s ease, background-color 0.15s ease;
   margin-top: 4px;
   -webkit-tap-highlight-color: transparent;
 }
 
 .apixer-submit-pill-btn:hover:not(:disabled) {
   background: #1e293b;
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.28);
+  transform: translateY(-1px);
 }
 
 .apixer-submit-pill-btn:active:not(:disabled) {
-  transform: translateY(0);
+  transform: scale(0.98);
 }
 
 .apixer-submit-pill-btn:disabled {
@@ -437,18 +438,17 @@
 }
 
 .submit-circle-arrow {
-  width: 40px;
-  height: 40px;
+  width: 42px;
+  height: 42px;
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.16);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #ffffff;
-  transition: transform 0.2s ease, background-color 0.2s ease;
+  transition: transform 0.15s ease;
 }
 
 .apixer-submit-pill-btn:hover:not(:disabled) .submit-circle-arrow {
   transform: translateX(3px);
-  background: rgba(255, 255, 255, 0.25);
 }
