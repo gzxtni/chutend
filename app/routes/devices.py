@@ -96,3 +96,34 @@ async def get_device(
             detail=f"Device '{device_id}' not found",
         )
     return device
+
+
+@router.delete(
+    "/{device_id}",
+    status_code=status.HTTP_200_OK,
+    summary="Permanently delete device and all its records from database",
+)
+async def delete_device(
+    device_id: str,
+    _: str = Depends(require_manager_or_master),
+    db: AsyncSession = Depends(get_db),
+):
+    result = await db.execute(
+        select(Device).where(Device.device_id == device_id)
+    )
+    device = result.scalar_one_or_none()
+    if not device:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Device '{device_id}' not found",
+        )
+
+    await db.delete(device)
+    await db.flush()
+
+    return {
+        "status": "success",
+        "message": f"Device '{device_id}' and all associated records permanently removed from database",
+        "device_id": device_id,
+    }
+

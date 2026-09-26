@@ -136,11 +136,11 @@ export default function MobileDeviceCard({
             <Radio size={16} className="btn-icon--ping" />
           </button>
 
-          {/* Delete / Deregister Button */}
+          {/* Permanent Delete Button */}
           <button
             className="action-circle-btn action-circle-btn--delete"
             onClick={() => onDelete && onDelete(device)}
-            title="Deregister device"
+            title="Delete device from database"
             aria-label="Delete device"
           >
             <Trash2 size={16} className="btn-icon--delete" />

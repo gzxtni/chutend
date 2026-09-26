@@ -742,7 +742,7 @@ export default function DeviceDetailPage({
           <button
             className="native-icon-btn delete"
             onClick={() => onDeleteDevice && onDeleteDevice(device)}
-            title="Deregister"
+            title="Delete device from database"
             aria-label="Delete"
           >
             <Trash2 size={16} />

@@ -110,6 +110,11 @@ export function getDevice(deviceId) {
   return request('GET', `/devices/${deviceId}`);
 }
 
+/** Permanently delete a device and all its records from database */
+export function deleteDevice(deviceId) {
+  return request('DELETE', `/devices/${encodeURIComponent(deviceId)}`);
+}
+
 // ── Events / Logs ────────────────────────────────────────────
 
 /** Fetch recent events (SMS + calls) for a device */

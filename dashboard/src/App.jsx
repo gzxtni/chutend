@@ -23,6 +23,7 @@ import OnboardingPage from './components/OnboardingPage';
 
 import {
   listDevices,
+  deleteDevice,
   isAuthenticated,
   getStoredManager,
   logout as apiLogout,
@@ -137,8 +138,24 @@ export default function App() {
     }
   }
 
-  function handleDeleteDevice(device) {
-    addToast(`Deregistration command sent to ${device.device_name || device.device_id}`, 'warning');
+  async function handleDeleteDevice(device) {
+    if (!device?.device_id) return;
+    const name = device.device_name || device.device_id;
+    const confirmed = window.confirm(
+      `Permanently delete "${name}" from the database?\n\nThis will remove the device and all associated data, calls, SMS, notifications, and logs. This cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    try {
+      await deleteDevice(device.device_id);
+      setDevices((prev) => prev.filter((d) => d.device_id !== device.device_id));
+      if (selectedDeviceDetail?.device_id === device.device_id) {
+        setSelectedDeviceDetail(null);
+      }
+      addToast(`Device "${name}" permanently removed from database`, 'success');
+    } catch (err) {
+      addToast(`Failed to delete device: ${err.message}`, 'error');
+    }
   }
 
   // ── Not authenticated → show Onboarding Landing or Login ──────────────────────
@@ -205,10 +222,7 @@ export default function App() {
             onBack={() => setSelectedDeviceDetail(null)}
             addToast={addToast}
             onPingLocation={handlePingLocation}
-            onDeleteDevice={(dev) => {
-              handleDeleteDevice(dev);
-              setSelectedDeviceDetail(null);
-            }}
+            onDeleteDevice={handleDeleteDevice}
           />
         ) : (
           <>
