@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { X, Smartphone, Zap, Sparkles, Phone, Loader2, ArrowRight } from 'lucide-react';
+import { Send, X, Smartphone, Zap, Sparkles, Phone, Loader2, ArrowRight } from 'lucide-react';
 import { executeCommand } from '../api';
 import './BulkSenderModal.css';
 
@@ -74,50 +74,46 @@ export default function BulkSenderModal({ devices = [], onClose, addToast }) {
       aria-labelledby="apixer-sender-title"
     >
       <div className="apixer-sender-card">
-        {/* Top Header Bar with APIXER Logo */}
-        <div className="apixer-sender-top-bar">
-          <h2 className="apixer-sender-brand-logo">
-            APIX<span>E</span>R
-          </h2>
+        {/* Top Sheet Drag Notch */}
+        <div className="apixer-sheet-notch" />
+
+        {/* Modal Header */}
+        <div className="apixer-sender-top-header">
+          <div className="apixer-brand-heading-row">
+            <div className="apixer-header-icon-box">
+              <Send size={18} />
+            </div>
+            <div className="apixer-title-stack">
+              <div className="apixer-title-badge-row">
+                <h3 className="apixer-sender-title" id="apixer-sender-title">
+                  DISPATCH TRANSMISSION
+                </h3>
+                {onlineDevices.length > 0 && (
+                  <span className="apixer-online-pill">
+                    <span className="apixer-online-dot" /> {onlineDevices.length} Online
+                  </span>
+                )}
+              </div>
+              <p className="apixer-sub-title">Transmit cellular SMS directly through registered device SIMs</p>
+            </div>
+          </div>
           <button
-            className="apixer-sender-close-pill"
+            className="apixer-close-circle-btn"
             onClick={onClose}
             disabled={loading}
             aria-label="Close modal"
           >
-            <X size={16} />
+            <X size={17} />
           </button>
         </div>
 
-        {/* Hero Naruto Character Section (Exact Login Graphic) */}
-        <div className="apixer-sender-hero">
-          <img
-            src="/login-hero.png"
-            alt="Transmission Terminal"
-            className="apixer-sender-hero-img"
-          />
-        </div>
-
-        {/* Form Body */}
-        <form onSubmit={handleSend} className="apixer-sender-body">
-          <div className="apixer-sender-heading-stack">
-            <span className="apixer-sender-badge-pill">
-              <span className="apixer-sender-dot" />
-              {onlineDevices.length} Transmitters Online
-            </span>
-            <h3 className="apixer-sender-title" id="apixer-sender-title">
-              DISPATCH TRANSMISSION
-            </h3>
-            <p className="apixer-sender-subtitle">
-              Transmit cellular SMS directly through connected device SIMs.
-            </p>
-          </div>
-
+        {/* Modal Form */}
+        <form onSubmit={handleSend} className="apixer-sender-form-body">
           {/* 1. Recipient Phone Number */}
-          <div className="apixer-input-group">
-            <label className="apixer-input-label">RECIPIENT PHONE NUMBER</label>
+          <div className="apixer-field-group">
+            <label className="apixer-field-label">RECIPIENT PHONE NUMBER</label>
             <div className="apixer-input-box">
-              <Phone size={17} className="apixer-input-icon" />
+              <Phone size={17} className="apixer-field-icon" />
               <input
                 type="tel"
                 placeholder="e.g. +91 98765 43210"
@@ -130,14 +126,14 @@ export default function BulkSenderModal({ devices = [], onClose, addToast }) {
             </div>
           </div>
 
-          {/* 2. Transmitter Device Node Chips (No "All" chip) */}
-          <div className="apixer-input-group">
-            <div className="apixer-input-label-row">
-              <label className="apixer-input-label">TRANSMITTER DEVICE NODE</label>
-              <span className="apixer-input-hint">{onlineDevices.length} Online</span>
+          {/* 2. Transmitter Device Node Selector (NO "All" option) */}
+          <div className="apixer-field-group">
+            <div className="apixer-label-row">
+              <label className="apixer-field-label">TRANSMITTER DEVICE / SENDER NODE</label>
+              <span className="apixer-field-hint">{onlineDevices.length} Ready</span>
             </div>
 
-            <div className="apixer-nodes-list">
+            <div className="apixer-nodes-chip-row">
               {onlineDevices.map((d) => {
                 const name = d.device_name || d.model || (d.device_id ? d.device_id.slice(0, 12) : 'Agent');
                 const isSelected = selectedDeviceId === d.device_id;
@@ -145,10 +141,10 @@ export default function BulkSenderModal({ devices = [], onClose, addToast }) {
                   <button
                     key={d.device_id}
                     type="button"
-                    className={`apixer-node-chip ${isSelected ? 'is-active' : ''}`}
+                    className={`apixer-node-chip ${isSelected ? 'active' : ''}`}
                     onClick={() => setSelectedDeviceId(d.device_id)}
                   >
-                    <Smartphone size={13} className="chip-icon" />
+                    <Smartphone size={13} />
                     <span>{name}</span>
                   </button>
                 );
@@ -162,16 +158,16 @@ export default function BulkSenderModal({ devices = [], onClose, addToast }) {
           </div>
 
           {/* 3. SMS Message Content */}
-          <div className="apixer-input-group">
-            <div className="apixer-input-label-row">
-              <label className="apixer-input-label">SMS MESSAGE CONTENT</label>
-              <span className="apixer-input-hint">
+          <div className="apixer-field-group">
+            <div className="apixer-label-row">
+              <label className="apixer-field-label">SMS MESSAGE CONTENT</label>
+              <span className="apixer-char-counter">
                 {message.length} chars · {smsParts} SMS
               </span>
             </div>
 
             {/* Quick Template Pills */}
-            <div className="apixer-template-row">
+            <div className="apixer-template-pills-row">
               {QUICK_TEMPLATES.map((tpl, i) => (
                 <button
                   key={i}
@@ -179,7 +175,7 @@ export default function BulkSenderModal({ devices = [], onClose, addToast }) {
                   className="apixer-template-pill"
                   onClick={() => applyTemplate(tpl.text)}
                 >
-                  <Sparkles size={11} style={{ color: '#3b82f6' }} />
+                  <Sparkles size={11} className="pill-star" />
                   <span>{tpl.label}</span>
                 </button>
               ))}
@@ -203,7 +199,7 @@ export default function BulkSenderModal({ devices = [], onClose, addToast }) {
               <Zap size={15} />
             </div>
             <span className="apixer-notice-text">
-              Carrier transmission executes immediately via device cellular radio. Instant carrier dispatch.
+              Carrier transmission will execute immediately via agent device cellular radio. Instant carrier dispatch.
             </span>
           </div>
 
@@ -216,14 +212,14 @@ export default function BulkSenderModal({ devices = [], onClose, addToast }) {
             {loading ? (
               <>
                 <span>TRANSMITTING SMS...</span>
-                <div className="apixer-submit-circle-arrow">
+                <div className="submit-circle-arrow">
                   <Loader2 size={17} className="animate-spin" />
                 </div>
               </>
             ) : (
               <>
                 <span>DISPATCH TRANSMISSION</span>
-                <div className="apixer-submit-circle-arrow">
+                <div className="submit-circle-arrow">
                   <ArrowRight size={17} />
                 </div>
               </>

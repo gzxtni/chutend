@@ -1,19 +1,19 @@
 /* ═══════════════════════════════════════════════════════════════
-   Bulk Sender Modal — APIXER Login & Onboarding Theme
-   Matches the exact Naruto Hero, Typography & Pill Button aesthetic
+   Bulk Sender Modal — Bottom-Sheet Slide Up (Neeche Se Upar)
+   NO Background Blur — Clean Dim Backdrop + Onboarding Aesthetic
    ═══════════════════════════════════════════════════════════════ */
 
 .apixer-sender-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.65);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
   z-index: 9999;
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: center;
-  padding: 16px;
+  padding: 0;
   animation: apixerSenderOverlayFade 0.2s ease-out forwards;
 }
 
@@ -28,14 +28,16 @@
 
 .apixer-sender-card {
   width: 100%;
-  max-width: 440px;
+  max-width: 480px;
   max-height: 90vh;
   background: #ffffff;
-  border-radius: 36px;
-  box-shadow: 0 25px 65px -12px rgba(15, 23, 42, 0.35), 0 0 0 1px rgba(226, 232, 240, 0.9);
+  border-radius: 32px 32px 0 0;
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-bottom: none;
   overflow-y: auto;
   overflow-x: hidden;
-  animation: apixerSenderCardPop 0.26s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: apixerSenderSlideUp 0.28s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   display: flex;
   flex-direction: column;
   position: relative;
@@ -46,179 +48,166 @@
   display: none;
 }
 
-@keyframes apixerSenderCardPop {
+@keyframes apixerSenderSlideUp {
   0% {
-    opacity: 0;
-    transform: scale(0.92) translateY(12px);
+    transform: translateY(100%);
   }
   100% {
-    opacity: 1;
-    transform: scale(1) translateY(0);
+    transform: translateY(0);
   }
 }
 
-/* Top Navigation Bar */
-.apixer-sender-top-bar {
-  padding: 16px 22px 10px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #e9f3f0;
-  border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+/* Drag Notch at top of bottom sheet */
+.apixer-sheet-notch {
+  width: 42px;
+  height: 5px;
+  background: #cbd5e1;
+  border-radius: 9999px;
+  margin: 12px auto 4px;
   flex-shrink: 0;
 }
 
-.apixer-sender-brand-logo {
-  font-size: 20px;
-  font-weight: 900;
-  letter-spacing: 4px;
-  color: #111827;
-  margin: 0;
-  font-family: inherit;
+/* Header Section */
+.apixer-sender-top-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 22px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  flex-shrink: 0;
 }
 
-.apixer-sender-brand-logo span {
-  display: inline-block;
-  letter-spacing: 2px;
+.apixer-brand-heading-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
 }
 
-.apixer-sender-close-pill {
+.apixer-header-icon-box {
+  width: 40px;
+  height: 40px;
+  border-radius: 14px;
+  background: #0f172a;
+  color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  color: #475569;
-  border-radius: 50%;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.2);
 }
 
-.apixer-sender-close-pill:hover:not(:disabled) {
+.apixer-title-stack {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.apixer-title-badge-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.apixer-sender-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.3px;
+  text-transform: uppercase;
+  margin: 0;
+  line-height: 1.25;
+}
+
+.apixer-online-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+  border-radius: 9999px;
+  padding: 2px 8px;
+}
+
+.apixer-online-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #10b981;
+}
+
+.apixer-sub-title {
+  font-size: 11.5px;
+  color: #64748b;
+  margin: 2px 0 0;
+  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 320px;
+}
+
+.apixer-close-circle-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.apixer-close-circle-btn:hover:not(:disabled) {
   background: #f1f5f9;
   color: #0f172a;
   transform: scale(1.05);
 }
 
-/* Hero Section with Login Character Graphic */
-.apixer-sender-hero {
-  background: linear-gradient(180deg, #e9f3f0 0%, #ffffff 100%);
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding: 10px 16px 0;
-  position: relative;
-  overflow: hidden;
-  height: 120px;
-  flex-shrink: 0;
-}
-
-.apixer-sender-hero-img {
-  height: 120px;
-  width: auto;
-  object-fit: contain;
-  object-position: bottom center;
-  display: block;
-  filter: drop-shadow(0 6px 14px rgba(0, 0, 0, 0.09));
-  animation: apixerSenderHeroSlide 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-@keyframes apixerSenderHeroSlide {
-  from {
-    opacity: 0;
-    transform: translateY(14px) scale(0.96);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-/* Body Form Content */
-.apixer-sender-body {
-  padding: 14px 22px 24px;
+/* Modal Form Body */
+.apixer-sender-form-body {
+  padding: 18px 22px 28px;
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 16px;
 }
 
-.apixer-sender-heading-stack {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.apixer-sender-badge-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 10.5px;
-  font-weight: 800;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-  color: #059669;
-  background: #ecfdf5;
-  border: 1px solid #a7f3d0;
-  padding: 3px 10px;
-  border-radius: 999px;
-  margin-bottom: 6px;
-}
-
-.apixer-sender-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #10b981;
-}
-
-.apixer-sender-title {
-  font-size: 20px;
-  font-weight: 900;
-  color: #0f172a;
-  letter-spacing: -0.4px;
-  margin: 0 0 4px;
-  text-transform: uppercase;
-}
-
-.apixer-sender-subtitle {
-  font-size: 12.5px;
-  color: #64748b;
-  margin: 0;
-  line-height: 1.4;
-}
-
-/* Field Groups (Matching Login Page) */
-.apixer-input-group {
+.apixer-field-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  text-align: left;
 }
 
-.apixer-input-label-row {
+.apixer-label-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.apixer-input-label {
+.apixer-field-label {
   font-size: 11px;
-  font-weight: 800;
+  font-weight: 700;
   color: #475569;
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
 
-.apixer-input-hint {
+.apixer-field-hint,
+.apixer-char-counter {
   font-size: 11px;
   color: #94a3b8;
   font-weight: 600;
 }
 
+/* Input Box (Matching Login Page) */
 .apixer-input-box {
   display: flex;
   align-items: center;
@@ -236,7 +225,7 @@
   box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.06);
 }
 
-.apixer-input-icon {
+.apixer-field-icon {
   color: #94a3b8;
   margin-right: 10px;
   flex-shrink: 0;
@@ -258,8 +247,8 @@
   font-weight: 400;
 }
 
-/* Device Selector Node Chips (No "All" button, clean node pills) */
-.apixer-nodes-list {
+/* Transmitter Device Chips */
+.apixer-nodes-chip-row {
   display: flex;
   gap: 8px;
   overflow-x: auto;
@@ -267,7 +256,7 @@
   scrollbar-width: none;
 }
 
-.apixer-nodes-list::-webkit-scrollbar {
+.apixer-nodes-chip-row::-webkit-scrollbar {
   display: none;
 }
 
@@ -294,19 +283,15 @@
   color: #0f172a;
 }
 
-.apixer-node-chip.is-active {
+.apixer-node-chip.active {
   background: #0f172a;
   border-color: #0f172a;
   color: #ffffff;
-  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.22);
-}
-
-.apixer-node-chip.is-active .chip-icon {
-  color: #60a5fa;
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.2);
 }
 
 /* Template Pills */
-.apixer-template-row {
+.apixer-template-pills-row {
   display: flex;
   gap: 6px;
   overflow-x: auto;
@@ -314,7 +299,7 @@
   scrollbar-width: none;
 }
 
-.apixer-template-row::-webkit-scrollbar {
+.apixer-template-pills-row::-webkit-scrollbar {
   display: none;
 }
 
@@ -340,6 +325,15 @@
   color: #ffffff;
   border-color: #0f172a;
   transform: translateY(-1px);
+}
+
+.pill-star {
+  color: #3b82f6;
+  transition: color 0.15s ease;
+}
+
+.apixer-template-pill:hover .pill-star {
+  color: #ffffff;
 }
 
 /* Textarea Box */
@@ -375,21 +369,21 @@
   font-weight: 400;
 }
 
-/* Notice Card */
+/* Carrier Notice Card */
 .apixer-notice-card {
   display: flex;
   align-items: center;
   gap: 10px;
   background: #eff6ff;
   border: 1px solid #dbeafe;
-  border-radius: 16px;
+  border-radius: 14px;
   padding: 10px 14px;
 }
 
 .apixer-notice-icon-box {
   width: 28px;
   height: 28px;
-  border-radius: 999px;
+  border-radius: 8px;
   background: #3b82f6;
   color: #ffffff;
   display: flex;
@@ -413,7 +407,7 @@
   color: #ffffff;
   border: none;
   border-radius: 999px;
-  padding: 0 8px 0 24px;
+  padding: 0 10px 0 24px;
   font-size: 15px;
   font-weight: 800;
   letter-spacing: 0.3px;
@@ -421,7 +415,7 @@
   align-items: center;
   justify-content: space-between;
   cursor: pointer;
-  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.22);
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.22);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   margin-top: 4px;
   -webkit-tap-highlight-color: transparent;
@@ -442,7 +436,7 @@
   cursor: not-allowed;
 }
 
-.apixer-submit-circle-arrow {
+.submit-circle-arrow {
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -454,7 +448,7 @@
   transition: transform 0.2s ease, background-color 0.2s ease;
 }
 
-.apixer-submit-pill-btn:hover:not(:disabled) .apixer-submit-circle-arrow {
+.apixer-submit-pill-btn:hover:not(:disabled) .submit-circle-arrow {
   transform: translateX(3px);
   background: rgba(255, 255, 255, 0.25);
 }
