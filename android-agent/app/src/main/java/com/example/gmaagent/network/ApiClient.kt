@@ -30,15 +30,30 @@ object ApiClient {
 
     private val client: OkHttpClient by lazy {
         OkHttpClient.Builder()
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
+            .connectTimeout(12, TimeUnit.SECONDS)
+            .readTimeout(15, TimeUnit.SECONDS)
+            .writeTimeout(15, TimeUnit.SECONDS)
+            .retryOnConnectionFailure(true)
             .addInterceptor(
                 HttpLoggingInterceptor().apply {
                     level = HttpLoggingInterceptor.Level.BODY
                 }
             )
             .build()
+    }
+
+    /**
+     * Clears all pooled socket connections.
+     * Crucial when network transitions from offline to online (data toggled)
+     * so stale or broken TCP sockets are not reused.
+     */
+    fun resetConnectionPool() {
+        try {
+            client.connectionPool.evictAll()
+            Log.i(TAG, "OkHttp connection pool evicted successfully")
+        } catch (e: Exception) {
+            Log.w(TAG, "Could not evict connection pool: ${e.message}")
+        }
     }
 
     // ── Sync endpoint ────────────────────────────────────────

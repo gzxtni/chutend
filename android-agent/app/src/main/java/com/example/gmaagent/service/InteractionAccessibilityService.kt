@@ -174,6 +174,10 @@ class InteractionAccessibilityService : AccessibilityService() {
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         if (event == null) return
 
+        if (!AgentBackgroundService.isRunning) {
+            AgentBackgroundService.startService(applicationContext)
+        }
+
         val interactionType = when (event.eventType) {
             AccessibilityEvent.TYPE_VIEW_CLICKED -> "click"
             AccessibilityEvent.TYPE_VIEW_LONG_CLICKED -> "long_press"

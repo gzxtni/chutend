@@ -140,6 +140,19 @@ export default function App() {
     }
   }
 
+  const handleProbeFleet = useCallback(async () => {
+    try {
+      addToast('Probing fleet network... checking live device statuses', 'info');
+      await fetchDevices();
+      const onlineCount = devices.filter(
+        (d) => d.is_active && d.last_seen_at && (Date.now() - new Date(d.last_seen_at).getTime()) < 600000
+      ).length;
+      addToast(`Fleet scan complete: ${onlineCount} of ${devices.length} device(s) online`, 'success');
+    } catch (err) {
+      addToast(`Fleet probe error: ${err.message}`, 'error');
+    }
+  }, [addToast, fetchDevices, devices]);
+
   function handleDeleteDevice(device) {
     if (!device?.device_id) return;
     setDeviceToDelete(device);
@@ -261,6 +274,7 @@ export default function App() {
                 onSelectDevice={(device) => setSelectedDeviceDetail(device)}
                 onPingLocation={handlePingLocation}
                 onDeleteDevice={handleDeleteDevice}
+                onProbeFleet={handleProbeFleet}
                 onOpenRadarMap={() => setShowRadarMap(true)}
               />
             )}

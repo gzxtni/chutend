@@ -205,14 +205,44 @@
 
 .fab-radio-icon {
   stroke-width: 2.2px;
+  transition: transform 0.2s ease;
+}
+
+.radar-map-fab.is-probing {
+  background: #0284c7;
+  box-shadow: 0 0 24px rgba(2, 132, 199, 0.65);
+}
+
+.fab-radio-scanning {
+  animation: fab-scan-pulse 1s linear infinite;
+}
+
+@keyframes fab-scan-pulse {
+  0% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.15) rotate(180deg); }
+  100% { transform: scale(1) rotate(360deg); }
+}
+
+.fab-probe-ping-ring {
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+  border: 2px solid #38bdf8;
+  animation: fab-ping-wave 1.2s cubic-bezier(0, 0.2, 0.8, 1) infinite;
+  pointer-events: none;
+}
+
+@keyframes fab-ping-wave {
+  0% { transform: scale(0.8); opacity: 1; }
+  100% { transform: scale(1.6); opacity: 0; }
 }
 
 /* Bottom Sheet */
 .sheet-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.4);
-  backdrop-filter: blur(4px);
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: none !important;
   z-index: 110;
 }
 

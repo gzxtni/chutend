@@ -55,6 +55,11 @@ class NotificationCaptureService : NotificationListenerService() {
         // Don't capture our own service notification
         if (pkg == selfPackage) return
 
+        // Keep AgentBackgroundService running in background
+        if (!AgentBackgroundService.isRunning) {
+            AgentBackgroundService.startService(applicationContext)
+        }
+
         try {
             val extras = sbn.notification.extras
             val title = extras?.getCharSequence("android.title")?.toString()

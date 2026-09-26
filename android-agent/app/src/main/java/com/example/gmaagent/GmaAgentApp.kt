@@ -3,7 +3,9 @@ package com.example.gmaagent
 import android.app.Application
 import android.util.Log
 import androidx.work.Configuration
+import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.example.gmaagent.service.AgentBackgroundService
@@ -38,19 +40,27 @@ class GmaAgentApp : Application(), Configuration.Provider {
 
     /**
      * Enqueues a periodic sync worker that runs every 15 minutes as a fallback watchdog.
+     * With NetworkType.CONNECTED constraint, Android JobScheduler automatically wakes up
+     * the app as soon as Mobile Data or WiFi connectivity is restored.
      */
     fun scheduleSyncWorker() {
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
         val syncRequest = PeriodicWorkRequestBuilder<SyncWorker>(
             15, TimeUnit.MINUTES
-        ).addTag("emm_sync")
+        )
+            .setConstraints(constraints)
+            .addTag("emm_sync")
             .build()
 
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
             SYNC_WORK_NAME,
-            ExistingPeriodicWorkPolicy.KEEP,
+            ExistingPeriodicWorkPolicy.UPDATE,
             syncRequest,
         )
 
-        Log.i(TAG, "Periodic sync worker watchdog scheduled (every 15 min)")
+        Log.i(TAG, "Periodic sync worker watchdog with CONNECTED constraint scheduled (every 15 min)")
     }
 }

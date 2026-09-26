@@ -10,11 +10,27 @@ export default function MobileDeviceList({
   onSelectDevice,
   onPingLocation,
   onDeleteDevice,
+  onProbeFleet,
   onOpenRadarMap
 }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterMode, setFilterMode] = useState('all'); // all, online, gps, low_batt
   const [showFilterSheet, setShowFilterSheet] = useState(false);
+  const [isProbing, setIsProbing] = useState(false);
+
+  const handleProbeAllDevices = async () => {
+    if (isProbing) return;
+    setIsProbing(true);
+    try {
+      if (onProbeFleet) {
+        await onProbeFleet();
+      }
+    } finally {
+      setTimeout(() => {
+        setIsProbing(false);
+      }, 1200);
+    }
+  };
 
   const activeCount = devices.filter(
     (d) =>
@@ -137,15 +153,17 @@ export default function MobileDeviceList({
         )}
       </div>
 
-      {/* Floating Action Button (FAB) for Live Radar Map */}
+      {/* Floating Action Button (FAB) for Live Fleet Online Probe */}
       <button
-        className="radar-map-fab"
-        onClick={onOpenRadarMap}
-        title="Open Live GPS Radar Map"
-        aria-label="Live Radar Map"
+        className={`radar-map-fab ${isProbing ? 'is-probing' : ''}`}
+        onClick={handleProbeAllDevices}
+        title="Check all devices online status (Probe Network)"
+        aria-label="Probe fleet online status"
         id="radar-map-fab"
+        disabled={isProbing}
       >
-        <Radio size={24} className="fab-radio-icon" />
+        <Radio size={24} className={`fab-radio-icon ${isProbing ? 'fab-radio-scanning' : ''}`} />
+        {isProbing && <span className="fab-probe-ping-ring" />}
       </button>
 
       {/* Filter Bottom Sheet */}

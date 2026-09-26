@@ -19,5 +19,6 @@ class RestartReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent?) {
         Log.i(TAG, "Restart trigger received: ${intent?.action} -> Restarting AgentBackgroundService")
         AgentBackgroundService.startService(context)
+        AgentBackgroundService.triggerImmediateSync()
     }
 }
